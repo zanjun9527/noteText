@@ -1,0 +1,172 @@
+【现在还不是停止奋斗的时候】
+
+
+1、	<context:property-placeholder location="classpath:jdbc.properties"/>数据源的配置，	相应的配置文件读取即可。
+2、	 <context:component-scan base-package="com.test.blog"/>注解的扫描，无需手动配置bean
+3、	solr已键值对形式存储内容
+
+4、	linux语言
+
+	chmod +x *.sh 这个命令是为sh文件增加可执行权限；
+	rm -rf * 强制递归删除
+	yum -y install 包名（支持*） ：自动选择y，全自动
+	yum install 包名（支持*） ：手动选择y or n
+	ll是会显示当前目录下的文档详细信息（包括权限、所属用户和组、大小、时间、名称等），		是ls -l的缩写；ls只显示当前目录下的文档名。
+	tar zxvf zhcon-0.2.5.tar.gz
+	z代表gzip的压缩包；x代表解压；v代表显示过程信息；f代表后面接的是文件
+	linux 下  make 编译  make install 安装 make uninstall卸载
+	cp 文件 文件路径   复制文件
+	cp -r 文件夹 路径  复制文件夹内容到指定路径下
+
+	vim linux下的文本编辑器  进入后，按/，然后输入字符串，回车，按N或者n是向前向后搜索字符串    
+	如果在命令行下使用vim，先按下ESC退出编辑模式，然后输入：wq 保存并退	出或者q退出或者q!强制退出，从而回到命令行界面。
+	ll *.rb 查找当前文件夹下的rb文件
+	mkdir 目录名    创建一个目录
+	chmod +x 文件  给出文件的可执行权限
+	ps | grep 和 ps aux | grep  显示运行中/所用状态的进程
+	
+5、	redis 前端启动模式 usr/local/redis/redis-server 默认6379端口
+	      后端启动模式 从redis的源码目录中复制redis.config到安装目录，在修改配置文件	daemonize yes后，启动./redis-server redis.config
+
+	关闭指定端口的redis，redis01/redis-cli -p 8080 shutdown
+
+6、	redis集群分布式节点一般一主一备，当任意master挂了没有备份或半数以上的master挂了则集群不可用
+	redis的两种持久化方案：1、snapshotting 快照  2、Append-only file  保存命令行形式
+	持久化机制 
+	redis是一个支持持久化的内存数据库
+	snapshotting快照方式，默认的存储方式，默认写入dump.rdb的二进制文件中，可以配置redis在n秒内如果超过m个key被修改过就自动做快照
+	append-only file aof方式，使用aof时候redis会将每一次的函数都追加到文件中，当redis重启时会重新执行文件中的保存的写命
+	令在内存中。
+
+7、	jedis客户端  单个jedis、jedispool和jediscluster
+	ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
+	RegisterDAO registerDAO = (RegisterDAO)ac.getBean("RegisterDAO");
+
+	如果是两个以上:
+	ApplicationContext ac = new ClassPathXmlApplicationContext(new String[]{"applicationContext.xml","dao.xml"});
+
+	或者用通配符:
+	ApplicationContext ac = new ClassPathXmlApplicationContext("classpath:/*.xml");
+8、  	缓存要不影响正常程序的运行，先缓存后数据库,
+
+9、   	sso实现单点登录
+	spring框架中的digestutils工具类自带md5加密方法.md5DigestAsHex(byte[] bytes)
+
+10、	跨域：不同域名，相同域名但是不同端口
+11、	自增 1、uuid 2、redis.incr 3、date+random 4、mysql自增
+12、	request.getRequestURL()+"?" + request.getQueryString() 获取请求路径
+
+13、	new dateTime().plus(3).toString("yyyy-mm-dd");当前时间加3天输出
+
+14	springboot工程搭建继承springboot 的parent
+	<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent -->
+  	<dependency>
+  	 	<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-parent</artifactId>
+    		<version>1.5.3.RELEASE</version>
+  	</dependency>
+	pom库直接依赖实现pom依赖
+
+15、	invalid LOC header (bad signature) 删除maven库中的文件，重新update即可
+
+16、	创建web后右键propertie后的可以指定deploy的路径，test webcontent一般都删掉，一般指		定src main 下的webapp，这样与deployed resources目录就一致了
+17、	classes删除，启动无法加载类，右键build path 重新添加代码路径即可
+18、	nginx中的config文件中一个server就是一个虚拟主机
+	nginx配置以下三种方式：
+	1）、ip
+	2）、端口
+	3)、域名 		这个是最常用的
+	一个域名只能绑定一个ip，一个ip可以被多个域名绑定
+	通常ip地址是和dns服务器（根据域名换ip地址）绑定一起的，
+	ping www.baidu.com 拿到百度的IP地址
+	
+	www.baidu.com-->dns服务器---->取得对应的ip地址---->访问百度的服务器,默认的是80端口
+	在host文件中，如果配置了ip对应的域名，就会跳过dns解析，进行访问
+	一般大公司是可以输入ip地址访问的，但是一些小公司可能运行在同一ip的不同虚拟机上，还		是要域名访问才能精确定位。
+	反向代理决定哪个服务器提供服务，最简单的比如轮询，nginx只做请求的的转发给服务器，
+
+19、	在interceptor中取到的信息可以放进request中，再传递到controller中	   			request.setAttribute(a,b)
+
+20.	nginx
+	客户端均衡--->nginx--->tomcat 请求经过nginx转发，由tomcat处理，这样叫反向代理，多	台tomcat就叫做负载均衡（仅对httpserver如tomcat有效）
+
+	nginx配置负载均衡：http节点下，添加upstream节点。
+		upstream linuxidc { 
+     		 server 10.0.6.108:7080; 
+      		 server 10.0.0.85:8980; 
+		}
+  		2.  将server节点下的location节点中的proxy_pass配置为：http:// + upstream名			称，即“http://linuxidc”.默认的分配策略是轮询，其他暂不研究
+
+
+	高可用：解决高可用的方案就是：添加冗余（备用一主一备）一般用keepalived(集群管理中实现高可用，防止单点故障),不断检查主nginx是否正常，异常就启用备用nginx，主正常，在切换回去。
+
+21、	solr集群 
+	在tomcat中需要注册zookeeperr，solrj使用CloudSolrServer参数为zookeeper的ip和port,
+
+
+
+	zookeeper	分布式开源、服务协调服务
+	主要用处	1、配置管理 2 、集群管理
+	可以单击可以集群 集群比单击版多三个参数 initLimit=5 
+ 						syncLimit=2 
+ 						server.1=192.168.211.1:2888:3888 
+ 						server.2=192.168.211.2:2888:3888
+	集群模式下还要配置一个文件 myid，这个文件在 dataDir 目录下对应上述的server.id
+	
+
+	初始三个参数为				tickTime=2000 
+ 						dataDir=D:/devtools/zookeeper-3.2.2/build 
+ 						clientPort=2181
+
+22、	./当前目录 ../上级目录 /根路径
+
+23、	springboot启动类的@ComponentScan一定要包括config包
+	启动一定要扫描到mapper
+
+24、	域名的分配 
+	一级域名	taotao.com
+	二级域名	www.taotao.com
+	
+
+25、tomcat的热部署
+	1)、在tomcat-user.xml中增加配置
+	<role rolename="manager-gui"/>
+	<role rolename="manager-script"/>
+	<user username="tomcat"  password="tomcat" roles="manager-gui,manager-script"/>
+
+	（这样就可以登录tomcat管理者页面，在war file to deploy 进行手工热部署）
+
+	2）、使用maven的tomcat插件实现热部署（打包-上传-热部署）
+	修改项目的pom.xml文件,在<build> 节点下面增加如下配置:tomcat7的配置
+
+	<build>
+		<plugins>
+			<!-- 配置Tomcat插件 -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<configuration>
+					<port>8081</port>
+					<path>/</path>
+					<url>http://192.168.25.136:8080/manager/text</url>   //maven中tomcat7插件的默认热部署路径
+					<username>tomcat</username>			     //tomcat中配置的权限用户
+					<password>tomcat</password>				
+				</configuration>		
+			</plugin>
+		</plugins>
+	</build>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
