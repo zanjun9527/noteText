@@ -1,0 +1,1467 @@
+学习小结：
+1-学习新的东西，最直接标准的就是官方的API文档。
+
+
+
+
+1	request.getRequestURI() /jqueryWeb/resources/request.jsp
+	request.getRequestURL() http://localhost:8080/jqueryWeb/resources/request.jsp
+	request.getContextPath()/jqueryWeb
+	request.getServletPath()/resources/request.jsp
+	注： resources为WebContext下的目录名
+	jqueryWeb 为工程名
+
+
+2	用response.sendRedirect(response.encodeURL(url))的好处就是他能将用户的session追加到网址的末尾,
+	也就是能够保证用户在不同的页面时的session对象是一致的. 
+	这样做的目的是防止某些浏览器不支持或禁用了COOKIE导致session跟踪失败
+
+
+3       如果简单地比较Redis与Memcached的区别，大多数都会得到以下观点：
+
+        1 、Redis不仅仅支持简单的k/v类型的数据，同时还提供list，set，zset，hash等数据结构的存储。
+        2 、Redis支持数据的备份，即master-slave模式的数据备份。
+        3 、Redis支持数据的持久化，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用。
+
+
+4       缓存
+        浏览器缓存在用户触发“后退”操作或点击一个之前看过的链接的时候很管用。
+        同样，如果你在网站上访问同一张图片，该图片可以从浏览器缓存中调出并几乎立即显现出来。
+
+5、     mybatis在xml中的典型实现
+	<mapper namespace="com.xiaoyuer.core.dao.BaseCountryAreaMapper" >
+ 	 <resultMap id="BaseResultMap" type="com.xiaoyuer.core.dmo.BaseCountryArea" >
+    	<id column="ID" property="id" jdbcType="INTEGER" />
+    	<result column="AreaLevel" property="arealevel" jdbcType="INTEGER" />
+    	<result column="Parent_Id" property="parentId" jdbcType="INTEGER" />
+    	<result column="Name" property="name" jdbcType="VARCHAR" />
+    	<result column="Date_Insert" property="dateInsert" jdbcType="TIMESTAMP" />
+    	<result column="Date_Update" property="dateUpdate" jdbcType="TIMESTAMP" />
+    	<result column="User_Insert" property="userInsert" jdbcType="INTEGER" />
+    	<result column="User_Changed" property="userChanged" jdbcType="INTEGER" />
+   	 <result column="Delete_Mark" property="deleteMark" jdbcType="INTEGER" />
+    	<result column="Is_Parent" property="isParent" jdbcType="INTEGER" />
+  	</resultMap>
+  	<sql id="Base_Column_List" >
+   	 ID, AreaLevel, Parent_Id, Name, Date_Insert, Date_Update, User_Insert, User_Changed, 
+  	  Delete_Mark, Is_Parent
+  	</sql>
+  	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+  	  select 
+    	<include refid="Base_Column_List" />
+   	 from base_country_area
+ 	 where ID = #{id,jdbcType=INTEGER}
+	</select>
+
+6、  	ALTER TABLE `service_apply`
+	ADD COLUMN `Price_Mode` int NULL COMMENT 'Price_Mode为0表示一口价' AFTER `Totoal_Price`;
+
+7、 	function goStep2(){
+	mill=(parseInt(Math.random()*10000)).toString();
+	url="${serverAddr}${cpath}/wservice/release?mill="+mill;
+	location.href = url;
+}
+
+8、	request.getServletPath()   获取项目名后的路径 
+9、	在方法参数的前面写上@Param("参数名"),表示给参数命名,名称就是括号中的内容
+	public Student select(@Param("aaaa") String name,@Param("bbbb")int class_id); 
+	给入参 String name 命名为aaaa,然后sql语句....where  s_name= #{aaaa} 中就可以根据aaaa得到参数值了
+
+
+10、		<dependency>
+			<groupId>com.xiaoyuer</groupId>
+			<version>0.0.11-SNAPSHOT</version>
+			<artifactId>xye-order-asset</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+11、		date.getTime()所返回的是一个long型的毫秒数
+
+12、    
+		SELECT
+		ra.ID, ra.Require_Info_ID, ra.User_Id,ra.Apply_Status,ra.Apply_Price, ra.Apply_Time,
+		ra.description,ra.Require_Att_RealName, ra.Require_Att,ra.Fish_Food,ra.finish_time,
+		ra.add_resume,ra.offer_bill,ra.Date_Insert, ra.Date_Update,ra.User_Insert,ra.User_Changed,
+		ra.Delete_Mark,ra.Cell_Phone,ums.Server_Goal AS Server_Goal,ums.id AS user_goal_id
+		FROM
+		require_apply ra
+		LEFT JOIN user_goal ums ON ums.User_ID=ra.user_id
+		WHERE
+		ra.Require_Info_ID =
+		2337
+		
+			AND (ra.Apply_Status =2 OR ra.Apply_Status =4)
+		
+		
+		ORDER BY (CASE ra.Apply_Status WHEN 2 THEN 1 WHEN 4 THEN 2 ELSE 0 END
+		) DESC
+		排序规则
+ 
+13、		postman测试工具   google测试插件
+
+14、		maven依赖jar但是没有在eclispe中导入项目也看不到源码，除非jar中有resource文件
+
+
+15、 		try catch 快捷键   alt+shift+z
+
+16、 		前台绑定内部类，不直接绑定内部类参数，先接收再传入
+
+17、 		gameinfo 代码最新的但是远程的jar包不是最新的，才导致依赖找不到。
+
+
+18、		request.getParameter() 是从浏览器传递到服务器中的参数
+		request.getAttribute() 是服务器代码暂时保留在request的值，这些值在代码中通过setAttribute后才会有值
+
+19、		优化查询效率		
+		query.addFilterQuery("status:0 AND biz_type:1 AND class_id:1 AND xxx:123");  
+		query.setQuery("xxx:123");  
+
+20、		list添加数据时 引用类型要new一个新地址出来
+21、 	  	sql语句查询精确查询id等字段需要#{ }，根据字段排序用${ }
+
+。、
+22、 		eclispe的workspace中有关联.git的插件，实现与git本地仓库的代码关联
+23、		/**
+		*注释内容		
+		/别人引用下方属性时能看到注解信息
+24、 		1+"" 和"1"是不一样
+
+25、        	long a=0l
+		a=b.geta()
+26、 		The required Server component failed to start so Tomcat is unable to start.
+		暂时重新设置下java环境变量就好了
+27、 		alt+↑  代码上移
+28、		变量放if里，影响代码结构和作用域
+29、		传空数组 传null
+30、 		@Value("${PAGE_RETURN_URL}")
+		protected String returnUrl;属性直接取值
+31、		alt+ shift+o 显示 选中的属性 高亮
+32、		两个Integer变量不能直接==，需要intvalue（）后判断
+33、		更新    UPDATE  pp_withdraw_limit_policy_config SET SINGLE_DAY_LIMIT=2000000,SINGLE_MONTH_LIMIT=2000000 WHERE id=1
+34、		response.sendredirect(url);   对服务器的响应进行重定向。当server作出响应后，client客户端的请求的生存周期就终止了。这个时候再用request.getparameter()或request.getattribute()得到的只能是null。 
+		response.sendredirect(“sendredirect.htm?name=sparkwu&e-mail=spark.wu@cobra-tech.com”) 这样可以传值  
+35、		静态内部类可以直接创建对象new B.C();
+		如果内部类不是静态的，那就得这样
+		B b = new B();
+		B.C c = b.new C();	 
+36、		通过new 对象分方式中使用@value，无法获取项目属性值  
+37、		<plugins>  
+            	<plugin>  
+                <!-- 自动重动 该工程在spring boot开发过程中非常有用，当工程文件发生变化的时候工程能够自动重启生效变化的内容 -->  
+                <groupId>org.springframework.boot</groupId>  
+                <artifactId>spring-boot-maven-plugin</artifactId>  
+                <!-- <configuration> <fork>true</fork> </configuration> -->  
+            	</plugin>  
+        	</plugins>  
+
+38、		<!---城市的关联查询--->
+		<resultMap id="CitiesMap" type="com.xiaoyuer.core.dmo.BaseCountryArea">
+  		<id property="id" column="id1"></id>
+		<result property="name" column="name1"/>
+		<result property="arealevel" column="Level1"/>
+	 	 <association property="baseCountryArea" column="parentId1" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+	 	 		<id property="id" column="id2"></id>
+	  		<result property="name" column="name2"/>
+	  		<result property="arealevel" column="Level2"/>
+	  		<association property="baseCountryArea" column="parentId2" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+		  		<id property="id" column="id3"></id>
+		  		<result property="name" column="name3"/>
+		  		<result property="arealevel" column="Level3"/>
+		  		<association property="baseCountryArea" column="parentId3" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+			  		<id property="id" column="id4"></id>
+			  		<result property="name" column="name4"/>
+			  		<result property="arealevel" column="Level4"/>
+	  		</association>
+	  	</association>
+	  	</association>
+  		</resultMap>
+  		<select id="selectCities" parameterType="java.lang.Integer" resultMap="CitiesMap">
+  			select 
+			bca1.id as id1,bca1.name as name1,bca1.AreaLevel as Level1,bca1.Parent_Id as parentId1,
+			bca2.id as id2,bca2.name as name2,bca2.AreaLevel as Level2,bca2.Parent_Id as parentId2,
+			bca3.id as id3,bca3.name as name3,bca3.AreaLevel as Level3,bca3.Parent_Id as parentId3,
+			bca4.id as id4,bca4.name as name4,bca4.AreaLevel as Level4,bca4.Parent_Id as parentId4
+			from base_country_area bca1
+			LEFT JOIN base_country_area bca2 on  bca1.Parent_Id= bca2.ID
+	
+			LEFT JOIN base_country_area bca3 on  bca2.Parent_Id= bca3.ID
+	
+			LEFT JOIN base_country_area bca4 on  bca3.Parent_Id= bca4.ID
+	
+			where bca1.id=#{id,jdbcType=INTEGER}
+  		</select>
+		<!---城市的关联查询--->
+		<!---这里是索引存储--->
+		if (requireInfo.getDistrictId() != null) {
+				BaseCountryArea baseCountryArea = baseCountryAreaMapper
+						.selectCities(requireInfo.getDistrictId());
+				while (baseCountryArea != null
+						&& baseCountryArea.getBaseCountryArea() != null) {
+					doc.addField("city", baseCountryArea.getName());
+					baseCountryArea = baseCountryArea.getBaseCountryArea();
+				}
+			}
+		<!---这里是索引存储--->
+
+39、		"addServices": [
+   
+         	"2" ,"1"
+  		]
+		{ }内需要传键值对
+
+
+40  		hashmap和treemap（有序）
+
+
+41、            DecimalFormat 数字进行格式化类
+
+42、		<![CDATA[文本内容]]>标记xml中作为纯文本
+43、		alter table `pp_withdraw_order` change `Type` `TYPE` tinyint DEFAULT NULL 数据库更改字段名
+		UPDATE  pp_withdraw_limit_policy_config SET SINGLE_DAY_LIMIT=2000000,SINGLE_MONTH_LIMIT=2000000 WHERE id=1
+
+44、		<#if cardNo?exists && cardNo != "">
+	    	AND card_no = :cardNo
+	    	</#if>
+
+45、流的输出 	
+		String json="{\"requireCount\":\""+requireCount+"\"," +
+				"\"serviceCount\":\""+serviceCount+"\"}";
+		this.printDataText(response, json);
+		// 自定义json 串或任意字符 调用方负责组装全部json串 或字符
+		public void printDataText(HttpServletResponse response, String result) {
+			response.setContentType("text/html;charset=utf-8");
+			PrintWriter pw = null;
+			try {
+			pw = response.getWriter();
+			pw.print(result);
+			pw.flush();
+			pw.close();
+			} catch (IOException e) {
+			e.printStackTrace();
+
+			} finally {
+			if (null != pw) {
+				pw.close();
+			}
+			}
+		}
+
+46、          	git恢复先前的版本replace
+47、 		java.lang.NoClassDefFoundError	 	找不到maven的依赖
+
+48、		数据库操作的时候程序没有完成走完也可以用临时的数据操作，遇到事务回滚才会返回，否则顺利完成，*插入成功没数据 事务回滚
+
+49、		<insert id="insertSelective" parameterType="com.xiaoyuer.core.dmo.RequireInfo" useGeneratedKeys="true" keyProperty="id">
+
+50、		Spring MVC -- @PathVariable和@RequestParam   springboot--@PathPram和@QueryParam
+
+51、		索引的与或过滤	
+		String params = "(title:笔记 OR content:笔记) AND catalog_id:2";
+		SolrQuery query = new SolrQuery();
+		query.setQuery(params);
+
+52、		m2eclipse首先查看是否能够从本地工程库中得到对应的maven依赖，如何存在，则将本地工程依赖进来；如何不存在，
+		则从本地仓库/远程仓库中加载解析对应的jar包依赖。			jar打包目录根据项目路径包对应打包
+
+53、		加载类的时候，默认执行无参构造，使用有参构造，则只执行有参构造
+
+54、		创建一个public static final 类型的map 并初始化赋初值，，也可以通过Collections.unmodifiableMap(params)，实现不可更改。  
+				静态常量
+				public static final Map<String,String> map=new HashMap<String, String>();
+				static{
+					map.put("1", "a");
+					map.put("2", "b");
+					map.put("3", "c");
+				}
+				在别的类中进行修改，重新创建实例可以全局共享修改的数据map。同样静态字符串常量也是一样的。	
+
+55、		solradmin中 sort= id desc实现倒序排序
+		id:[533 TO *] 查询533之后的所有
+
+56、          	maven的仓库管理软件——Sonatype Nexus搭建私服
+
+
+57、		<version>0.0.6-SNAPSHOT</version>
+		<version>3.2.0.RELEASE</version> maven的两种版本管理稳定版和快照版，pom.xml中带release和snapshot的会自动打包拿到nexus相应的目录，其他不识别的打到release目录下，打包的时候需要大写SNAPSHOT才能到正确位置，小写会打到release库下，但是引用大小写都可以。
+		<distributionManagement>
+			<repository>
+				<id>my-nexus-releases</id>
+				<url>http://192.168.6.251:8087/nexus/content/repositories/releases/</url>
+			</repository>
+
+			<snapshotRepository>
+				<id>my-nexus-snapshot</id>
+				<url>http://192.168.6.251:8087/nexus/content/repositories/snapshots/</url>
+			</snapshotRepository>
+		</distributionManagement>
+
+58、		反编译软件jd-gui
+
+
+59、		实现springboot的多环境的配置，对应的resource目录下有三个文件夹各有一个application.properties
+		<profiles>
+				<profile>
+					<id>dev</id>
+					<properties>
+				<env>dev</env>
+					</properties>
+					<activation>
+						<activeByDefault>true</activeByDefault>
+					</activation>
+				</profile>
+				<profile>
+					<id>sit</id>
+					<properties>
+						<env>sit</env>
+					</properties>
+				</profile>
+				<profile>
+					<id>pre</id>
+					<properties>
+						<env>pre</env>
+					</properties>
+				</profile>
+				<profile>
+					<id>prd</id>
+					<properties>
+						<env>prd</env>
+					</properties>
+				</profile>
+			</profiles>
+	
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+	           		 <dependencies>
+	               		 <!-- spring热部署-->
+	               		 <dependency>
+	                   		 <groupId>org.springframework</groupId>
+	                    		<artifactId>springloaded</artifactId>
+	                    		<version>1.2.5.RELEASE</version>
+	                		</dependency>
+	            		</dependencies>
+					</plugin>
+				</plugins>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<includes>
+							<include>application-words.properties</include>
+							<include>*.xml</include>
+						</includes>
+					</resource>
+					<resource>
+						<directory>src/main/resources/${env}</directory>
+						<includes>
+							<include>application.properties</include>
+						</includes>
+					</resource>
+				</resources>
+			</build>
+
+			直接使用xml
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<webXmlPath>src/webxml/web-dev.xml</webXmlPath>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>pre</id>
+			<properties>
+				<webXmlPath>src/webxml/web-pre.xml</webXmlPath>
+			</properties>
+		</profile>
+		<profile>
+			<id>prd</id>
+			<properties>
+				<webXmlPath>src/webxml/web-prd.xml</webXmlPath>
+			</properties>
+		</profile>
+	</profiles>
+
+
+
+
+
+
+60、			<profile>中默认的激活属性配置
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+61、			默认nexus不允许release重复部署
+			
+62、			属性文件的读取
+			String filename = "com/luhy/test/ReadProperties.properties";  
+        		Properties props = new Properties();  
+       			props.load(ReadProperties.class.getClassLoader().getResourceAsStream(filename));  
+       			String h = props.getProperty("v");  
+			
+
+63、			servletconfig.getInitParameter("port"),web.xml中配置的servlet属性可以这样读取
+			 <init-param>
+      				<description>port</description>
+      				<param-name>port</param-name>
+      				<param-value>8080</param-value>
+    			</init-param>
+64、			<build>
+    				<!-- pojectName就是打包后的名称：pojectName.war -->
+  				<finalName>pojectName</finalName>
+			</build>		
+
+
+65、			linux的常用命令 ：
+			1、鼠标选中复制，右键黏贴
+			2、cd..返回上级目录
+			./startup.sh启动tomcat
+			cd空格返回根目录
+			cd空格..返回上级目录
+			pwd-->示当前的工作目录（pwd:print working directory）
+			find / -name dubbo-2.8.4a.jar查找某个文件
+			tail -f  文件 可以实时follow日志信息
+
+
+			ls和dir查看所有文件命令，more 查看具体的文件
+			ctrl+shift+f  快速翻页
+
+66、			修改startup.bat和shutdown.bat文件头下加，实现多个tomcat的运行
+			SET JAVA_HOME=C:\Program Files\Java\jdk1.7.0_17
+			SET CATALINA_HOME=D:\apache-tomcat-7.0.55-src
+			SET CATALINA_BASE=D:\apache-tomcat-jenkins
+
+67、			solr中的doc=3581 就是需求id 也就是solr设置的主键
+
+
+68、			嵌套的查询
+			<select id="selectMaxApp" resultType="java.util.Date">
+				SELECT
+				require_apply.Apply_Time
+				FROM require_apply
+				where id =
+				(
+				select max(ID) as
+				ID FROM require_apply WHERE
+				Require_Info_ID=#{requireId}
+				)
+			</select>
+
+
+69、  			权重排序，打分排序
+			query.setParam("bf","addSerJJ^0.8 require_goal^0.6 recip(rord(deal_money),1.0,10000.0,10000.0)^0.1");
+			bf="ord(popularity)^0.5 recip(rord(price),1,1000,1000)^0.3，一般也不这样用，简单的排序规则就可以了
+
+
+
+70、			Utils.resultJson(response, new JSONObject().toJSONString());
+			public static void resultJson(HttpServletResponse response, String jsonString) {
+				PrintWriter pw = null;
+				try {
+					pw = response.getWriter();
+					pw.print(jsonString);
+					pw.flush();
+					pw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (null != pw) {
+				pw.close();
+					}
+				}
+			}
+			
+				JSONObject jsonObject = JSONObject.fromObject(student对象);
+
+
+71、			tomcat内存修改      -Xms256M   -Xmx512M   -XX:PermSize=128M   -XX:MaxPermSize=1024M
+
+72、			maven release版本会本地有版本就只会依赖本地版本，不会再远程拉，没有本地才拉远程
+
+73、			fl=*,score查询权重得分
+
+74、			springboot中的@path要符合restful接口，方法的中的参数都要加相应的@标签才能获取
+
+75、			getDeclaredMethod*()获取的是类自身声明的所有方法，包含public、protected和private方法。
+			getMethod*()获取的是类的所有共有方法，这就包括自身的所有public方法，和从基类继承的、从接口实现的所有public方法。
+
+76、			tomcat默认的访问文件夹是webapps下的root文件夹，tomcat首页也在这个文件夹中
+			
+77、			ctrl + k 和 ctrl + shift+k 快速定位
+
+78、			<if test="id != null" >
+			  where ri.ID = #{id}
+	 		</if>
+
+79、			timestampdiff(second ,lrp.Pay_time,now())>=#{time}	
+			返回日期或日期时间表达式datetime_expr1 和datetime_expr2the 之间的整数差。其结果的单位由interval 参数给出
+
+80、			相关知识整理
+				
+				
+				创建一个public static final 类型的map 并初始化赋初值，，也可以通过Collections.unmodifiableMap(params)，实现不可更改。  
+				静态常量
+				public static final Map<String,String> map=new HashMap<String, String>();
+				static{
+					map.put("1", "a");
+					map.put("2", "b");
+					map.put("3", "c");
+				}
+				在别的类中进行修改，重新创建实例可以共享修改的数据map
+				
+				
+				
+				
+				在启动Web项目时，容器会读web.xml配置文件中的两个节点<listener>和<contex-param>,容器会将读取到<context-param>转化为键值对,并交给ServletContext。
+				容器对于web.xml的加载过程是context-param >> listener  >> fileter  >> servlet
+				servletconfig可以getInitParameter获取web.xml中的初始化的参数值。
+				
+				
+				
+				
+				
+				spring分别提供了用于启动WebApplicationContext的Servlet和Web容器监听器，在web应用启动的时候来初始化WebApplicationContext:
+				org.springframework.web.context.ContextLoaderServlet;
+				org.springframework.web.context.ContextLoaderListener.
+				
+				配置例子如下：
+				<context-param> 
+				<param-name>contextConfigLocation</param-name> 
+				<param-value>/WEB-INF/applicationContext.xml</param-value> 
+				</context-param> 
+
+				<listener> 
+				<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class> 
+				</listener> 
+				
+	
+				spring的启动过程：
+
+				1、首先，对于一个web应用，其部署在web容器中，web容器提供其一个全局的上下文环境，这个上下文就是ServletContext，其为后面的spring IoC容器提供宿主环境；
+
+				2、其次，在web.xml中会提供有contextLoaderListener。在web容器启动时，会触发容器初始化事件，此时contextLoaderListener会监听到这个事件，其contextInitialized方法会被调用，
+				在这个方法中，spring会初始化一个启动上下文，这个上下文被称为根上下文，即WebApplicationContext，这是一个接口类，确切的说，其实际的实现类是XmlWebApplicationContext。
+				这个就是spring的IoC容器，其对应的Bean定义的配置由web.xml中的context-param标签指定。在这个IoC容器初始化完毕后，spring以WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE为属性Key，将其存储到ServletContext中，便于获取；
+
+				3、再次，contextLoaderListener监听器初始化完毕后，开始初始化web.xml中配置的Servlet，这个servlet可以配置多个，以最常见的DispatcherServlet为例，这个servlet实际上是一个标准的前端控制器，用以转发、匹配、处理每个servlet请求。DispatcherServlet上下文在初始化的时候会建立自己的IoC上下文，
+				用以持有spring mvc相关的bean。在建立DispatcherServlet自己的IoC上下文时，会利用WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE先从ServletContext中获取之前的根上下文(即WebApplicationContext)作为自己上下文的parent上下文。有了这个parent上下文之后，
+				再初始化自己持有的上下文。这个DispatcherServlet初始化自己上下文的工作在其initStrategies方法中可以看到，大概的工作就是初始化处理器映射、视图解析等。这个servlet自己持有的上下文默认实现类也是mlWebApplicationContext。初始化完毕后，spring以与servlet的名字相关(此处不是简单的以servlet名为Key，
+				而是通过一些转换，具体可自行查看源码)的属性为属性Key，也将其存到ServletContext中，以便后续使用。这样每个servlet就持有自己的上下文，即拥有自己独立的bean空间，同时各个servlet共享相同的bean，即根上下文(第2步中初始化的上下文)定义的那些bean。	
+
+
+81、				ResourceBundle resourceBundle = ResourceBundle.getBundle("filters.redis"); 加载classpath下的属性文件获取，resourceBundle.getString("redis.port")直接获取属性文件中的值
+
+
+82、				netstat -ano|findstr "8080"  查找系统当前端口号占用情况
+
+83、				 <select id="selectByOrderStatus"  resultMap="BaseResultMap">
+  				select  ro.*
+  				from require_order ro 
+				where ro.Status in
+				<foreach item="item" index="index" collection="orderStatus" open="(" separator="," close=")">
+        			#{item}
+  				</foreach>
+ 				 </select>  
+
+
+84、				SYSDATE() 数据库sql中获取系统的当前时间
+
+85、				final static常量String不能被重新赋值，只能被替换，替换不改变原来的值，而是返回这个新值
+			
+86、				select MAX(height) from users where height < (select MAX(height) from users );
+
+87、			<![CDATA[AND (ri.Apply_End_Time- SYSDATE() )>0
+		AND ri.`Is_Outline`!=1
+		AND ri.Choose_User_Count < ri.Server_Count
+		AND (ri.Require_Type!=3 OR ri.Apply_Count < ri.Server_Count)
+		AND (ri.Status!=4 AND ri.Status!=5)]]>
+
+
+88、		<foreach item="item" index="index" collection="idStr" open="("
+			separator="," close=")">
+			${item}
+		</foreach>
+
+89、		 #{depositNo,jdbcType=VARCHAR},制定数据类型
+
+
+90、增值服务的传递参数类型问题
+		<select id="selectByCodes" resultMap="BaseResultMap">
+		select  ID, Code, Title, Description, Price, Fresh_Price, DeadLine, Type, Include, Number, 
+    	Unit_Price from base_add_service_setting
+		where 1=1
+		<if test="codes!=null ">
+			and Code in
+			<foreach item="item" index="index" collection="codes" open="(" 
+				separator="," close=")">
+				#{item,jdbcType=VARCHAR}
+			</foreach>
+		</if>
+		ORDER BY id DESC
+	</select>
+	
+	
+		<select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select  ID, Code, Title, Description, Price, Fresh_Price, DeadLine, Type, Include, Number, 
+    	Unit_Price from base_add_service_setting
+		where 1=1
+		<if test="code!=null ">
+			and Code =#{code,jdbcType=VARCHAR}
+		</if>
+		ORDER BY id DESC
+	</select>
+
+91、	String val = new DecimalFormat("#0.0").format(12.08);数字转换
+	String format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);时间
+
+
+92、	去除字符串中某个重复字段
+	String b="加急 ,匿名,加急推送";
+		String combine="";
+		String[] c=b.split(",");
+		
+		
+		for(int i=0;i<c.length;i++){
+			if(combine.indexOf("加急")==-1||c[i].indexOf("加急")==-1){
+				combine=combine+c[i];
+			}else{
+				combine=combine+c[i].replaceFirst("加急", "");
+			}
+		}
+
+
+93、	eclipse-project-build automatically 改代码后自动的编译运行
+
+94、	<select class="VAILD" 
+			name="budgetType" 
+			id="unitPriceII" 
+			data-errorMsg="请选择预算费用" 
+			data-group="4"
+			value="${budgetType},${reqBudgetBean.toPrice}"
+	>
+		<c:if test="${budgetType==null}">
+		<option value="-1"  selected="selected">请选择预算费用</option>
+		</c:if>
+		<c:if test="${budgetType!=null}">
+		<c:if test="${budgetType==9}">
+		<option value="${budgetType},${reqBudgetBean.toPrice}" >${ reqBudgetBean.description}${reqBudgetBean.fromPrice }元以上</option>
+		</c:if>
+		<c:if test="${budgetType!=9}">
+		<option value="${budgetType},${reqBudgetBean.toPrice}" >${ reqBudgetBean.description}${reqBudgetBean.fromPrice }~${reqBudgetBean.toPrice}元</option>
+		</c:if>
+		</c:if> 
+		<option value="-1">请选择预算费用</option>
+		<c:forEach items="${requireBudget}" var="item">
+		<c:if test="${item.id==9}">
+		<option value="${item.id},${item.toPrice}" >${ item.description}${item.fromPrice }元以上</option>
+		</c:if>
+		<c:if test="${item.id!=9}">
+		<option value="${item.id},${item.toPrice}" >${ item.description}${item.fromPrice }~${item.toPrice}元</option>
+		</c:if>
+		</c:forEach> 
+	</select>
+95、	linux下载地址  http://mirrors.melbourne.co.uk/ubuntu-releases/14.04/
+96	$(#id)中不能带,号
+
+97、	左关联的实例	
+	SELECT
+		* FROM
+		(
+		SELECT
+		user_classify_score.user_id ,
+		user_classify_score.id ,
+		user_classify_score.class_id ,
+		IF(user_base_info_ext.RunStatus IS
+		NULL,0,user_base_info_ext.RunStatus) AS STATUS
+		FROM user_classify_score
+		LEFT JOIN user_base_info_ext ON
+		user_base_info_ext.User_Id=user_classify_score.user_id
+		WHERE
+		user_classify_score.class_id=367 AND
+		user_classify_score.user_id!=203
+		ORDER BY FLOOR(send_count/2)
+		ASC,class_scores DESC,service_scores
+		DESC,credit_scores DESC
+		)userc
+		WHERE userc.status=0
+
+
+98、java.lang.IllegalArgumentException: Mapped Statements collection does not contain value for  mapper声明路径不对
+
+
+99、		完整的ajax调用
+		/**
+		*取消修改
+		*/
+		function cancelModify(idStr) {
+			if (idStr != null && idStr != '') {
+				var url = "${serverAddr}${cpath}/require/release/" + idStr + "/canceledit";
+				var option = {
+					url : url,
+					dataType:"json",
+					type : "post",
+					beforeSubmit : null,
+					success : function(json) {
+						if (json.data == "success") {
+								XYE.Alert.alert({str:"取消成功",callBack : function(obj){
+								$(obj).find('.cen_butgoon').click(function(){
+								window.location.reload();
+									});
+								}}
+							);				
+						}else if(json.data == "failed"){
+							alert("取消失败");
+						}else{
+							alert(data.result);
+						}
+					}
+				};
+				XYE.Alert.prompt( {
+				str:"您确认取消修改吗？",
+				success : function(obj){
+				    jQuery.ajax(option);
+				    return;
+				}
+				});
+			}
+		}
+100、 			eclipse加大内存   			-Dmaven.multiModuleProjectDirectory=$M2_HOME -Xmx1524m  -XX:MaxPermSize=256M
+
+101、 		count 和sum
+
+102		主站和soa之间的地址访问时不是是否涉及跨域问题，controller中的调用接口，接口在spring-dubbo.xml中有注册，通过注册的地址，实现远程调用，并不是从前端页面直接跳转过来，不存在跨域问题
+		soa服务化和主站对接   注册zookeeper，启动soa，主站依赖soa的api，通过jar引入主站的spring管理，通过dubbo配置，实现调用。
+		
+		
+		跨域实现
+		Tomcat下的配置 下载cors-filter-1.7.jar，java-property-utils-1.9.jar这两个库文件，放到lib目录下。（可在 http://search.maven.org上查询并下载。）工程项目中web.xml中的配置如下： [html] view plaincopy在CODE上查看代码片派生到我的代码片 <filter> <;filter-name>CORS</filter-name> <filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class> <init-param> <param-name>cors.allowOrigin</param-name> <param-value>*</param-value> </init-param> <init-param> <param-name>cors.supportedMethods</param-name> <param-value>GET, POST, HEAD, PUT, DELETE</param-value> </init-param> 
+		<init-param> <param-name>cors.supportedHeaders</param-name> <param-value>Accept, Origin, X-Requested-With, Content-Type, Last-Modified</param-value> </init-param> 
+		<init-param> <param-name>cors.exposedHeaders</param-name> <param-value>Set-Cookie</param-value> </init-param> <init-param> <param-name>cors.supportsCredentials</param-name> 
+		<param-value>true</param-value> </init-param> </filter> <filter-mapping> <filter-name>CORS</filter-name> <url-pattern>/*</url-pattern> </filter-mapping>
+
+		还可以通过跳转controller中使用httpclient来实现访问，作为中间层来回调数据，这也是目前系统最稳定的方案。
+		其他的还有方案是：jsonp 跨域浏览。
+
+
+103、	
+		增值服务去重
+		String addSerString1="";
+		String addSerString2="";
+		String addSerString3="";	
+		String addSerString="推送,加急推送,推送,推送,推送,匿名";
+		String[] c=addSerString.split(",");
+		for(int i=0;i<c.length;i++){
+			String cc=c[i];
+			if(addSerString1.indexOf("推送")==-1||c[i].indexOf("推送")==-1){
+				addSerString1=addSerString1+cc; 
+				addSerString2=addSerString2+cc+",";
+				
+			}else{
+				addSerString1=addSerString1+cc.replaceFirst("推送", "");
+				addSerString2=addSerString2+cc.replaceFirst("推送", ",");
+				addSerString2=addSerString2.replaceAll(",,", ",");
+				
+			}
+		}
+		String replaceAll = addSerString2.replaceAll(",,", ",");
+		String[] splits = replaceAll.split(",");
+
+104、		</span><b>'+name+'</b></div>' name是js变量
+		var name=$(this).parent().siblings('input').eq(1).val(); 获取同级第二个input元素
+
+105、		edismax	
+		query.setQuery(keyField + ":" + xyeSolrParam.getQueryStr());
+		query.set("qf", keyField + "^2");
+
+106、		StringUtils.isNotEmpty（）  java字符串判空工具类
+
+107、		属性文件载入容器管理
+		<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"> 
+   			<property name="locations"> 
+   			 <list> 
+     			<value>classpath: conf/sqlmap/jdbc.properties </value> 
+    			</list> 
+   			</property> 
+			</bean>
+
+			<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"> 
+			<property name="driverClassName" value="${jdbc.driverClassName}" /> 
+   			<property name="url" value="${jdbc.url}" /> 
+   			<property name="username" value="${jdbc.username}" /> 
+   			<property name="password" value="${jdbc.password}" /> 
+		</bean>
+
+108		关联自身表查询
+		//查询技能标签
+		<select id="getUserClass" resultMap="ResultMapName" parameterType="java.lang.Integer">
+				select
+				user_classify.* ,bc1.Name as className1
+				,bc2.Name as className2
+				,bc3.Name as className3 
+				FROM user_classify
+				LEFT JOIN
+				base_classify bc1 ON
+				bc1.id=user_classify.Class_Id_1
+				LEFT JOIN
+				base_classify bc2 ON
+				bc2.id=user_classify.Class_Id_2
+				LEFT JOIN
+				base_classify bc3 ON
+				bc3.id=user_classify.Class_Id_3
+				WHERE
+				user_classify.User_Id=#{userId}
+		</select>
+		//查询技能标签
+
+109、		数据库查询空字段使用is null，数据库的模糊查询like		
+		select * from where 字段名 like '%"+str1+"%'; 查询变量      			concat(concat('%',#{username}),'%')
+		SELECT * FROM user_base_info WHERE cell_phone LIKE '%/_%' ESCAPE '/'
+
+110、		mybatis generator 源码会默认设置追加属性为ture
+
+111、		redis-cli.exe -h IP -p 6379,  这个要在redis-cli.exe 所在目录下面，-h后面接redis服务器的IP地址，-p后面接端口，  一般没做过修改redis.conf情况下端口是6379
+
+112、		solr搜索的schema.xml中的id（主键，不可重命名），默认是doc的主键
+
+113、		 	默认的servlet加载顺顺序
+			<servlet>
+    			<description>spring mvc servlet</description>
+    			<servlet-name>springMvc</servlet-name>
+    			<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    			<init-param>
+     			 <description>spring mvc 配置文件</description>
+     			 <param-name>contextConfigLocation</param-name>
+      			<param-value>classpath:config/spring-mvc.xml</param-value>
+    			</init-param>
+    			<load-on-startup>1</load-on-startup>
+  			</servlet>
+ 	 		<servlet-mapping>
+    			<servlet-name>springMvc</servlet-name>
+    			<url-pattern>/</url-pattern>
+  			</servlet-mapping>
+
+		<context-param>
+   		 <param-name>contextConfigLocation</param-name>
+    		<param-value>classpath:config/spring.xml,classpath:config/spring-mybatis.xml,classpath:config/spring-dubbo.xml</param-value>
+  		</context-param>	
+
+114、		1.启动一个WEB项目的时候,容器(如:Tomcat)会去读它的配置文件web.xml.读两个节点: <listener></listener> 和 <context-param></context-param>
+		2.紧接着,容器创建一个ServletContext(上下文),这个WEB项目所有部分都将共享这个上下文.
+
+115、 		关联的问题
+		<resultMap id="ResultMap2" type="com.xiaoyuer.model.RequireAdditionService"
+		extends="BaseResultMap">
+		<association property="baseAddServiceSetting" column="Base_Addser_Id"
+			javaType="com.xiaoyuer.model.BaseAddServiceSetting">
+			<id property="id" column="Base_Addser_Id"></id>
+			<result property="title" column="Title" />
+			<result property="description" column="Description" />
+			<result property="price" column="Price" />
+			<result property="code" column="Add_Ser_Code" />
+			
+		</association>
+		</resultMap>
+
+116、		    protected void doPost(HttpServletRequest req, HttpServletResponse resp)  
+            		throws ServletException, IOException {  
+        		//获取servlet初始化参数:  
+        		String initParam = getServletConfig().getInitParameter("initParam");  
+        		System.out.println("initParam: ---->" + initParam);  
+       		 	//获取全局初始化参数:  
+        		String contextParam = getServletContext().getInitParameter("contextParam");  
+        		System.out.println("contextParam: ---->" + contextParam);  
+        		//获取用户提交过来的数据:  	
+			String username = req.getParameter("username");  
+        		String password = req.getParameter("password");  
+        		System.out.println("用户提交的数据:" + username + " , " + password);  
+    		} 
+
+
+		<init-parm>配置在<servlet>标签中,用来初始化当前的Servlet的,属于当前Servlet的配置,因此存放在servletConfig对象中;
+       		 通过getServletConfig().getInitParameter("initParam")的方式获取;
+		<context-param>直接配置在web.xml的<web-app>标签中,属于上下文参数,在整个web应用中都可以使用,它是全局的,因此存放在servletContext对象中(即application对象);
+        	通过getServletContext().getInitParameter("contextParam")的方式获取;
+		<context-param>搭配ContextLoaderListener监听类使用，是spring默认的初始化容器的监听类，默认是 WEB-INF/applicationContext.xml下的路径，可以通过<context-param>自由配置路径	
+
+		getServletContext()取得的是 <context-param>配置的参数 
+               	getServletConfig()取得的是 <servlet> <init-param>配置的参数
+
+117、		Servlet和Filter是可以配置mapping的，即针对哪些地址的请求使用这些Servlet或者Filter，而Listener则是根据实现接口来判断什么情况下调用这个Listener的，
+		基本的Listener仅仅在启动时执行一些任务。如果一个请求，同时调用到这三个，则执行顺序是：context- param -> listener -> filter -> servlet 
+
+118、		继承自 SqlSessionDaoSupport后，数据处理	
+		BaseDict bt = new BaseDict();
+		List<Object> list = dataDictService.selectByObject(bt,BaseDictMapper.class);
+		BaseMapper baseMapper = (BaseMapper)sqlSession.getMapper(object);
+		return baseMapper.selectByObject(entity);
+
+119、		web.xml 启动停止监听类
+		ServletContextListener 接口，它能够监听 ServletContext 对象的生命周期，即监听 Web 应用的生命周期。
+		当Servlet 容器启动或终止Web 应用时，会触发ServletContextEvent 事件，该事件由ServletContextListener 来处理。在 ServletContextListener 接口中定义了处理ServletContextEvent 事件的两个方法。
+		* 当Servlet 容器启动Web 应用时调用该方法。在调用完该方法之后，容器再对Filter 初始化， 并且对那些在Web 应用启动时就需要被初始化的Servlet 进行初始化。 contextInitialized(ServletContextEvent sce)   
+ 		* 当Servlet 容器终止Web 应用时调用该方法。在调用该方法之前，容器会先销毁所有的Servlet 和Filter 过滤器。 contextDestroyed(ServletContextEvent sce)  
+		在Container 加载Web 应用程序时（例如启动 Container 之后），会呼叫contextInitialized() ，而当容器移除Web 应用程序时，会呼叫contextDestroyed () 方法。
+
+120、		web.xml中 处理内存泄漏的问题
+		JDK中的java.beans.Introspector类的用途是发现Java类是否符合JavaBean规范，专门用来处理Introspector内存泄漏问题的辅助类。如果有的框架或程序用到了Introspector类,那么就会启用一个系统级别的缓存,此缓存会
+　  		存放一些曾加载并分析过的JavaBean的引用。当Web服务器关闭时,由于此缓存中存放着这些JavaBean的引用,所以垃圾回收器无法回收Web容器中的JavaBean对象,最后导致
+     		内存变大。IntrospectorCleanupListener会在Web服务器停止时清理Introspector缓存,使那些Javabean能被垃圾回收器正确回收。Spring自身不会出现这种问题，因为Spring在加载并分析完一个类之后会马上刷新
+     		JavaBeans Introspector缓存,这就保证Spring中不会出现这种内存泄漏的问题。但有些程序和框架在使用了JavaBeans Introspector之后,没有进行清理工作(如 Quartz,Struts),最后导致内存泄漏
+		<listener>
+    		<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+ 	 	</listener>
+ 
+121、		项目中的mapper，和xml通过spring-mybatis.xml注入容器，一般的interface和impl通过@service注入+扫描包注入容器，java的实体类没有注入容器管理
+		依赖的api通过dubbo.xml注入容器，并通过zookeeper的地址实现调用，filter过滤属性文件到resource下的属性文件后，通过注入容器，可以直接在xml中使用，也可以通过属性文件的加载读取（加载方式为流读取）。
+
+122、		@Component 注释外，还定义了几个拥有特殊语义的注释，它们分别是：@Repository、@Service 和 @Controller。@Component泛指组件，当组件不好归类的时候，我们可以使用这个注解进行标注
+
+123、		释放jdbc连接-------[14:02:32] DEBUG datasource.DataSourceUtils "Returning JDBC Connection to DataSource"
+[14:02:32] DEBUG datasource.DataSourceUtils "
+		取回jdbc连接-------Fetching JDBC Connection from DataSource"
+2017-03-22 14:02:32.630 [http-bio-8080-exec-3|]
+		使用jdbc链接-------DEBUG c.x.c.d.U.getServiceTops-ooo Using Connection [com.mysql.jdbc.JDBC4Connection@3e57601]
+2017-03-22 14:02:32.630 [http-bio-8080-exec-3|]
+		sql查询------------DEBUG c.x.c.d.U.getServiceTops-==>  Preparing: select se.Id as id, se.Service_Image_Att as img, se.Serv_Code as code, se.Serv_Title as title, se.Per_Price as price, se.Cash_Uint as uint, se.Apply_Count as applyCount, se.Self_Cash_Uint as seltUint, ui.Nick_Name as nickName, ui.id as userId, bsa.Name as cityName from user_service_collection us left JOIN service_info se ON us.Service_Id=se.ID left JOIN user_base_info ui on ui.id=se.User_Id left JOIN base_country_area bsa ON se.City_Id=bsa.ID where us.User_ID = ? order by us.id desc limit 0,9 
+2017-03-22 14:02:32.630 [http-bio-8080-exec-3|] DEBUG c.x.c.d.U.getServiceTops-==> Parameters: 1427(Integer)
+[		14:02:32]
+	 	释放jdbc连接-------DEBUG datasource.DataSourceUtils "Returning JDBC Connection to DataSource"
+2017-03-22 14:02:32.641 
+		启用dubbo连接------[DubboClientHandler-192.168.6.85:20881-thread-6|] DEBUG c.a.d.r.transport.DecodeHandler- [DUBBO] Decode decodeable message com.alibaba.dubbo.rpc.protocol.dubbo.DecodeableRpcResult, dubbo version: 2.8.4x-SNAPSHOT, current host: 192.168.6.31
+[14:02:32] 
+		空指针错误---------ERROR usercenter "java.lang.NullPointerException"
+
+124、		跨系统之间的数据类传输需要序列化处理，特点是保持对象的属性状态。但不是每个类都可序列化，例如涉及线程的类与特定JVM有非常复杂的关系。
+
+125、		依赖的jar是如何加入spring管理 引入的jar包需要包名统一为com.包，通过spring.xml扫描配置注入容器，再通过springdubbo.xml实现服务化的调用
+
+126、		.gitconfig 文件下需要配置[receive]
+    denyCurrentBranch = ignore才能远程提交
+		git的两个仓库之间传输，需要两个仓库独立存在，pull 和push通过url连接，push需要更新后才能执行
+		git提交到本地仓库以后可以revert远程版本实现回退
+
+127、		request.getRequestDispatcher("/list.jsp").forward(request, response); 
+		提交的request做处理完了，分发到下一个JSP页面或者下一个Action继续处理。会有forward()和redirect()两种情况，forward()是request中的参数继续传递，redirect()则是重新生成request了。
+
+128、		Spring Boot应用程序在启动后，会遍历CommandLineRunner接口的实例并运行它们的run方法，实现启动类的加载，从容器中寻找。
+
+129、		大数据处理	BigDecimal	处理类似科学计数法的大数据类  new BigDecimal(大数据).toString()；
+
+130、		final static String 常量类不能放在主函数内 共享常量   方法里声明变量是私有的
+
+131、		netstat -aon|findstr "49157" 查看端口的占用情况，然后任务管理器pid对应的进程
+
+132、		solr工程可以使用单核和多核的配置，
+
+133、		默认情况下，solr的日志是瞬时的，tomcat重启后，就消失了。引入相应的日志jar后，在solr-4.5.1.war的WEB-INF下建classes目录，在该目录创建文件log4j.properties，即可生成日志文件。
+		一般我们是在使用solrj的系统中增加日志捕获异常并输出日志，不在solr工程增加。
+
+134、		通过vars下的properties过滤到.xml下的读取直接用$[]读取，通过属性文件的加载配置PropertyPlaceholderConfigurer读取的使用${}读取
+
+135、		SQL中select round(123.456,2)	123.46	返回数字表达式并四舍五入为指定的长度或精度。
+		sql中ifnull（a,0）若a非null，返回a，否则返回0
+
+136、		比较		Date signDate = DateUtil.parseDate(userSigninCount.getSigningDate(), "yyyy-MM-dd");
+					Date currentDate=DateUtil.getCurrentDateDate("yyyy-MM-dd");
+					if(currentDate.compareTo(signDate)==0){
+						//已签到
+						return true;
+					}
+
+137、		不同环境的问题，有配置和tomcat集群的问题
+
+138、		java反射用例中，setAccessible(true) 并不是将方法的访问权限改成了public，而是取消java的权限控制检查。所以即使是public方法，其accessible 属相默认也是false
+
+139、		configfilter数据库加密   	java -cp druid-1.0.16.jar com.alibaba.druid.filter.config.ConfigTools you_password   1.0.16版本加密默认带有公钥，私钥。1.0.13版本默认不带公钥。
+		通过设置<property name="filters" value="config" />
+			<property name="connectionProperties" value="config.decrypt=true;config.decrypt.key=$[xye_jdbc_publicKey]" />来解密。
+		加密的带公钥的需要传入公钥，未公钥加密的不需要传入公钥。
+
+140、		传参是map类型的查询语句，Map<String,Object> map = new HashMap<String,Object>();Integer updateFishfoodActiveByUserId(@Param("map")Map<String,Object> map);
+		 <update id="updateFishfoodActiveByUserId" parameterType="java.util.Map" >
+  			update 
+  				user_base_account
+  			set 
+  				fishfood_active = #{map.fishfoodActive,jdbcType=INTEGER}
+  			where 
+  				user_id = #{map.userId,jdbcType=INTEGER}
+  		</update>
+
+141、		两种查看项目地址的方式：1、preference-git-configuration-repository  2、项目右键查看git respository，查看properties。
+
+142、		依赖的jar是如何加入spring管理 ，spring加入容器管理：通过注解标签+扫描路径的方式。
+
+143、		资金归集生产问题，1、tomcat下prd实时日志，根据错误1、反序列化失败，2、redis获取null重新登陆，3、userbankcard中也有系统账户号，取消过滤即可。
+		测试prd更改，直接将com.xiaoyuer.pay.web.controller.gateway.WithdrawController.class（在对应工程的target下的jar）的文件夹放到tomcat下的classes下，虽然依赖的jar中有这个类，但是会优先使用classes下的文件。
+
+144、		modelMap.put(key,value)添加重复的key，会覆盖原来的值.
+
+145、		linux中的文本中?查找
+146、		ftl中的注释用<#-- -->
+147、		HTTP Status 400 - Required String parameter 'pwd' is not present
+148、		后台接受参数诗意前台jsp页面的那么属性来获取的。
+
+149、		自定义标签的常用输出方法：pageContext.getOut().print("Hello Tag!!!");  
+		<c:if test="${!fn:contains('nihao','k')}">
+		不包含
+		</c:if>
+		this.pageContext.setAttribute(var, Constants.XYE_PAYCORE_HOSTS); 前段页面的属性赋值
+
+150、		git历史库中可以新建tag使用，并
+
+151、		// 手机号码校验，使用正则表达式判断
+		Pattern p = Pattern.compile("^17[\\d]{9}|13[0-9]{9}|15[012356789][0-9]{8}|18[\\d][\\d]{8}|147[0-9]{8}$");
+		Matcher m = p.matcher(cellPhoneNum)
+
+152、		修改本地数据库的密码，关键的地方是需要关闭进程中的mysql和停止服务中的mysql。cmd中执行sql语句需要加；
+		数据库的导入，选中库执行sql。sql中只有表的相关操作。
+
+153、		数据库的操作是原子性的，是单线程的，代码对象的更新数据库，在多人同时操作的时候，有可能出现高并发的问题。
+
+154、		jenkins打包的maven  release版本需要删除maven库中的，重新拉取。
+
+155、		js的var变量在定义在函数外面的时候再页面加载好了之后就会赋值，定义在函数里才是实时数据（全局变量除外）。
+
+156、		FileOutputStream fs = new FileOutputStream(outPath);//实例了文件输出流，参数是文件输出路径
+		OutputStreamWriter ow = new OutputStreamWriter(fs,"UTF-8");//在写输出流的时候做编码格式转化，以免乱码！
+		BufferedWriter bWriter = new BufferedWriter(ow);//将文本写入字符输出流，缓冲各个字符，从而提供单个字符、数组和字符串的高效写入	
+
+		（1）以utf-8的格式构造一个文件输出流FileOutputStream，（2）然后将这个文件输出字符流封装成字节输出流OutputStreamWriter，（3）然后将这个字节输出流封装成缓冲字节输出流。	
+
+157、		maven    jar重复打包失败，切换版本再打回来。
+
+158、		开源中国  	http://www.oschina.net
+
+159、		一般的jar是不让看到源码的，fastjson-1.2.2-sources.jar，jar包中加入类似的sources文件就可以看了
+
+160、		忘记本地数据库 mysqld --skip-grant-tables
+
+161、		修改数据库字段的编码    
+		1.网上查到一段代码可以直接修改 已经测试过（可以使用） 留作参考
+
+		ALTER TABLE my_user CHANGE username username VARCHAR(18) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ”;
+
+		2.最简单的一个办法
+
+		在SQLyog中选择 表 右键改变表右侧有一个 隐藏语言选项 取消即可 进行修改 
+
+162、		Multiple SCMs Plugin使用 jenkins同时打包两个git项目
+
+
+163、		solr异常解决
+		1.SolrException: Error loading class 'solr.VelocityResponseWriter'
+		vi /usr/local/tomcat/solr/collection1/conf/solrconfig.xml
+		<queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" enable="${solr.velocity.enabled:true}"/>注释或者disabled - enable:false即可
+		重启Tomcat
+
+		2.org.apache.solr.common.SolrException:org.apache.solr.common.SolrException: Error opening new searcher
+		清空索引
+		# cd /usr/local/tomcat/solr/collection1/data/index
+		# rm -rf *
+
+
+164、		eclipse中的tomcat找不到war工程
+		The given project is not a virtual component project   让我改property >  Myeclipse> project  facets 
+
+165、		logback中的		private static Logger logger = LoggerFactory.getLogger("test"); 
+					 <logger name="test" >
+					<level value="error" />
+					<appender-ref ref="FILE" />
+					<appender-ref ref="STDOUT" />
+					</logger> 
+			会默寻找 name相符合的log名称，找不到会默认继承根log，打日志
+
+		lo4j中的日志设置		log4j.logger.packag1= info, packag1    默认packag1包下类和"packag1"的字符串
+
+		protected static final Logger logger = Logger.getLogger(""); 参数只可能是1-字符串，2-*.class类，1就字符串匹配packag1名；2就作为类需要在packag1包下
+
+166、		ajax局部刷新页面案列
+			<div id="context"></div>
+	
+			function toView1(act){
+			var url = "${ctx}/admin/incomeCollect/toView1?act="+act;
+			var option={
+				url:url,
+				type:"post",
+				target:"#context",
+				beforeSubmit:null,
+				success:function(){	
+				}
+			};
+			$("#queryInfoForm").ajaxSubmit(option);
+
+			@requestMapping(value="/toView")
+			ModelAndView mv = new ModelAndView("admin/userbill/incomeCollect/toIncomeView");	
+			return mv;
+
+167、	The content of element type "select" must match "(include|trim|where|set|foreach|choose|if|bind)"
+	<IF>标签需要小写
+168、	order by IF(ISNULL(my_field),1,0),my_field;  
+
+169	group by的实际用例
+	SELECT a.price AS Price,a.ordertype AS OrderType,a.r_date1 AS r_date,rd.total_price AS Total_Price,ba.title AS base_add_title,ui.nick_name AS nickName FROM 
+	(
+	SELECT po.price AS Price,po.ordertype AS OrderType,po.Date_Insert AS r_date1,po.Require_Service_Id AS Require_Service_Id,po.User_Id AS User_Id FROM platform_order po 
+	WHERE po.ordertype IN ('RFJFW') AND po.Price > 0 AND po.OrderStatus = 0 
+	AND po.Date_Insert >= '2017-01-01 00:00:00.0' 
+	AND po.Date_Insert <= '2017-12-31 23:59:59.0' 
+	GROUP BY po.Require_Service_Id 
+	)a 
+	LEFT JOIN require_addition_service rd ON a.Require_Service_Id=rd.Require_Info_Id 
+	LEFT JOIN user_base_info ui ON a.User_Id=ui.id 
+	LEFT JOIN base_add_service_setting ba ON rd.Add_Ser_Code=ba.code 
+	WHERE 1=1 AND (rd.status=1 OR rd.status IS NULL ) AND rd.Add_Ser_Code = 'PBBJ' ORDER BY r_date DESC LIMIT 0,15  
+
+170、	form参数绑定
+	<form:form id="queryInfoForm" modelAttribute="platformOrder">
+	<span>类型：</span>
+	<form:select path="addSerCode" id="addSerCode">
+		<option value="" selected>全部</option>
+			<c:forEach var="addType" items="${addSers}" varStatus="addVsType">
+				<c:choose>
+			             <c:when test="${addType.key==platformOrder.addSerCode}">
+					  <option value="${addType.key}" selected="selected">
+						 ${addType.value}
+					   </option>
+						 /c:when>					
+					 <c:otherwise>
+					 <option value="${addType.key}">
+						 ${addType.value }
+					 </option>
+				      </c:otherwise>
+				</c:choose>
+			</c:forEach>				
+		</form:select>
+		 <input type="submit"  class="bth" value="查询" />
+		div id="partlist"></div>
+ 	 </form:form>
+
+171、	<c:forEach var="addType" items="${addSers}" varStatus="addVsType">
+	varStatus.index 从0开始的索引
+	varStatus.count	从1开始的计数
+172、	<label>
+		点点看<br>
+		<input type='button'></input>
+		<input type='button'></input>
+	</label>
+
+	label标签没有for属性会默认制定第一个button
+
+173、	maven依赖中出现依赖不一致的情况，可能出现了两次以上的maven依赖，maven出现！情况，但是jar引用存在，多是因为jar中缺少相关代码，打包与工程对应的正确的jar即可。
+174、	library 和lib区别
+		library是用来编译里面的src中java文件的
+		部署到tomcat时,仅仅只复制了WEB-INF/lib里面的jar包,
+		出现eclipse可以正常编译但tomcat运行是找不到类
+
+175、
+	 JSP,Servlet获取前一个请求的url路径
+	 pageContext.getRequest().getAttribute("javax.servlet.forward.request_uri")
+	 经常用在分页中的下一页传递一个page过去即可。
+
+176、	pw.print("{\"result\":\"" + result + "\"}"); json串的转义输出
+
+177、	使用@responseBody标签直接返回json数据，需要引入两个jar包 jackson-core.jar，jackson-databind.jar
+
+178、	手动获取spring的ApplicationContext和bean对象    写一个工具类实现ApplicationContextAware接口,并将这个加入到spring的容器，具体方法网上有
+
+179、	Field对于到一个成员对象, 这个和类定义是相关的.如果Field拿到的是static, 则get(null)取得当前field的值.
+	如果Field是一个实例成员对象, 那么我们传入一个 对象实例, 拿到对象实例 的实例成员 的值. 案例代码如下：	
+	
+	Field f=Counter.class.getField("count"); //拿到Counter类的count 实例域
+	Counter c=new Counter();                 //一个Counter对象实例
+	Long l=(Long) f.get(c);                  //拿到对象实例的 域成员的值
+
+
+180、	查询语句 order by要放在最后 
+
+181、	BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP); double四舍五入保留2位小数
+
+182、	poi 实现excel的导出功能。
+
+183、	代码改动没反应，删除classes下的文件，在项目buildpath，把源码src添加进来就可以了
+
+184、	java对象转为json格式 需要引入json-lib jar包，以及以几个jar 	JSONObject.fromObject()
+	json对象转为java对象						JSONObject.toBean(jsonObject, Student.class)
+				commons-lang 2.5
+				commons-beanutils 1.8.0
+				commons-collections 3.2.1
+				commons-logging 1.1.1
+				ezmorph 1.0.6
+
+185、	xml中<![CDATA[ ]]>标记的作为纯文本，编辑器忽略编译，但是一般不把<if>标签包括在内，包含sql语句部分即可。
+ 
+186、	一般jsp文件不放在web-inf下  	web.xml放在web-inf下
+
+187、	<url-pattern>/</url-pattern>  会匹配到/login这样的路径型url，不会匹配到模式为*.jsp这样的后缀型url
+	<url-pattern>/*</url-pattern> 会匹配所有url：路径型的和后缀型的url(包括/login,*.jsp,*.js和*.html等)
+
+188、	配置mvc视图解析的时候，默认配置视webapp下的路径，配置到/jsp下就可以了
+
+189、	redis加入环境变量并配置开机启动
+	将D:\redis加入系统环境变量;使用sc create redis binpath= "D:\redis\redis-server.exe redis.conf" displayname= "redis" start= auto 
+	命令注册windows服务使其开机启动。
+
+190、	 版本的上线合并使用tag ，代码暂时保存需要切换其他分支做点事使用stash，stash会暂存当前的工作区内容，然后将工作区内容保持和上次提交相同，做完切换回来再恢复stash即可
+	
+191、	springboot搭建	
+
+	1）、springboot默认contextpath的路径为/,部署在了root下       @RestController =@Controller +  @ResponseBody  
+
+	2）、springboot支持需要添加tomcat-jsp解析包
+        	<dependency>
+            		<groupId>org.apache.tomcat.embed</groupId>
+            		<artifactId>tomcat-embed-jasper</artifactId>
+        	</dependency>
+	3）、springboot的入口类 如果按官方的项目结构加上@SpringBootApplication即可，自定义特殊的目录结构需要加上自动配置和扫描等标签
+	4）、 sprinboot工程maveninstall失败，unable to find a main class，pom中指定启动类即可
+		 <properties>
+        		<start-class>com.boot.Application</start-class>
+        		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        		<java.version>1.7</java.version>
+   		 </properties>
+	5）、springboot整合mybatis需要引入数据库连接依赖，主要是配置sqlsessionfactory（注入datasource目前是application中配置，内含*mapper.xml配置，@Configuration和
+		@EnableTransactionManagement(proxyTargetClass=true)）和mapper扫描（需要在sqlsessionfactory配置完成之后，@Configuration和@AutoConfigureAfter(MybatisConfig.class)），
+		具体实现是mybaitsConfig.java和mapperScanner.java，   	
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+	6）、springboot也支持xml配置，在启动类上加上@ImportResource({"classpath:config/spring-mvc.xml"})即可注入配置 ，配置spring-mvc 建议使用官方的xml头文件
+        	
+
+192、	一般java代码都放在src-main-java下  src-main-resources下的的一般放xml等配置文件
+	java文件无法导入相应的类，出现the resource is not on the build path问题，右键重新build src即可。出现问题的时候java文件的图标也是相对不一样的
+
+
+193、	创建web工程的时候，project facets是web工程的一个重要属性，可以选择相应的web和java版本
+	
+194、	部署tomcat的时候 Project facet Dynamic Web Module version 3.0 is not supported. 这个dynamic web module version是与servlet版本有关的，
+	若使用tomcat7.0，一般是3.0；若tomcat6，则一般是2.4或2.5.选择Navigator选项卡，打开org.eclipse.wst.common.project.facet.core.xml，修改相应版本即可
+
+
+195、	select id,group_concat(name) from aa group by id; 以id分组，把name字段的值打印在一行，分号分隔
+	GROUP_CONCAT(bass.ID) AS addSer
+	GROUP BY requireId
+	搭配使用  
+
+196、	spring.xml和spring-mvc.xml中配置的是不同的上下文，service交给spring管理，conroller交给spring-mvc管理，两个xml中的各自配置各自的属性文件，否则对应的访问不到，controller中的注入的bean一定要是spring-mvc.xml中注入的的bean
+	配置多个PropertyPlaceholderConfigurer时 重点是：ignoreUnresolvablePlaceholders属性需要设置为true
+
+197、	netstat -aon|findstr "9443"  查看端口占用情况，找到pid，关闭进程中对应的进程即可
+
+198、	nginx可以监听80端口将不同域名绑定到tomcat上的不同端口的不同项目
+
+199、	eclispe部署到root下放入的方案
+	1）、部署的路径是webapps下，工程的名字改为root，这种测试中比较快
+	2）、解压war工程到root下，运行tomca即可，这个一般linux自动部署方法
+	3）、改变工程访问路径   
+	server.xml 中 <Context path="/" docBase="XiaoyuerProject" debug="0"  reloadable="false"></Context> 
+	这个和web project setting中设置context root是一致的，倾向后者，在双击tomcat中的modules中也可以设置
+
+200、	bean的注入失败情况
+	
+	1.对应要注入的实现类没有 加注解，如dao层 @Repository  如service层  @Service
+
+	2."You generally autowire to your interface type and not impl."调用的接口是否有具体的实现类。
+
+	3.@Autowired下面，没有类，直接跟了@RequestMapping。【我的是直接跟了method，显示无法注入method，导致不识别的No qualifying bean of type [java.lang.String] found for dependency错误，】	
+
+201、	手机的html在root下访问不了，原因是root下的内容不干净，混有ids的工程
+
+202、	nginx是监听的本地ip，所以要改host文件域名，搭配使用，默认http是80端口，https是443端口，浏览器默认不显示端口域名，不得使用已经注册的域名。
+
+
+203、	init()方法，然后用@PostConstruct 需要搭配@Component并被spring扫描到才行，启动时执行初始化
+
+204、	正常类中@Override 时出错误，因为你的Compiler 是jdk1.5，只要把它改为 1.6
+
+205、	filter类实现filter接口即可，在web.xml中配置，其中共有三个方法 
+	1）、init（）是在启动项目的时候进行初始化
+	2）、dofilter（）是在拦截打匹配的路径时候进行处理，处理完用chain.doFilter(request, response)进行继续访问请求
+	3）、destroy（）当应用服务被停止或重新装载了，则会执行Filter的destroy方法，Filter对象销毁。比如改动项目的代码重新reload时候（Reloading Context）
+  
+206、	spring工具类AntPathMatcher， boolean result = new AntPathMatcher().match(patternPath, requestPath) 校验路径是否匹配
+
+207、	httpServletRequest.getRequestURI()== getContextPath() + getServletPath() + getPathInfo()
+
+208、	AtomicInteger提供原子操作来进行Integer的使用，通过线程安全的方式操作加减，因此十分适合高并发情况下的使用。但是效率相对低，高并发适用。
+
+209、	modelAttribute使用时需要在进入jsp和跳转自jsp的controller中都要绑定相应的参数。
+
+210、	在表单交时候，用get方法提交时 表单里德数据会把你的url里的参数给挤掉。 post下不会。
+
+211、	拦截顺序，拦截路径的时候，先进入filter的dofilter()方法，在进入intercepor的prehandle()方法
+	
+	
+212、	requestUrl：https://www.yu.com/ids/login?redirectUrl=http://www.yu.com/XiaoyuerProject/&method=GET
+	location /ids {
+            proxy_pass https://192.168.6.222:9446/ids;
+        }
+		
+	location ids/login {
+           proxy_pass https://192.168.6.222:9446/ids/login;
+ }
+	location /login {
+           proxy_pass https://192.168.6.222:9446/ids/login;
+ }    主站登录优化用
+	nginx反向代理原则是，优先匹配全路径，然后再依次匹配后面的路径
+
+
+213、	Tomcat中指定URL用UTF-8编码server.xml：
+	<Connector port="8080" protocol="HTTP/1.1"   connectionTimeout="20000"   redirectPort="8443" useBodyEncodingForURI="true" URIEncoding="UTF-8" />  
+
+214、	具体来说cookie机制采用的是在客户端保持状态的方案，而session机制采用的是在服务器端保持状态的方案
+
+215、		//构造XML
+			Document document = DocumentHelper.createDocument();
+			Element root = document.addElement("root");
+			root.addElement("user").addText(ids[1]);
+			root.addElement("sessionIdentifier").addText(ids[0]);
+			response.setContentType("text/html;charset=UTF-8");
+			response.getWriter().write(document.asXML());
+			response.getWriter().flush();
+216、	单点登录
+	1）、单点登录常规做法是重定向到认证中心去登录，然后再重定向回系统应用的原因。(而且为了安全，CAS本身也不提倡跨域远程登录，比如ajax不支持跨域)
+
+217、	log日志中没有相关信息的话，肯定是没走打日志的地方，一般日志的位置在重要信息和error的地方。
+
+218、	在sql语句中 null只能用is 不能用=
+
+219、	数据库查询如果database没有主键，查询速度会非常慢
+
+220、	//创建数组
+	1）、int[] arr=new int[6];
+	2）、int[] x={1,2,3,4};
+	3）、int[] y= new int[]{1,2,3,4,5};
+
+221、	HttpServlet 包含  init()、destroy()、service()方法
+	init()：启动加载，可设置Servlet 的初始化参数，并用它的 ServletConfig 对象参数来启动配置。
+	service()：客户请求一个HttpServlet 对象，该对象的service() 方法就要被调用，而且传递给这个方法一个"请求"(ServletRequest)对象和一个"响应"(ServletResponse)对象作为参数。
+		   servlet中首先执行doService(),判断是请求是get还是post,get就调用doGet(), post就调用doPost()。也可以直接过载doService()方法，这样不管是get还是post，都会执行这个方法。  
+
+	当服务器调用sevlet 的Service()、doGet()和doPost()这三个方法时，均需要 "请求"和"响应"对象作为参数。"请求"对象提供有关请求的信息，而"响应"对象提供了一个将响应信息返回给浏览器的一个通信途径。  
+	使用GET，form中的数据将编码到url中，而使用POST的form中的数据则在http协议的header中传输
+
+
+
+222、	重头戏:servlet、filter、interceptor的区别
+
+	执行顺序：url请求----->filter----->interceptor----->servlet
+
+	filter：用途是过滤字符编码、做一些业务逻辑判断(登录、权限：session中的权限不够可以直接重定向)，用于请求预处理(Request、Response)，也可对HttpServletResponse进行后处理，是个典型的处理链。Filter只是链式处理，请求依然放行到目的地址
+		HttpRequest ----> Filter ----> Servlet ----> Controller/Action/... ----> Filter ----> HttpResponse                           filter的处理过程
+
+	
+	interceptor: 	不是在web.xml,并且不是针对URL的，而是针对action,当页面提交action时，进行过滤操作，
+			与filter不同点：（１）不在web.xml中配置，而是在struts.xml中完成配置，与action在一起 ( 2 ) 可由action自己指定用哪个interceptor 来在接收之前做事
+
+			spingmvc中的HandlerInterceptor的web请求流程：HttpRequest ----> DispactherServlet ----> HandlerInterceptor ---->Controller----> HandlerInterceptor ----> HttpResponse    
+	
+
+
+	1）、Filter不像Servlet，它不能产生一个请求或者响应，它只是修改对某一资源的请求，或者修改从某一的响应。
+	2）、Filter与Servlet的区别在于：它不能直接向用户生成响应。完整的流程是：Filter对用户请求进行预处理，接着将请求交给Servlet进行处理并生成响应，最后Filter再对服务器响应进行后处理。
+	3）、servlet,filter都是针对url之类的，而listener是针对对象的操作的，如session的创建，session.setAttribute的发生，在这样的事件发生时做一些事情。
+	4)、拦截器只能对Action请求起作用，而过滤器则可以对几乎所有请求起作用。
+	5）、Filter面对的是所有的请求，而HandlerInterceptor是面对具体的Controller。Filter总是先于HandlerInterceptor发挥作用，在Filter中甚至可以中断请求，从而使它无法到达相应的Servlet。
+	     而且两者的配置也不一样，Filter是在web.xml中进行配置，HandlerInterceptor是在具体的applicationContext.xml中进行配置。
+
+	6)、 	1.针对url：servlet，filter都是针对url进行的操作，
+ 		2.针对对象：listener是针对对象的操作，它是在某个对象发生某些动作的时候执行，所以listener是提前封装好的对特定的对象的操作，只需要声明名称和类的位置即可。
+ 		3.针对action：interceptor是针对action对象进行操作的，它在配置的时候需要和action一起配置才能起作用，当页面提交action时，进行过滤操作。
+
+	7）、1）Filter基于回调函数，而Interceptor则基于java本身的反射机制,这是两者最本质的区别。
+	     2）Filter的过滤范围比Interceptor大,Filter除了过滤请求外通过通配符可以保护页面，图片，文件等等，而Interceptor只能过滤请求。
+
+223、	double保留两位小数	
+	private  Double getDouble2(Double d){
+		
+		BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP);
+		
+		return bg.doubleValue();
+
+224、		cookie：
+		读取-	Cookie[] cookies = request.getCookies(); 然后遍历看cookie.getName()有匹配cookiename参数的，有则存在该cookie，
+		添加-	cookie添加的时候，需要设置Path默认根路径，Domain域名，MaxAge过期时间
+
+225、		nginx.exe -t 检查配置文件是否正确
+
+226、		流读取文件
+		Thread.currentThread().getContextClassLoader().getResourceAsStream("abc.properties") 	默认是classpath下
+
+
+227、		newinstance()和new()的区别
+		newInstance: 弱类型。低效率。只能调用无参构造。 
+    		new: 强类型。相对高效。能调用任何public构造。
+
+
+
+
+
+
+
+228、		xml的解析:dom和sax
+			xpath解析：先流读取xml文件获得doc，创建xpath对象，第一参数是xml中的路径，//表示只匹配名称，读取节点xpath.evaluate("/person", doc, XPathConstants.NODESET)  使用xpath.evaluate("background", node，XPathConstants.STRING)读取节点值.
+
+
+
+229、		git版本回退：1、在history中的选中某个分支改动，reset（hard），之后再右键team-remote-push，选择分支强制推送，实现回退。
+			     2、右键replacewith 选择相应的tag实现回退
+		
+230、  		/** + 回车  快捷注释类
+
+231、		springboot  @RequestParam 实现前台传参绑定类，不过参数名称要和类属性名一致
+
+232、		springboot  bean.setTypeAliasesPackage("com.xiaoyuer.core.**.dmo");通配符配置多路径，com.xiaoyuer.core.dmo和com.xiaoyuer.core.talents.dmo              big  details
+
+
+232、		sql使用`却别关键字
+
+233、		springboot的接口参数的实现中@PathParam等
+
+234、		内关联对象
+		<resultMap id="ResultMapRequireInfo" type="com.xiaoyuer.core.dmo.RequireInfo" extends="BaseResultMap">
+			<result column="Require_Des" property="requireDes" jdbcType="LONGVARCHAR" />
+			<result column="provinceName" property="provinceName" jdbcType="VARCHAR" />
+   	 		<result column="cityName" property="cityName" jdbcType="VARCHAR" />
+   			<result column="districtName" property="districtName" jdbcType="VARCHAR" />
+			<association property="userInfo" javaType="com.xiaoyuer.core.dmo.UserInfo">
+				<id column="User_ID" property="id" jdbcType="INTEGER" />
+				<result column="User_Name" property="userName" />
+				<result column="User_Picture_Att" property="userPictureAtt" />
+				<result column="Individual_Type" property="individualType" />
+				<result column="Nick_Name" property="nickName" />
+			</association>	
+		</resultMap>
+
+		关联查询的时候  <id column="Id" property="id" jdbcType="INTEGER" />     数显多条id相同的只能接受一条，除非不查id
+
+
+
+235、		在json   post 传输数组或者list对象的时候   [{"nickName": "zhansan",},{"nickName": "zhansan2",}]
+
+236、		proteced 修饰符只能在该类内部使用
+   			
+237、	前端专场：		
+	1）、		{{each talents as item i}} {{/each}}
+			{{if item.userValidate==0}}{{/if}}       ftl的另一种写法 
+
+	2）、		$(this).addClass("active");
+			$(this).attr('class','active');
+			that.siblings().removeClass('active');删除同级节点的active样式
+	3）、		var id=$('.xms-sideboxe li').eq(i).attr('id'); 取制定元素的id内容
+
+
+
+238、	update中出现select语句的更新操作
+	select的结果再通过一个中间表select多一次，就可以避免这个错误
+	update message set content='Hello World' where id in( select min_id from ( select min(id) as min_id from mes））
