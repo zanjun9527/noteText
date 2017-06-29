@@ -148,13 +148,31 @@
 				<configuration>
 					<port>8081</port>
 					<path>/</path>
-					<url>http://192.168.25.136:8080/manager/text</url>   //maven中tomcat7插件的默认热部署路径
-					<username>tomcat</username>			     //tomcat中配置的权限用户
+					<url>http://192.168.25.136:8080/manager/text</url> 	//maven中tomcat7插件的默认热部署路径
+					<username>tomcat</username>			   	//tomcat中配置的权限用户
 					<password>tomcat</password>				
 				</configuration>		
 			</plugin>
 		</plugins>
 	</build>
+	
+	2)-2 run as maven install 	初次部署可以使用 "clean package tomcat7:deploy" 命令
+					如果已经部署过使用 "clean package tomcat7:redeploy" 命令
+
+					部署跳过测试：
+					clean package tomcat7:redeploy -DskipTests
+
+	
+
+
+
+
+26、	run as maven build.
+	测试	goals 输入 clean test
+
+	打包	goals 输入 clean package
+
+	打包并发送到本地仓库	goals 输入 clean install
 
 
 
