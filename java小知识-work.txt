@@ -1465,3 +1465,6 @@
 238、	update中出现select语句的更新操作
 	select的结果再通过一个中间表select多一次，就可以避免这个错误
 	update message set content='Hello World' where id in( select min_id from ( select min(id) as min_id from mes））
+
+
+239、	linux vim文档时候 insert或者i进入编辑模式    退出esc+:wq
