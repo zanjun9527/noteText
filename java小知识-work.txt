@@ -1466,6 +1466,7 @@
 	select的结果再通过一个中间表select多一次，就可以避免这个错误
 	update message set content='Hello World' where id in( select min_id from ( select min(id) as min_id from mes））
 
+
 239、	<project xmlns="http://maven.apache.org/POM/4.0.0" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"></project>	
@@ -1477,8 +1478,32 @@
 		             url: "localhost:8080/addTalents",
 		             data: {"a":"nihao"},
 		             dataType: "json",
-		             success: function(data){	
-		             	      
+		             success: function(data){		             	      
 		                      }
 		       });
 	
+241、	linux vim文档时候 insert或者i进入编辑模式    退出esc+:wq
+
+242、	ajax传输数据的时候，后台使用@requestparam接受名字一定要对应，参数中如果不加该标签，传入数据是接受不到的，至少在springboot中接受不到，也就是说，不加标签ajax传输的数据只能tongue标签节后和request.getparammeter接收
+
+
+243、	jsonarry和list转换	<dependency>
+    <groupId>net.sf.json-lib</groupId>
+    <artifactId>json-lib</artifactId>
+    <version>2.4</version>
+	</dependency>
+		
+244、	${ }不能在js中使用,循环添加一个新建对象，出现同一覆盖值的问题，var dataPrice={};一般要把新建对象放在循环体内
+		r["name"]="tom"; 为对象添加属性
+		var r=new Object();
+		var dataForm=serialize(releaseReqForm);
+		delete dataForm.appointPrice;   移除对象属性
+
+245、cmd 查看当前目录， dir
+
+246、	ftl   
+	<#if requireType=="1">
+	1111
+	<#elseif requireType=="4">
+	444444
+	</#if>  注意值加""
