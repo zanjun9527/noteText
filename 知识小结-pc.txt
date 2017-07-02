@@ -182,7 +182,29 @@
 	其中${project.version} 是一个属性引用，指向了POM的project/version的值，也就是这个POM对应的version。由于app-dao的version继承于app-parent，因此它的值就是1.0-SNAPSHOT
 
 
+28、	将jquery的相关js引入到classpath下的js文件夹下，再在页面引入<script  src="js/jquery-1.8.3.min.js">，即可使用。
+			最简洁的ajax使用
+ 			$.ajax({
+		             type: "post",
+		             url: "http://192.168.1.102:8081/addTalents",
+		             data: {"a":"nihao"},
+		             dataType: "json",
+		             success: function(data){} 
+		        	});
+		        	
+		        	
+29、	ajax和js是不允许跨域请求的
 
+
+30、	单点登录的主要实现方案：
+							1、服务接口的开发
+							2、在分布式环境中使用redis实现session共享（缓存唯一token和对应的用户信息）
+							3、使用cookie在多个系统中共享。（存放token信息）
+							4、拦截器的使用方法（访问校验cookie中的token是否存在或过期）
+							
+31、网站并发数量在1000-2000级别的，用户数量一般在百万级别
+32、	redis 127.0.0.1:6379> TTL KEY_NAME 			Redis TTL 命令以秒为单位返回 key 的剩余过期时间。
+33、	redis是单线程，不会设计多个线程并发的问题
 
 
 
