@@ -1465,3 +1465,20 @@
 238、	update中出现select语句的更新操作
 	select的结果再通过一个中间表select多一次，就可以避免这个错误
 	update message set content='Hello World' where id in( select min_id from ( select min(id) as min_id from mes））
+
+239、	<project xmlns="http://maven.apache.org/POM/4.0.0" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"></project>	
+	pom中有该标签，只需加入maven依赖，即可自动从远程更新jar
+	
+240、	简易的ajax：
+		$.ajax({
+		             type: "post",
+		             url: "localhost:8080/addTalents",
+		             data: {"a":"nihao"},
+		             dataType: "json",
+		             success: function(data){	
+		             	      
+		                      }
+		       });
+	
