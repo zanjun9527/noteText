@@ -429,6 +429,10 @@
 			pwd-->示当前的工作目录（pwd:print working directory）
 			find / -name dubbo-2.8.4a.jar查找某个文件
 			tail -f  文件 可以实时follow日志信息
+			ctrl+c 退出tail -f
+			cd  / 退回到根路径
+			find 查找
+			:q!退出命令后加 ! 忽略提示      
 
 
 			ls和dir查看所有文件命令，more 查看具体的文件
@@ -1507,3 +1511,102 @@
 	<#elseif requireType=="4">
 	444444
 	</#if>  注意值加""
+
+
+	判空		<#if userAddress.area??>
+
+		  	<#else>
+
+			</#if>
+
+
+
+
+247、	再一个方法中操作数据库，如果没有走完，数据库是不会把事务提交的，即在数据库中是实时看不到操作完成的数据的，但是数据已经在缓存中发生了变化
+
+
+
+248、	interface中定义的常量可以直接interface.调用
+	public interface IOperateAdminRequireLogService {
+	public String opAdmin_release_require="requires/release";//小秘书发需求,该flag在requireInfoMapper.selectReqListByUserIdWihtSecListPage中被使用，慎改
+	public String opAdmin_re_release_require="requires/reRelease";//小秘书重发需求
+	public String opAdmin_modify_require="update";//小秘书修改需求
+	public String opAdmin_colse_require="close";//小秘书关闭需求
+	public String opAdmin_delete_require="delete";//小秘书删除需求
+	public String opAdmin_choose_apply="apply/select";//小秘书代选人
+
+	void insertOperateAdminReqLog(int reqId,int userId,int requserId,String remark);
+}
+
+
+249、sosoapi
+	sosoapi ip权限   和 用户管理员权限（t_proj_mem中修改成员的信息）
+
+250、		data:{"reqAppointInfo":JSON.stringify(dataForm),"userId":$('#userId').val()},如果走的ajax data数据，没有传就拿不到，和表单提交不一样
+
+
+251、	${}页面取值只能维持一次请求
+
+252、表单内容序列化
+	var dataForm=serialize(releaseReqForm);
+	dataForm['phoneScreen']=dataForm.cellShow;
+
+252、代码测试：
+	1、主函数中测试，这种只支持一些常规类的创建对象测试，无法注入interface，mapper，applicationContext等，无法进行接口等测试
+	2、junit测试，入口属于代码接口测试，在项目中添加library中添加junit，即可进行单元测试
+相关maven依赖		<dependency>
+    				<groupId>junit</groupId>
+    				<artifactId>junit</artifactId>
+    				<version>3.8.1</version>
+    				<scope>test</scope>
+			</dependency>
+	在sprinboot中：
+		@RunWith(SpringJUnit4ClassRunner.class) // SpringJUnit支持，由此引入Spring-Test框架支持！ 
+		@SpringBootTest(classes = XyeServiceCoreApplication.class) // 指定我们SpringBoot工程的Application启动类
+		@WebAppConfiguration 
+		public class TalentsSearchServiceImplTest {
+			@Autowired
+			ITalentsSearchService  talentsSearchService;
+			@Test
+			public void testSelectUsersInfoBycellPhones() {
+				BaseModelInfo<usersInfoBean> selectUsersInfoBycellPhones = talentsSearchService.selectUsersInfoBycellPhones(1, 202, "18862241316");
+			}
+		}
+	在普通的ssm工程中：在这里是在war工程中进行测试，也因为各个jar的引用集中，mybattis也是集成在这里。不引入spring-mvc.xml的原因是这里是接口测试，无需controller相关，引入spring.xml是获得容器中的service，引入spring-mybatis.xml是因为接口中需要mapper等，否则接口注入失败
+		@RunWith(SpringJUnit4ClassRunner.class)
+		@ContextConfiguration(locations = { "classpath:spring.xml","classpath:spring-mybatis.xml" })
+		public class UserInfoServiceImplTest {
+			@Autowired
+			IUserInfoService userInfoService;
+			@Test
+			public void test() {
+				UserInfo selectById = userInfoService.selectById(203);
+			}
+		}
+
+	3、postman测试，这种入口是路径测试
+		在spring 接受参数是@pathvariable和@requestparam
+		在springboot jboos中节后参数是@pathparam，@queryparam和@requestparam   @path标签和这些标签的匹配比较严格
+
+
+	4、debug从前端页面到controller进入测试，这种在前后端分离的开发过程中是行不通的
+
+
+253、默认的spring配置文件是resources下的applicationContext.xml，可以修改配置文件
+			<context-param>	
+				<param-name>contextConfigLocation</param-name>
+				<param-value>classpath*:spring.xml</param-value>
+			</context-param>
+
+
+254、	接口中定义的"变量", 其实就是常量, 接口中的"变量"默认都是 "public static final"类型, 即为常量, 不要使用"常量接口模式", 此模式会导致类中的常量混乱
+
+255、	连等判断 int a = 2==2 ? 1:0;
+
+256、	.val() 方法返回或设置被选元素的值。
+	layer web弹层组件，开源的额前段弹框
+
+
+
+
+	
