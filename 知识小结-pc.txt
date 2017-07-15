@@ -206,7 +206,42 @@
 32、	redis 127.0.0.1:6379> TTL KEY_NAME 			Redis TTL 命令以秒为单位返回 key 的剩余过期时间。
 33、	redis是单线程，不会设计多个线程并发的问题
 
+34、springmvc
+基本类容：
+需要掌握东西：前端控制器 、处理器映射器（注解和非注解）、处理器适配器、视图解析器
+springmvc注解的开发：
+	1）、常用注解
+	2）、参数绑定（简单类型，pojo，集合类型）
+	3）、自定义参数绑定
 
+mvc 模型视图控制器 在一次request请求的生命周期 request--->c(控制器controller)--->m模型处理（dao，service）--->返回c--->v（view）视图渲染
+
+springmvc request--->前端控制器（dispatcherservlet接受请求和响应结果相当于转发器）--->处理器映射器（handlerMappering 根据url匹配相应的handler）--->返回一个执行链（handlerExecution包含interceptor和handler：handler处理器（平时controller），不同的handler由不同的处理器适配器(handlerAdapter：按特定规则执行handler)调用执行）--->返回modelandview到适配器再到前端控制器--->由视图解析器返回view（是个接口，支持不同的view类型）进行视图渲染
+
+handler是需要开发的，view中的jsp也是
+handler是需要实现controller接口的处理器
+
+
+
+
+搭建springmvc
+1、在web.xml中配置前端控制器
+1）、配置dispatcherServlet的url-pattern有三种方式：1、*.action 2、/ 3、/* 这种不对，当转发到一个jsp页面时，仍然会由dispatcherServlet解析jsp,不找到handler
+2）、dispatcherServlet中的init-param需要指定contextconfiguration和springmvc.xml（配置handleradapter和handlerMappering等 ），默认是加载/WEB-INF/servlet名称—servlet.xml
+
+2、在spring.xml配置handlerAdapter,handlerMappering和视图解析器 
+  
+
+高级内容： 
+参数绑定
+数据回显 
+上传图片
+json数据交互
+restful支持
+拦截器	
+	
+
+	
 
 
 
