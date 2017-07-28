@@ -285,7 +285,10 @@
 56、          	maven的仓库管理软件——Sonatype Nexus搭建私服
 
 
-57、		<version>0.0.6-SNAPSHOT</version>
+57、		
+		maven：
+上传远程仓库
+		<version>0.0.6-SNAPSHOT</version>
 		<version>3.2.0.RELEASE</version> maven的两种版本管理稳定版和快照版，pom.xml中带release和snapshot的会自动打包拿到nexus相应的目录，其他不识别的打到release目录下，打包的时候需要大写SNAPSHOT才能到正确位置，小写会打到release库下，但是引用大小写都可以。
 		<distributionManagement>
 			<repository>
@@ -298,6 +301,9 @@
 				<url>http://192.168.6.251:8087/nexus/content/repositories/snapshots/</url>
 			</snapshotRepository>
 		</distributionManagement>
+		snapshot实时，但不稳定，release版本则比较稳定。Maven会根据项目的版本判断将构件分发到哪个仓库。
+		分发构件到远程仓库需要认证，需在settings.xml中配置认证信息：（nexus的账号和密码），其中server元素下id的值必须与POM中repository或snapshotRepository下id的值完全一致。将认证信息放到settings下而非POM中，是因为POM往往是它人可见的，而settings.xml是本地的。
+
 
 58、		反编译软件jd-gui
 
@@ -1500,7 +1506,7 @@
 244、	${ }不能在js中使用,循环添加一个新建对象，出现同一覆盖值的问题，var dataPrice={};一般要把新建对象放在循环体内
 		r["name"]="tom"; 为对象添加属性
 		var r=new Object();
-		var dataForm=serialize(releaseReqForm);
+		var dataForm=serialize(releaseReqForm);  表单序列化
 		delete dataForm.appointPrice;   移除对象属性
 
 245、cmd 查看当前目录， dir
@@ -1511,6 +1517,11 @@
 	<#elseif requireType=="4">
 	444444
 	</#if>  注意值加""
+
+	<#if user??>
+	${(user.name)!""}
+	</#if>
+
 
 
 	判空		<#if userAddress.area??>
@@ -1606,7 +1617,69 @@
 256、	.val() 方法返回或设置被选元素的值。
 	layer web弹层组件，开源的额前段弹框
 
+266、	ecipse下错误: 找不到或无法加载主类，重新添加buildPath中的add源码即可，maven打包异常不覆盖，也适用
+
+267、	linux下配置tomcat的环境变量
+	JAVA_HOME=/usr/java/jdk1.8.0_131
+	JRE_HOME=${JAVA_HOME}/jre
+	PATH=$JAVA_HOME/bin:$PATH
+	CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+
+268、	/**
+	* JAVA获得0-9,a-z,A-Z范围的随机数
+	* @param length 随机数长度
+	* @return String
+	*/
+	public static String getRandomChar(int length) {
+	char[] chr = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+	Random random = new Random();
+	StringBuffer buffer = new StringBuffer();
+	for (int i = 0; i < length; i++) {
+	buffer.append(chr[random.nextInt(62)]);
+	}
+	return buffer.toString();
+	}
+	public static String getRandomChar() {
+	return getRandomChar(10);
+	}
 
 
+269、	<resource>		----打包的类路径classpath
+		<directory>src/main/resources</directory>	-----打包的目录，默认全部
+		<includes>
+		<include>spring-dubbo.xml</include>	-----打包固定的目录或文件
+		</includes> 
 
+	</resource>
+
+	<profiles>
+		<profile>
+			<id>prd</id>
+			<properties>
+				<env>prd</env>
+			</properties>
+			<build>
+				<filters>
+					<filter>../vars/vars.prd.properties
+					</filter>
+				</filters>
+			</build>
+		</profile>
+		<profiles>
+	<resource>
+		<directory>${basedir}/src/main/resources</directory>
+		<filtering>true</filtering> 	----开启过滤功能
+	</resource>
+270、maven多环境 <resources>中，pom中不指定具体的路径，默认 web deployment assembly 中配置的resource 全目录打包，
+	配置了<resource>就会严格固定pom中的配置目录
 	
+
+
+
+271、zookeeper+dubbo 框架实现soa
+
+
+272、tomcat的session共享，tomca中配置缓存共享的问题
+	org.apache.catalina.LifecycleException: Failed to start component [com.orangefunction.tomcat.redissessions.RedisSessionManager[]]
