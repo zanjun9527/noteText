@@ -1,0 +1,50 @@
+1、#itemAddForm [name=desc]
+2、一对多、一对一和多对多、外键
+
+httpclient工具的使用
+xshell,虚拟机的搭建
+jsonutil的使用
+redis缓存如何实现同步
+md5实现加密
+字符流和字节流
+jsonp的使用
+直接依赖的jar可以直接autowire吗
+sso和缓存和缓存同步的区别
+分页查询
+事务配置
+@requestbody使用
+Mycat 数据库分库分表中间件
+正向代理和反向代理
+外网和内网使用
+zookeeper配置 以及集群  dubbo的
+
+处理数据库级别的并发问题
+文件和图片的上传
+事务的回滚问题
+分库分表的设计
+
+springmvc.xml的头配置
+@modelattribute的使用
+
+redis持久化的解决方案
+
+juint单元测试
+
+solradmin中的df查询
+
+@RequestBody, @ResponseBody 详解
+tomcat实现热部署，在不关机的情况下部署工程
+处理静态资源
+ 
+springmvc的传输对象 加modelattribute标签和不加标签都可以
+
+controller层实现controller接口
+spring的事务控制
+beanutils.copyproperties(a,b)
+
+
+
+320121197809151713 952789
+http://www.95598.cn/
+zanjun9527	z3-4
+
