@@ -219,7 +219,7 @@ mvc 模型视图控制器 在一次request请求的生命周期 request--->c(控制器controller)---
 springmvc request--->前端控制器（dispatcherservlet接受请求和响应结果相当于转发器）--->处理器映射器（handlerMappering 根据url匹配相应的handler）--->返回一个执行链（handlerExecution包含interceptor和handler：handler处理器（平时controller），不同的handler由不同的处理器适配器(handlerAdapter：按特定规则执行handler)调用执行）--->返回modelandview到适配器再到前端控制器--->由视图解析器返回view（是个接口，支持不同的view类型）进行视图渲染
 
 handler是需要开发的，view中的jsp也是
-handler是需要实现controller接口的处理器
+handler是需要实现controller接口的处理
 
 
 
@@ -229,21 +229,135 @@ handler是需要实现controller接口的处理器
 1）、配置dispatcherServlet的url-pattern有三种方式：1、*.action 2、/ 3、/* 这种不对，当转发到一个jsp页面时，仍然会由dispatcherServlet解析jsp,不找到handler
 2）、dispatcherServlet中的init-param需要指定contextconfiguration和springmvc.xml（配置handleradapter和handlerMappering等 ），默认是加载/WEB-INF/servlet名称—servlet.xml
 
-2、在spring.xml配置handlerAdapter,handlerMappering和视图解析器 
-  
+2、在spring.xml配置handlerAdapter，所有适配器都实现这个接口，（simpleControllerHandlerAdapter，handler实现controller接口，相当于@controller，多种适配器可选）,handlerMappering所有映射器都实现这个接口，（beanNameUrlHandlermapping和simpleurlhandlermapping非注解）和视图解析器，这个是在xml中配置，配置相应的handlerbean，加入spring容器，实现路径和类的匹配，不过现在过时了，现在用的是@requestMapping
+非注解，有多种handlerAapter和handlerMapping可选，还是比较麻烦的，不如用注解
+
+spring.xml中不部配置映射器和适配器，是默认加载dispatcherServlet.properties中配置
+
+配置注解的映射器和适配器（怎么处理这个handler，是mv还是request）：
+<mvc:annotation-driven></mvc:annotation-driven>  使用这个可以代替xml中配置映射器和适配器。
+annotation-driven 默认绑定了很多参数绑定方法，代替了requesrMappingHandlerMapping和requesrMappingHandlerAdapter
+返回的mv是一个map，将其填充到request域中，前端页面可取值
+ 
+
+
+
+@requestMapping实现方法和url的映射。、
+@Controller注解，即表示改类是Handler处理器。
+
+对标记@controller类中标记@requestMapping的方法进行映射，映射相应的url，注解版，无需再xml中配置url和handler的映射关系 
+
+注解的处理器适配器;和注解的映射器配对使用，
+
+
+
+使用mvc注解驱动，<context:componet-scan base-package=""></context:componet-scan>指定controller，添加进入容器
+
+3、视图解析器，xml中配置相应的bean即可。
+
+modelAndView的addObject（）相当于request的setAttribute方法，在jsp中取数据
+
+springmvc和mybatis的整合：
+框架层次：表现层（springmvc），业务层（spring）、持久层（mybatis）
+spring将各层进整合，通过spring
+管理持久层的mapper接口，通过spring管理业务层的service，通过spring管理表现层的handler
+
+1、整合dao层：mybatis和spring整合，mapperscanner扫描
+2、整合service：管理service接口，配置或标签，实现事务控制
+3、整合springmvc：是spring的模，无需整合
+
+简约版配置：
+整合mybatis
+1)、配置mybatis的mybatis.xml中只需要配置分页插件
+2)、spring-mybatis.xml主要将dao整合到spring中，主要是将sqlsessionfactory（包含mybatis.xml和datasource）注入容器中,再将mapper扫描注入容器（实现@autowire注入）
+
+整合spring
+配置spring的事务管理：
+1）、事务管理器，spring-jdbc
+2）、通知<tx:advice></txadvice>
+3)、<aop:config></aop:config>
+ 
+整合springmvc
+1）、组件扫描<context:componet-scan base-packge=""></context:componet-scan>扫描controller
+2）、mvc注解驱动，<mvc:annotation-driven></mvc:annotation-driven>
+3)、视图解析器
+
+
+在web.xml中通过contextLoaderListener监听器，将各个xml整合文件加入spring容器，参数为						<context-param>
+							<param-name></param-name>	
+							<param-value></param-value>
+						</context-param>
+
+
+
+
+
+controller的三种返回对象：1、modelandview 2、string（需要形参model） 3、void
+
+redirect 无法共享request return "redirect:queryItem.action" 重定向路径，同级类省略类根路径，地址栏改变
+	response.sendirect("url")
+	
+
+forward 地址栏不变，共享request return "forward:queryItem.action"
+	request.getRequestDipatcher("path").forward(request,response)
+
+
+
+解决post乱码：在web.xml中配置字符集过滤
+解决个体乱码：1、tomcat中     <Connector URLEncoding="utf-8" port="8080" 		protocol="HTTP/1.1"  connectionTimeout="20000" redirectPort="8443" />
+	      2、new String(request.getParammeter("a").getBytes("ISO8859-1"),"utf-8")
+
+
+
 
 高级内容： 
-参数绑定
-数据回显 
-上传图片
+
+参数绑定:处理器适配器调用springmvc的参数绑定组件（converter）获取形参，执行controller
+简单传入：
+	1）、简单类型 @requestparam（value，required，defaultvalue） 不使用则  request传入的名称和controller的形参名需一致
+	2）、pojo类型
+		2I）、不使用标签，页面的name属性和形参pojo的属性name一致，使用的话应该是@modelattribute
+	3）、自定义类型 pojo有日期类型，converter<T1,T2>由string转为date，需要自定义，在mvc注解驱动中增加comversion-service="beanid"，目的是在springmvc的绑定组件中注入自定义的转换类。
+
+高级绑定：
+	pojo： 传入pojo中的pojo属性：页面中name="userInfo.name"
+	数组：页面中共用相同的name值即可，name="userId"，传到后台就是 Integer[] userIds
+	list: userInfo中有个List<pojo> pojoList，页面name="pojoList[index].name"
+	map:页面中name="userInfo['name']" -----key-value
+校验：
+主要是后端的服务端校验-validation校验框架，springmvc的校验框架（引入hibernate-validator-4.3.0final.jar,jboss-loggging-3.1.0.CR2.jar,validation-api-1.0.0.GA.jar）
+validator需要注入适配器（配置校验器bean和返回bean，这里使用的是返回properties，个人认为是加入容器，快速读取，{}读取即可），通过mvc注解驱动注入，validator="beanname"
+在形参校验的bean前加@validated 其后需要跟着BindingResult bindingResult，有一个pojo校验就需要跟一个bindingResult,形参顺序一前一后，在对bindingResult进行判断即可。
+多个controller共用一个校验pojo时，pojo中可以指定校验分组，group属性group={validate1.class},校验分组是一个空接口，形参中指定@validated（validate1.class）即可
+
+
+数据回显：
+	使用@modelattribute回显数据，简单点的使用model回显
+
+异常处理：
+springmvc提供了全局异常处理器进行统一异常处理（唯一），是抛到前端控制器交给统一异常处理器处理  
+	预期异常：
+	runtimeException：
+
+定义异常处理器，需要实现handlerExceptionResolver接口，并需要在springmvc.xml中注入
+自定义的异常信息类需要继承exception类
+
+
+
+上传图片 
 json数据交互
 restful支持
 拦截器	
 	
+35、response可以修改定义的内容，比如：
+	response.setChatacterEncoding("utf-8");
+	response.setContentType("application/json;charset=utf-8");
+	response.getWriter().writer(jsonString);
 
-	
 
+36、	可以定义一个dmo的扩展类，专门处理sql查询，方便维护。有的代码，也会抽象出dmo的参数包装对象，作为统一的参数传入。
 
+37、	
 
 
 
