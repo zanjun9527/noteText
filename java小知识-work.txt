@@ -1,5 +1,6 @@
 学习小结：
 1-学习新的东西，最直接标准的就是官方的API文档。
+2-不要绕业务逻辑，抓重点
 
 
 
@@ -1509,6 +1510,22 @@
 		var dataForm=serialize(releaseReqForm);  表单序列化
 		delete dataForm.appointPrice;   移除对象属性
 
+	创建对象属性：
+		var dataPrice={};
+		XYE.each(dataForm.userId,function(i,tem){
+		dataPrice['userId']=tem;
+	浏览器的回退刷新
+		<input type="hidden" id="refreshed" value="no">
+		<script type="text/javascript">
+		onload=function(){
+					var e=document.getElementById("refreshed");
+					if(e.value=="no")e.value="yes";
+					else{
+						e.value="no";location.reload();
+					     }
+				  }
+		</script >
+
 245、cmd 查看当前目录， dir
 
 246、	ftl   
@@ -1683,3 +1700,38 @@
 
 272、tomcat的session共享，tomca中配置缓存共享的问题
 	org.apache.catalina.LifecycleException: Failed to start component [com.orangefunction.tomcat.redissessions.RedisSessionManager[]]
+
+273、spring配置datasource的方式
+	使用jndi需要在tomcat中增加数据源jar和logjar，并在context.xml中新增resourcejndi配置
+	1、xml中注入配置datasource，需要指定数据源，目前用的是数据源jar是druid版本，在指定一些常规数据库连接属性即可
+	2、 应用配置在高性能的应用服务器上，使用应用服务器本身提供的数据源。应用服务器的数据源，使用JNDI开放调用者使用，Spring为此专门提供引用JNDI资源的JndiObjectFactoryBean类。
+		<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">      
+    			<property name="jndiName" value="java:comp/env/jdbc/bbt"/>      
+		</bean>  
+
+	代码端：	Spring 2.0提供了一个jee命名空间，通过jee命名空间，简化J2EE资源的引用。
+				<jee:jndi-lookup id="dataSource" jndi-name=" java:comp/env/jdbc/bbt"/>
+	服务器端：	然后在tomcat中的context.xml中配置
+				<Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="40" maxWait="12000" name="jdbc/XiaoyuerProject" password="db_xiaoyuer" type="javax.sql.DataSource" url="jdbc:mysql://192.168.6.251:3306/db_xiaoyuer_xq?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull&amp;generateSimpleParameterMetadata=true" username="db_xiaoyuer"/> 
+ 
+	sprinboot中配置@bean 注入datasource，则以配置的为准，默认的取消
+
+	DataSourceBuilder使用该类配置共配置数据源	
+
+
+274、	<url-pattern>/</url-pattern> 会匹配到/login这样的路径型url，不会匹配到模式为*.jsp这样的后缀型url
+	<url-pattern>/*</url-pattern> 会匹配所有url：路径型的和后缀型的url(包括/login,*.jsp,*.js和*.html等)
+275、	在springmvc中继承HandlerInterceptorAdapter可以实现拦截器
+	sprinboot中使用@ComponentScan(basePackageClasses = XyeManagerApplication.class）同样可以定义扫描的包路径
+	
+	springmvc中配置拦截器的路径，
+	interceptor中处理request.setAttribute("baseUrl", Constants.URL_WEB_HOST_NEWADMIN);这样可以定义访问路径级别的全局的常量
+	
+	<mvc:interceptors>
+    	<mvc:interceptor>
+        <!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller -->
+        <mvc:mapping path="/**"/>
+        <bean class="com.cckj.util.auth.AuthInterceptor"></bean>
+    	</mvc:interceptor>
+    	<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+	</mvc:interceptors>
