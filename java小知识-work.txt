@@ -1858,3 +1858,24 @@
 　　　　如果查询的结果为空，那么会抛出异常。解决方法时，使用required=false
 
 	@resource（name=“personDaoBean”）默认byName
+
+
+239、	可以看出DTO传输对象的设计应该具备这几个特点：
+	1.按需放入字段。
+	2.保证贫血模型，不要放任何逻辑在里面。
+
+
+
+240、
+二、	主键、外键和索引的区别
+ 	主键--唯一标识，不重复，不为空，
+ 	外键--是另一表的主键, 可重复, 可空，用来和其他表建立联系用的，
+ 	索引--无重复值，可为空，提高查询排序的速度，可有多个唯一索引
+ 
+ 	设置联合主键，自增的主键不能放在最左边
+	CREATE TABLE `user` (  
+  	`id` int(11) NOT NULL AUTO_INCREMENT,  
+  	`username` varchar(255) NOT NULL,  
+  	`nack` varchar(255) DEFAULT NULL,  
+  	PRIMARY KEY (`username`,`id`)  
+
