@@ -1,5 +1,6 @@
 学习小结：
 1-学习新的东西，最直接标准的就是官方的API文档。
+2-不要绕业务逻辑，抓重点
 
 
 
@@ -444,10 +445,20 @@
 			ls和dir查看所有文件命令，more 查看具体的文件
 			ctrl+shift+f  快速翻页
 
-66、			修改startup.bat和shutdown.bat文件头下加，实现多个tomcat的运行
+66、			多个tomcat实例运行：
+			1、复制多个tomcat目录副本,catalina.bat中不需要改动
+			修改startup.bat和shutdown.bat文件头下加，实现多个tomcat的运行
 			SET JAVA_HOME=C:\Program Files\Java\jdk1.7.0_17
 			SET CATALINA_HOME=D:\apache-tomcat-7.0.55-src
 			SET CATALINA_BASE=D:\apache-tomcat-jenkins
+			2、准备多套base_home的目录，公用一个catalina_home
+			set "CATALINA_BASE=%cd%"  
+			set "CATALINA_HOME=F:\apache-tomcat-7.0.69"  
+			set "EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat"  
+			call "%EXECUTABLE%" start 
+
+			tomcat 的 catalina_home（安装目录） 和catalina_base（工作目录）
+
 
 67、			solr中的doc=3581 就是需求id 也就是solr设置的主键
 
@@ -583,6 +594,10 @@
 
 
 84、				SYSDATE() 数据库sql中获取系统的当前时间
+				
+				ALTER TABLE `service_apply`
+				ADD COLUMN `Price_Mode` int NULL COMMENT 'Price_Mode为0表示一口价' AFTER `Totoal_Price`;
+
 
 85、				final static常量String不能被重新赋值，只能被替换，替换不改变原来的值，而是返回这个新值
 			
@@ -989,6 +1004,8 @@
 137、		不同环境的问题，有配置和tomcat集群的问题
 
 138、		java反射用例中，setAccessible(true) 并不是将方法的访问权限改成了public，而是取消java的权限控制检查。所以即使是public方法，其accessible 属相默认也是false
+		利用反射，可以使用BeanUtils.copyProperties()来复制属性，对象的名称要匹配，不匹配不转，复杂属性类型需一致，否则argument type mismatch，常规属性类型的可以不一致，复杂类的属性复制，this.value=value全属性覆盖
+		PropertyUtils的工具类，它也提供copyProperties()，并且还提供类型转换的功能，但两者都不支持date类型，这种的速度相对要慢
 
 139、		configfilter数据库加密   	java -cp druid-1.0.16.jar com.alibaba.druid.filter.config.ConfigTools you_password   1.0.16版本加密默认带有公钥，私钥。1.0.13版本默认不带公钥。
 		通过设置<property name="filters" value="config" />
@@ -1493,6 +1510,8 @@
 		       });
 	
 241、	linux vim文档时候 insert或者i进入编辑模式    退出esc+:wq
+	ubantu进入root sudo su
+	输入exit退出root用户
 
 242、	ajax传输数据的时候，后台使用@requestparam接受名字一定要对应，参数中如果不加该标签，传入数据是接受不到的，至少在springboot中接受不到，也就是说，不加标签ajax传输的数据只能tongue标签节后和request.getparammeter接收
 
@@ -1508,6 +1527,23 @@
 		var r=new Object();
 		var dataForm=serialize(releaseReqForm);  表单序列化
 		delete dataForm.appointPrice;   移除对象属性
+
+	创建对象属性：
+		var dataPrice={};
+		XYE.each(dataForm.userId,function(i,tem){
+		dataPrice['userId']=tem;
+	
+	浏览器的回退刷新
+		<input type="hidden" id="refreshed" value="no">	
+		<script type="text/javascript">
+		onload=function(){
+					var e=document.getElementById("refreshed");
+					if(e.value=="no")e.value="yes";
+					else{
+						e.value="no";location.reload();
+					     }
+				  }
+		</script >
 
 245、cmd 查看当前目录， dir
 
@@ -1543,7 +1579,7 @@
 	public String opAdmin_re_release_require="requires/reRelease";//小秘书重发需求
 	public String opAdmin_modify_require="update";//小秘书修改需求
 	public String opAdmin_colse_require="close";//小秘书关闭需求
-	public String opAdmin_delete_require="delete";//小秘书删除需求
+	public String opAdmin_delete_require="delete";//小秘书删除需
 	public String opAdmin_choose_apply="apply/select";//小秘书代选人
 
 	void insertOperateAdminReqLog(int reqId,int userId,int requserId,String remark);
@@ -1683,3 +1719,163 @@
 
 272、tomcat的session共享，tomca中配置缓存共享的问题
 	org.apache.catalina.LifecycleException: Failed to start component [com.orangefunction.tomcat.redissessions.RedisSessionManager[]]
+
+273、spring配置datasource的方式
+	使用jndi需要在tomcat中增加数据源jar和logjar，并在context.xml中新增resourcejndi配置
+	1、xml中注入配置datasource，需要指定数据源，目前用的是数据源jar是druid版本，在指定一些常规数据库连接属性即可
+	2、 应用配置在高性能的应用服务器上，使用应用服务器本身提供的数据源。应用服务器的数据源，使用JNDI开放调用者使用，Spring为此专门提供引用JNDI资源的JndiObjectFactoryBean类。
+		<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">      
+    			<property name="jndiName" value="java:comp/env/jdbc/bbt"/>      
+		</bean>  
+
+	代码端：	Spring 2.0提供了一个jee命名空间，通过jee命名空间，简化J2EE资源的引用。
+				<jee:jndi-lookup id="dataSource" jndi-name=" java:comp/env/jdbc/bbt"/>
+	服务器端：	然后在tomcat中的context.xml中配置
+				<Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" maxActive="100" maxIdle="40" maxWait="12000" name="jdbc/XiaoyuerProject" password="db_xiaoyuer" type="javax.sql.DataSource" url="jdbc:mysql://192.168.6.251:3306/db_xiaoyuer_xq?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull&amp;generateSimpleParameterMetadata=true" username="db_xiaoyuer"/> 
+ 
+	sprinboot中配置@bean 注入datasource，则以配置的为准，默认的取消
+
+	DataSourceBuilder使用该类配置共配置数据源	
+
+
+274、	<url-pattern>/</url-pattern> 会匹配到/login这样的路径型url，不会匹配到模式为*.jsp这样的后缀型url
+	<url-pattern>/*</url-pattern> 会匹配所有url：路径型的和后缀型的url(包括/login,*.jsp,*.js和*.html等)
+275、	在springmvc中继承HandlerInterceptorAdapter可以实现拦截器
+	sprinboot中使用@ComponentScan(basePackageClasses = XyeManagerApplication.class）同样可以定义扫描的包路径
+	
+	springmvc中配置拦截器的路径，
+	interceptor中处理request.setAttribute("baseUrl", Constants.URL_WEB_HOST_NEWADMIN);这样可以定义访问路径级别的全局的常量
+	
+	<mvc:interceptors>
+    	<mvc:interceptor>
+        <!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller -->
+        <mvc:mapping path="/**"/>
+        <bean class="com.cckj.util.auth.AuthInterceptor"></bean>
+    	</mvc:interceptor>
+    	<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+	</mvc:interceptors>
+
+
+
+276、	EOLINKER接口文档，soso-api接口文档
+
+277、	<context:component-scan> ，属性base-package去扫描指定包下的class和jar文件，扫描到有@Component @Controller@Service等这些注解的类，并注册为Bean类放到Bean工厂
+
+
+278、	<Host appBase="webapps" autoDeploy="true" name="localhost" unpackWARs="true">
+
+    ---项目的部署路径              
+	<Context docBase="D:\apache-tomcat-7.0.70\webapps\XiaoyuerProject" path="" reloadable="true" source="org.eclipse.jst.jee.server:XiaoyuerProject"/></Host>  --实际访问路径     实际的运用中可以配置图片服务器的虚拟路径
+	在图片file写入磁盘的时候，采用的是路径+文件名的方式，路径最后要加上/，写入完整的路径。	
+
+279、	WEB-INF下的文件无法直接访问，可以直接把JSP页面放到WEB-INF外的webapp目录下，可以通过转发的方式访问，我用的是Controller来进行转发，
+	<%=request.getContextPath()%>	jsp页面中直接获取项目的工程名	
+	路径前加“/”是代表绝对路径，不加“/”是代表相对路径。
+	相对目录中 同级怒路直接取	<img src="img/solr.png">
+
+280、<%@ taglib uri="http://www.xiaoyuer.com/tag" prefix="xiaoyuer"%>
+	web.xml中：
+	  <jsp-config>
+    		<taglib>
+      		<taglib-uri>http://www.xiaoyuer.com/tag</taglib-uri>
+      		<taglib-location>/WEB-INF/tag/xiaoyuer.tld</taglib-location>
+    		</taglib>
+  	  </jsp-config>
+
+
+281、   web.xml 和jar正常  java.lang.ClassNotFoundException: org.springframework.web.context.ContextLoaderListener   原因是最终的web工程中jar最终是要在web-inf的lib下的，没有重新添加maven的buildPath
+
+282、	<c:set var="fileUrl" value="http://192.168.6.199:8086"/>
+	<form id="itemForm" action="${fileUrl}${pageContext.request.contextPath }/editItemsSubmit" method="post" enctype="multipart/form-data" > 
+	跨域提交表单的时候，需要写全http://头，否则不识别跳转blank空页面
+	表单提交需要刷新回显
+	ajax可以实现异步回显
+
+283、	注释模板：
+	shift+alt+J 自动注释  或者/** +enter      Window -->preferences--> Java --> Code Style --> Code Templates  中修改注释模板
+
+
+
+284、	soaBean校验：
+	1）、普通类实现接口需要实现接口中的所有方法，
+	     抽象类实现借口，可以完全覆盖/重写 接口中的方法，也可只重写接口中的某几个方法，子类再继承抽象类时，子类重写的方法即为抽象类中未重写接口中的方法。
+	     总的而言，抽象类实现接口可以自选实现的方法
+	     普通类继承抽象类需要实现抽象类中的抽象方法
+	     ***由上面的例子可以看出，只要一个类是抽象的或是一个接口，那么其子类中的方法都可以使用匿名内部类来实现***
+
+	2)、field.setAccessible(true); 忽略访问修饰符权限
+	    field.get(obj),对象实例换取对象的属性值，拿到对象实例的 域成员的值
+
+
+285、	枚举类的使用
+	枚举类一定需要private的构造函数
+	public class Test {  
+    public enum Color {  
+        RED("红色", 1), GREEN("绿色", 2), BLANK("白色", 3), YELLO("黄色", 4);  
+        // 成员变量  
+        private String name;  
+        private int index;  
+  
+        // 构造方法  
+        private Color(String name, int index) {  
+            this.name = name;  
+            this.index = index;  
+        }  
+  
+        // 覆盖方法  
+        @Override  
+        public String toString() {  
+            return this.index + "_" + this.name;  
+        }  
+    }  
+  
+    public static void main(String[] args) {  
+        System.out.println(Color.RED.toString());  
+    }  
+
+}
+
+286、	spring的事务模板，使用匿名内部类并进行封装
+	Object tmpResult = this.transactionTemplate.execute(new TransactionCallback()
+         {
+             public Object doInTransaction(TransactionStatus status)
+             {
+                    return serviceCallback.invoke();
+             }
+         }); 
+	使用TransactionCallback()可以返回一个值。
+	如果使用TransactionCallbackWithoutResult则没有返回值。 
+
+287、	取对象属性操作后，对象本身也在变化
+	Person person = new Person();
+	BaseDict2 baseDict2 = person.getBaseDict2();
+	baseDict2.setDescription("123123");
+	System.out.println(JSON.toJSON(person).toString());
+
+288、	@Autowired，首先在容器中查询对应类型的bean
+　　　　如果查询结果刚好为一个，就将该bean装配给@Autowired指定的数据
+　　　　如果查询的结果不止一个，那么@Autowired会根据名称来查找。
+　　　　如果查询的结果为空，那么会抛出异常。解决方法时，使用required=false
+
+	@resource（name=“personDaoBean”）默认byName
+
+
+239、	可以看出DTO传输对象的设计应该具备这几个特点：
+	1.按需放入字段。
+	2.保证贫血模型，不要放任何逻辑在里面。
+
+
+
+240、
+二、	主键、外键和索引的区别
+ 	主键--唯一标识，不重复，不为空，
+ 	外键--是另一表的主键, 可重复, 可空，用来和其他表建立联系用的，
+ 	索引--无重复值，可为空，提高查询排序的速度，可有多个唯一索引
+ 
+ 	设置联合主键，自增的主键不能放在最左边
+	CREATE TABLE `user` (  
+  	`id` int(11) NOT NULL AUTO_INCREMENT,  
+  	`username` varchar(255) NOT NULL,  
+  	`nack` varchar(255) DEFAULT NULL,  
+  	PRIMARY KEY (`username`,`id`)  
+
