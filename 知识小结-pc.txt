@@ -643,6 +643,19 @@ mapper代理开发
 39、	throw是语句抛出一个异常。
 	throws是方法可能抛出异常的声明。
 
+40、 	java反射：动态获取类中的信息
+	class.getMethods()//获取所有的共有方法
+	class.getDeclareMethods()//只获取本类中的方法，包括私有
+
+	method.invoke(pbj,param)
+
+
+41、	读取属性文件的思路，
+	1、建一个file，获取文件的输入流
+	2、建一个properties
+	3、输入流写入properties
+
+
 
 
 

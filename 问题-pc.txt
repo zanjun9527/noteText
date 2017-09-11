@@ -6,6 +6,11 @@ redis缓存如何实现同步
 
 字符流和字节流
 
+
+分布式   和rpc框架
+class.forname和class.newinstance
+
+
 jsonp的使用
 
 sso和缓存和缓存同步的区别
