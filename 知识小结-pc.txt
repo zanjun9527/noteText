@@ -344,12 +344,81 @@ springmvcÌá¹©ÁËÈ«¾ÖÒì³£´¦ÀíÆ÷½øĞĞÍ³Ò»Òì³£´¦Àí£¨Î¨Ò»£©£¬ÊÇÅ×µ½Ç°¶Ë¿ØÖÆÆ÷½»¸øÍ³Ò»Ò
 
 
 
-ÉÏ´«Í¼Æ¬ 
-jsonÊı¾İ½»»¥
-restfulÖ§³Ö
-À¹½ØÆ÷	
+ÉÏ´«Í¼Æ¬:
+tomcatµÄserver.xmlÖĞÌí¼ÓĞéÄâÄ¿Â¼£¬·½±ã´úÂëºÍÍ¼Æ¬ÔÚÒ»Ì¨µçÄÔÉÏ²âÊÔÓÃ	
+<Context path="/helloapp" docBase="docBase="D:\web\helloapp" reloadable="true"/>
+springmvcµÄÉÏ´«¹¦ÄÜ£º1¡¢formµÄÖĞÔö¼Óenctype=¡±multipart/form-data¡±
+		    2¡¢ spring.mvcÖĞĞèÒªÔö¼ÓmultipartResolver½âÎöÆ÷
+		    3¡¢controllerÖĞÊ¹ÓÃMultipartFile ½ÓÊÜ´¦Àí
+	 	    4¡¢Í¼Æ¬Ä¿Â¼·Ö¼¶¿ÉÒÔÌá¸ßioÄÜÁ¦
+	            5¡¢²ÉÓÃfile.Transto À´±£´æÉÏ´«µÄÎÄ¼ş
+
+
+
+jsonÊı¾İ½»»¥:springmvcÖĞÊ¹ÓÃÕâÁ½¸ö±êÇ©ĞèÒªÒıÈëjackson jar
+ÇëÇóÊ±json´®£ºÇ°¶ËĞèÒª´¦Àí×ªÎªjson´®£¬²»Ì«·½±ã 
+@requestbody ¿ÉÒÔ½«json´®×ªÎªjava¶ÔÏó£¬ĞÎ²Î°ó¶¨
+@responsebody¿ÉÒÔ½«java¶ÔÏó×ªÎªjson´®Êä³ö
+
+public @ResponseBody UserInfo getUserInfo(@RequestBody Item item){
+
+	return userInfo;
+}
+
+ÇëÇóÊ±key/value¶ÔÏó£ºÔÚajaxÖĞ data:'name=shouji&price=90';
+¿ÉÓÃ@responsebody¿ÉÒÔ½«java¶ÔÏó×ªÎªjson´®Êä³ö
+
+restfulÖ§³Ö£º 
+restful¼Ü¹¹µÄÌØµã£º
+¶Ôurl½øĞĞ¹æ·¶£¬³£ÓÃ
+·Çrest url http://.../queryitem?id=001&type=t01
+rest url   http;//.../item/001
+****ÊµÏÖrest·ÃÎÊ Ç°¶Ë¿ØÖÆÆ÷ĞèÒªÅäÖÃ/À¹½Ø****
+ÅäÖÃ/ 	ÄÇÃ´¾²Ì¬×ÊÔ´jsÒ²»áÓÉÇ°¶Ë¿ØÖÆÆ÷À¹½Ø£¬ËùÒÔÕÒ²»µ½£¬
+ÔÚspringmvc.xmlÖĞÌí¼Ó¾²Ì¬×ÊÔ´½âÎö¼´¿É£¬<mvc:resources location='/js/'  mapping='/js/**'>
+
+À¹½ØÆ÷£º
+springmvcÖĞ ÊµÏÖhandlerInterceptor½Ó¿Ú£¬»ùÓÚaop»úÖÆ£¬
+1£©¡¢Õë¶Ôhandlermapping½øĞĞÀ¹½ØÉèÖÃ
+Ò»°ã²»ÓÃ£¬Âé·³£¬ĞèÒªĞ´interceptorÀà£¬×¢Èëµ½Ö¸¶¨µÄhandlermappingÖĞ
+
+2£©¡¢ÅäÖÃÀàËÆÈ«¾ÖµÄÀ¹½ØÆ÷£¬×¢Èëµ½Ã¿¸öhandlermappingÖĞ,¶à¸öÀ¹½ØÆ÷Ë³ĞòÖ´ĞĞ
+<mvc:interceptors>
+	<mvc:interceptors>
+	     <mvc:mapping path='/**'/>------/**±íÊ¾À¹½ØËùÓĞurl°üÀ¨×Óurl£¬Ö»Åä/*Ö»À¹½Ø¸ùurl
+	     <bean class="">
+	</mvc:interceptors>	
+</mvc:interceptors>
+
+
+1£©¡¢prehandler(request,response,object handler)-----½øÈëhandler·½·¨Ö®Ç°Ö´ĞĞ£¬
+ÓÃÓÚÉí·İÈÏÖ¤ÊÚÈ¨£¬
+Î´µÇÂ¼£¬return false À¹½Ø²»ÏòÏÂÖ´ĞĞ£¬return true ±íÊ¾·ÅĞĞ
+
+2£©¡¢posthandler(request,response,object handler ,mv)--½øÈëhandler·½·¨Ö®ºó£¬·µ»ØmvÖ®Ç°Ö´ĞĞ
+Ó¦ÓÃ³¡¾°´Ómv³ö·¢£¬¿ÉÔÚ´Ë´¦ÀíÄ£ĞÍºÍÊı¾İ
+
+3£©¡¢afterCompletion(request,response,object handler ,mv,exeception)---Ö´ĞĞhandlerÍê³ÉÖ´ĞĞ
+Í³Ò»Òì³£ºÍÈÕÖ¾´¦Àí
+
+
+µ±¶à¸öÀ¹½ØÆ÷À¹½ØÍ³Ò»ÇëÇóÊ±£¬
+I¡¢À¹½ØÆ÷1¡¢2Í¬Ê±·ÅĞĞ
+prehandler°´Ë³ĞòÖ´ĞĞ£¬posthandler£¬afterCompletion°´À¹½ØÆ÷ÅäÖÃµÄÄæÏòË³ĞòÖ´ĞĞ
+II¡¢À¹½ØÆ÷1·ÅĞĞ£¬2²»·ÅĞĞ
+À¹½ØÆ÷1prehandler·ÅĞĞ£¬À¹½ØÆ÷2µÄprehandler²Å»áÖ´ĞĞ£¬À¹½ØÆ÷2prehandler²»·ÅĞĞ£¬1¡¢2ºóĞø¶¼²»Ö´ĞĞ
+III¡¢À¹½ØÆ÷1¡¢2¶¼²»·ÅĞĞ
+Ö´ĞĞµ½À¹½ØÆ÷1prehandler return false ½áÊø
+
+ÓÃÀı1¡¢Í³Ò»ÈÕÖ¾´¦ÀíÀ¹½ØÆ÷£¬ĞèÒª¸ÃÀ¹½ØÆ÷prhandlerÒ»¶¨Òª·ÅĞĞ£¬ÇÒ½«Ëü·ÅÔÚÀ¹½ØÆ÷Á´ÖĞµÄµÚÒ»¸öÎ»ÖÃ
+
+ÓÃÀı2¡¢µÇÂ¼ÈÏÖ¤À¹½ØÆ÷£¬´ÎÏÈ·ÅÔÚÀ¹½ØÁ´µÚÒ»Î»ÖÃ£¬È¨ÏŞ¼ìÑé·ÅÔÚÆä´Î
+²âÊÔÓÃÀı£º1.ÓÃ»§ÇëÇóurl
+	  2¡¢ÅĞ¶ÏÊé·ñÊÇurl°×Ãûµ¥
+	     À¹½ØÆ÷À¹½ØĞ£Ñé session´æÔÚ£¬·ÅĞĞ£¬²»´æÔÚ£¬µ÷×ªµÇÂ¼Ò³Ãæ
+
 	
-35¡¢response¿ÉÒÔĞŞ¸Ä¶¨ÒåµÄÄÚÈİ£¬±ÈÈç£º
+35¡¢	response¿ÉÒÔĞŞ¸Ä¶¨ÒåµÄÄÚÈİ£¬±ÈÈç£º
 	response.setChatacterEncoding("utf-8");
 	response.setContentType("application/json;charset=utf-8");
 	response.getWriter().writer(jsonString);
@@ -357,7 +426,240 @@ restfulÖ§³Ö
 
 36¡¢	¿ÉÒÔ¶¨ÒåÒ»¸ödmoµÄÀ©Õ¹Àà£¬×¨ÃÅ´¦Àísql²éÑ¯£¬·½±ãÎ¬»¤¡£ÓĞµÄ´úÂë£¬Ò²»á³éÏó³ödmoµÄ²ÎÊı°ü×°¶ÔÏó£¬×÷ÎªÍ³Ò»µÄ²ÎÊı´«Èë¡£
 
-37¡¢	
+37¡¢	session.removeAttribute()ÊÊÓÃÓÚÇå¿ÕÖ¸¶¨µÄÊôĞÔ   
+	session.invalidate()ÊÇÇå³ıµ±Ç°sessionµÄËùÓĞÏà¹ØĞÅÏ¢
+	<form action="<%=path %>/custom/add!add.action" method="post">Ä¬ÈÏÊÇget
+
+38¡¢mybatis
+  
+Ô­Éújdbc·ÃÎÊ£º
+ĞèÒª¼ÓÈëmysqlÁ¬½ÓÇı¶¯ 
+Ò»°ãË³Ğò£¬
+1¡¢¼ÓÔØÊı¾İ¿âÇı¶¯ 			Class.forName("com.mysql.jdbc.Driver")
+2¡¢»ñÈ¡Êı¾İ¿âÁ¬½Ó			connection
+3¡¢»ñÈ¡Æ´×°Ô¤´¦Àísql			prepareStam ent
+4¡¢Ö´ĞĞprepareStamentµÃµ½½á¹û¼¯		resultSet
+
+ÎÊÌâ´æÔÚ£º
+1£©¡¢Êı¾İ¿âÁ¬½Ó£¬Ê¹ÓÃ´´½¨connection£¬²»ÓÃÁ¢¼´ÊÍ·Å£¬Æµ·±¿ªÆô¹Ø±Õ£¬Ó°ÏìĞÔÄÜ 
+	½â¾ö·½°¸£ºÊ¹ÓÃÊı¾İ¿âÁ¬½Ó³Ø
+
+2£©¡¢½«sqlÓï¾äÒÔ¼°ÉèÖÃ²ÎÊı£¬»ñÈ¡resultSet£¬Ó²±àÂëjava´úÂëÖĞ£¬Î¬»¤²»·½±ã
+	½â¾ö·½°¸£ºsqlÓï¾äºÍ²ÎÊıÅäÖÃÔÚxmlÎÄ¼şÖĞ£¬resultSet×ªÎªjava¶ÔÏó
+
+Ê¹ÓÃmybatis
+
+Ö´ĞĞË³Ğò£º
+ÅäÖÃmybatisÅäÖÃÎÄ¼ş£¬--¡·sqlSessionFactory--¡·sqlsession--¡·sqlsessionÄÚ²¿executorÖ´ĞĞÆ÷²Ù×÷Êı¾İ¿â--¡·mappedstatement£¨µ×²ã·â×°¶ÔÏó£©£¬´æ´¢·â×°£¬ÊäÈëÊä³ö
+
+Ê¹ÓÃmapper´úÀí¿ª·¢
+Î´ÕûºÏµÄmybatisÊ¹ÓÃ£¬£º
+1¡¢µÃµ½ÅäÖÃÎÄ¼şÁ÷£¬
+2¡¢µÃµ½»á»°¹¤³§£¬´«ÈëÅäÖÃÎÄ¼ş
+3¡¢µÃµ½sqlsession£¬²Ù×÷Êı¾İ¿â
+4¡¢½áÊøsqlsession»á»°    sqlsession.close£¨£©
+User user=sqlsession.selectOne("test.findUserById",id)Ê×²Î=namespace.·½·¨id,´Î²Î=´«Èë²ÎÊı
+	
+ÕâÀïÊ¹ÓÃµÄÊÇsqlsessionÔ­Éú·â×°µÄmapper·½·¨£¬±È½Ï¹Ì¶¨
+*mapper.xmlÖĞµÄresultType±íÊ¾µ¥Ìõ¼ÇÂ¼Ó³ÉäµÄjava¶ÔÏóÀàĞÍ
+1£©¡¢#{}±íÊ¾Ò»¸öÕ¼Î»·û,ÌåÏÖÔÚsqlÉÏÊÇ =£¿ parameters£º
+2£©¡¢${}±íÊ¾Æ´½Ósql´®£¬½«½ÓÊÕµ½µÄ²ÎÊıÄÚÈİ²»¼ÓÈÎºÎĞŞÊÎÆ´½ÓÔÚsqlÖĞ£¬Ö±½ÓÆ´½ÓÔÚsqlÖĞ£¬µ«ÊÇ¿ÉÄÜÒıÆğsql×¢Èë ±ÈÈç£ºselect * from user where name like '%'or 1=1 or'%'
+ ´«ÈëµÄÊÇ¼òµ¥ÀàĞÍÖ»ÄÜÊ¹ÓÃ${value}
+
+Ö´ĞĞinsert²Ù×÷ĞèÒªÊÖ¶¯Ìá½»ÊÂÎñ£¬sqlsession.commit()
+
+Ö÷¼ü·µ»Ø£º
+×ÔÔöÖ÷¼ü·µ»Ø
+
+<insert id='insertObj'>
+	<selectKey keyProperty="id" order="AFTER" resultType='java.lang.Integer '>-----½«²éÑ¯µ½µÄÖ÷¼üidÉèÖÃµ½²ÎÊıÊôĞÔÖĞ
+		select last_insert_id()
+	</selectKey >
+inser into user(...) values (....)
+</insert>
+
+·Ç×ÔÔöÖ÷¼ü
+ÏÈÍ¨¹ıuuid²éÑ¯µ½Ö÷¼ü£¬½«Ö÷¼üÊäÈëµ½sqlÖĞ
+Ö´ĞĞuuid£¨£©Óï¾äË³ĞòÏà¶ÔÓÚinsertÓï¾äÖ®Ç°
+Ê¹ÓÃuuid´´½¨Ö÷¼ü£¬insertÖ®Ç°´´½¨uuid£¬
+	<selectKey keyProperty="id" order="BEFORE" resultType='java.lang.String '>-----½«
+		select uuid()
+	</selectKey >
+
+
+mybatisºÍhibernate£º¼¼ÊõÑ¡ĞÍ£¬µÍ³É±¾£¬¸ß»Ø±¨ÎªÔ­Ôò
+hibernate:ÊÇÒ»¸ö±ê×¼µÄorm¿ò¼Ü£¬²»ĞèÒªĞ´sql£¬×Ô¶¯Éú³É
+Ó¦ÓÃ³¡¾°£ºÊÊÓ¦ĞèÇó±ä»¯²»¶àµÄÖĞĞ¡ĞÍÏîÄ¿£¬±ÈÈçºóÌ¨¹ÜÀíÏîÄ¿
+
+sqlsessionÏß³Ì²»°²È«£¬³ıÁË²Ù×÷Êı¾İ¿âµÄ·½·¨£¬»¹ÓĞÊı¾İÓòÊôĞÔ£¬Æä×î¼ÑµÄÓ¦ÓÃ³¡ºÏÔÚ·½·¨ÌåÄÚ£¬¶¨Òå³É¾Ö²¿±äÁ¿
+
+
+mybatis£º×¨×¢sql±¾Éí£¬ĞèÒª×Ô¼ºĞ´sql£¬±È½ÏÁé»î
+Ó¦ÓÃ³¡¾°£ºĞèÇó±ä»¯½Ï¶àµÄÏîÄ¿£¬»¥ÁªÍøÏîÄ¿
+
+daoµÄ¿ª·¢·½·¨£º
+1£©¡¢Ô­Ê¼dao¿ª·¢·½·¨£¬ĞèÒªĞ´dao½Ó¿ÚºÍdaoÊµÏÖÀà
+Ë¼Â·£ºdaoÊµÏÖÀàÖĞ×¢Èësessionfactory£¬ÔÚ·½·¨ÌåÄÚÍ¨¹ısessionfactory£¬´´½¨sqlsession
+interface-implÊ¹ÓÃsqlsession²Ù×÷£¬sessionfactory×÷ÎªimplÊôĞÔÖµ£¬ÓÉ¹¹Ôìº¯ÊıÒıÈë£¬sqlsessionÔÚ·½·¨ÌåÄÚ²Ù×÷Êı¾İ¿â
+
+×Ü½á£ºI¡¢dao½Ó¿ÚÊµÏÖÀà´æÔÚ´óÁ¿µÄÄ£°å·½·¨£¬
+      II¡¢µ÷ÓÃsqlsession·½·¨Ê±£¬½«statementµÄidÓ²±àÂë£¬sqlsession.selectOne("test.findUserById",id)
+      III¡¢µ÷ÓÃsqlsession·½·¨Ê±´«Èë±äÁ¿£¬ÓÉÓÚÊ¹ÓÃµÄÊÇ·ºĞÍ£¬±àÒë½×¶Î¼´Ê¹±äÁ¿´«²ÎÀàĞÍ´íÎó£¬Ò²·¢ÏÖ²»ÁËÎÊÌâ
+
+2£©¡¢mapper´úÀí·½·¨£¬Ö»ĞèÒªmapper½Ó¿Ú£¨dao½Ó¿Ú£©
+	I¡¢namespaceÓ³Éämapper
+	II¡¢xmlÖĞµÄidºÍmapperÖĞ·½·¨ÃûÒ»ÖÂ
+	III¡¢Èë²Î´«²ÎÒ»ÖÂ
+×Ü½á:·â×°ÁËsqlsessionµÄ·½·¨²Ù×÷
+ 
+1¡¢Í¨¹ısqlsessionfactoryµÃµ½sqlsession
+2¡¢Éú³Émapper´úÀí¶ÔÏó
+   UserMapper userMapper=sqlsession.getMapper(UserMapper.class )
+3¡¢mapper·½·¨Ö´ĞĞ£¬¿ÉÒÔÊ¹ÓÃÍ¬Ò»°ü×°item×îÎªÈë²Î£¨²»ÍÆ¼ö²»Áé»î£©£¬Ò²¿ÉÒÔ@paramÖ¸¶¨¶à¸ö
+
+´úÀí¶ÔÏóÄÚ²¿µ÷ÓÃsqlsession·½·¨:
+mapper·½·¨·µ»Øµ¥¸öpojo¶ÔÏó£¬´úÀí¶ÔÏóÄÚ²¿¾Í»áÊ¹ÓÃsqlsession.selectOne£¨£©
+xmlÖĞÒ²¿ÉÊ¹ÓÃ¼ÓÔØÊôĞÔÎÄ¼ş<properties resource=''>
+				<property name='' value=''/>-----ÏÈ¶ÁÈ¡
+			 </properties >
+²»ÒªÔÚpropertiesÔªËØÌå±»Ìí¼ÓÈÎºÎÊôĞÔÖµ£¬Ö»¶¨ÒåÔÚpropertiesÎÄ¼şÖĞ£¬Ò»°ã¶¨Òå¸´ÔÓÀàĞÍ
+
+4¡¢typeAlias¶¨Òå±ğÃû£¬mybatisÉ¨ÃèpacksgeÖĞµÄpoÀà£¬±ğÃûÊÇÀàÃûresultType=¡°user¡±	
+    Í¨¹ımapper½Ó¿Ú¼ÓÔØ£¬mappersÖĞµÄ<package name="°üÃû">
+	¸ù¾İmapperµÄ·µ»ØÀàĞÍ£¬ÅĞ¶ÏÄÚ²¿Ö´ĞĞµÄÊÇselectOne»¹ÊÇselectList
+
+¶¯Ì¬sql£º1.<if test="a and b"></if>
+	2.<where>¿ÉÒÔ×Ô¶¯È¥µôÌõ¼şÖĞµÄµÚÒ»¸öand
+	3.<sql id=""></sql>³éÈ¡sqlÆ¬¶Î,		
+	ÒıÓÃsqlÆ¬¶Î£¬<include refid=""></include>ÈôÒıÓÃid²»´æÔÚ±¾mapperÖĞ£¬ĞèÇ°±ß×·¼Ónamesapce
+	4.<foreach collection="" item="" open="" close="" separator="">
+		Ã¿´ÎÆ´½Ó¶ÔÏó
+	</foreach>
+
+5¡¢Êı¾İÄ£ĞÍ·ÖÎö
+	1¡¢·ÖÄ£¿é¶ÔÃ¿ÕÅ±í¼ÇÂ¼µÄÄÚÈİ½øĞĞÊìÏ¤£¬Ïàµ±Ñ§Ï°ÏµÍ³ĞèÇóµÄ¹ı³Ì
+	2¡¢Ã¿ÕÅ±íÊı¾İ¿âÖØÒª×Ö¶ÎµÄÉèÖÃ£¬·Ç¿Õ£¬Íâ¼üºÍË÷Òı
+	3¡¢Êı¾İ¿â¼¶±ğ±íÖ®¼äµÄ¹ØÏµ£º**Íâ¼ü¹ØÏµ**
+	4¡¢±íÖ®¼äµÄÒµÎñ¹ØÏµ£¬½¨Á¢ÔÚÄ³¸öÒµÎñÒâÒå»ù´¡ÉÏ
+	
+	Ò»¶Ô¶à£¬¶à¶ÔÒ»ÊÇ½¨Á¢ÔÚÒµÎñµÄ»ù´¡ÉÏ
+
+²éÑ¯£º
+1.È·¶¨Ö÷²éÑ¯±í¡£ÔÚÈ·¶¨¹ØÁª±í
+2.Í¨¹ıÍâ¼ü¹ØÁª²éÑ¯ÓÃ»§±íÖ»ÄÜ²éÑ¯³öÒ»Ìõ¼ÇÂ¼¡£¿ÉÒÔÊ¹ÓÃÄÚÁ¬½Ó
+
+<resultMap type="" id="">
+	<id column="" property=""/>
+	<result column="" property=""/>
+
+	<association property="" javaType="">
+		<id column="" property=""/>
+		<result column="" property=""/>	
+	</association>
+</resultMap>
+ÆäÖĞÊ¹ÓÃcollection¿ÉÒÔÍê³ÉÒ»¶Ô¶àµÄÓ³Éä,²éÑ¯³ö¶ÔÏóÖĞµÄlistÊôĞÔ
+
+mybatisÌá¹©²éÑ¯»º´æ£º
+Ò»¼¶»º´æ:sqlSession¼¶±ğµÄ»º´æ
+Ò»¼¶»º´æ  Ò»´Î´æ:sqlSession¿ªÆô¹Ø±Õ
+µÚÒ»´Î²éÑ¯£¬Ã»ÓĞÔòÊı¾İ¿âÖĞ²é³ö²¢Ìí¼Ó½øÒ»¼¶»º´æ
+ÖĞ¼äÈç¹ûÓĞcommit²Ù×÷£¬Ôò»áÇå¿ÕÈ«²¿£¬±£Ö¤Êı¾İÊµÊ±¸üĞÂ
+µÚ¶ş´Î²é£¬»º´æÖĞÓĞÖ±½Ó»ñÈ¡£¬ÓĞcommit»á´ÓÊı¾İ¿âÖØĞÂ²é
+
+Ó¦ÓÃ£ºÕıÊ½¿ª·¢£¬ÊÇ½«maybatisºÍspring½øĞĞÕûºÏ£¬ÊÂÎñ¿ØÖÆÔÚserviceÖĞ£¬¿ªÊ¼Ö´ĞĞÊ±¾Í¿ªÆôÊÂÎñ£¬´´½¨sqlsession¶ÔÏó£¬·½·¨½áÊøsqlsession½áÊø
+Ö´ĞĞÁ½´Îserviceµ÷ÓÃ²éÑ¯ĞÅÏ¢£¬²»×ßÒ»¼¶»º´æ£¬ÒòÎªsession·½·¨½áÊøÒ»¼¶»º´æ¾Í»áÇå¿Õ
+
+
+
+¶ş¼¶»º´æ:mapper¼¶±ğµÄ»º´æ
+Ä¬ÈÏ²»¿ªÆô£¬ĞèÒªÊÖ¶¯¿ªÆô   usecache=falseÉèÖÃ½ûÓÃ¶ş¼¶»º´æ
+¶à¸ösqlsession¿ÉÒÔ¹²ÏíÒ»¸ömapperµÄ¶ş¼¶»º´æÇøÓò£¨°´ÕÕnamespaceÇø·Ö£©
+sqlsession¹Ø±Õ²ÅÄÜ½«Êı¾İĞ´µ½¶ş¼¶»º´æÇøÓò£¬commitºó¶¼»áÇå¿Õ¶ş¼¶»º´æsqlsession.getMapper()£¬¶à¸ösqlsessionÖ®¼ä¿ÉÒÔ¿ç£¬ÒòÎª¶ş¼¶»º´æÊÇÕë¶ÔmapperµÄ
+
+ehcache:jvmĞéÄâ»úÖĞ»º´æ£¬ËÙ¶È¿ì£¬Ğ§ÂÊ¸ß£»µ«ÊÇ»º´æ¹²ÏíÂé·³£¬¼¯Èº·Ö²¼Ê½Ó¦ÓÃ²»·½±ã¡£ÒÀÀµ³ÌĞò  µ¥¸öÓ¦ÓÃ»òÕß¶Ô»º´æ·ÃÎÊÒªÇóºÜ¸ßµÄÓ¦ÓÃ£¬ÓÃehcache
+
+redis:Í¨¹ısocket·ÃÎÊµ½»º´æ·şÎñ£¬Ğ§ÂÊ±ÈecacheµÍ£¬±ÈÊı¾İ¿âÒª¿ìºÜ¶à£¬´¦Àí¼¯ÈººÍ·Ö²¼Ê½»º´æ·½±ã£¬ÓĞ³ÉÊìµÄ·½°¸¡£¶ÀÁ¢µÄ  ´óĞÍÏµÍ³£¬´æÔÚ»º´æ¹²Ïí¡¢·Ö²¼Ê½²¿Êğ¡¢»º´æÄÚÈİºÜ´ó
+
+²»Ê¹ÓÃ·Ö²¼Ê½»º´æ£¬»º´æÊı¾İÔÚ¸÷×Ô·şÎñÆ÷Ö®¼äµ¥¶À´æ´¢£¬Ïà¶ÔÓÃµÄÊÇredis»òÕßehcache
+×ötomcatµÄ»º´æ¹²Ïí±È½ÏÏûºÄĞÔÄÜ
+
+
+ÕûºÏ·½·¨£ºmybatis×Ô´øcachµÄ½Ó¿Ú£¬ÊµÏÖ¼´¿É£º
+1¡¢ÒıÈëÏà¹Øjar£¬ÅäÖÃmapperÖĞµÄcacheÖĞµÄtypeÎªÆäÊµÏÖÀà<cache type="">
+2¡¢classpathÏÂÅäÖÃehcache.xml
+
+
+Ó¦ÓÃ³¡¾°
+·ÃÎÊÁ¿´ó£¬ÊµÊ±ĞÔÒªÇó²»¸ßµÄ²ÅÓÃ»º´æ£¬È±µã£ºmapperÔÚcommitºó»áÇå¿Õ»º´æ£¬»º´æÃüÖĞÂÊºÜµÍ
+
+
+
+springºÍmybatisÕûºÏ
+Ë¼Â·£º
+	1.ĞèÒªspringÍ¨¹ıµ¥Àı·½Ê½¹ÜÀísqlsession
+	2.springºÍmybatisÕûºÏ´úÀí¶ÔÏó£¬Ê¹ÓÃsqlsessionfactory´´½¨sqlsession(springºÍmybatis×Ô¶¯Íê³É£©
+	3.³Ö¾Ã²ãµÄmapper¶¼ĞèÒªÓÉspring½øĞĞ¹ÜÀí
+
+ÕûºÏ¹ı³Ì£º
+	1.Ïà¹ØspringµÄjar mybatisµÄjar  ºÍspring-mybatisÕûºÏjar
+	2.ÅäÖÃsqlsessionfactory £¨1.configlocation£ºmybatis.xmlºÍ2.datasource£©,´æÔÚspring-mybatisµÄjarÖĞ
+
+Ô­Ê¼dao¿ª·¢£¨Ê¹ÓÃsqlsession²Ù×÷£© *****¼Ì³Ğsqlsessiondaosupport*****    ÒÔÍùÊÇÍ¨¹ı¹¹Ôì·½·¨×¢Èë
+ÔÚÔ­Ê¼µÄdao¿ª·¢ÖĞ£¬ÊµÏÖÀà¿ÉÒÔ¼Ì³Ğsqlsessiondaosupport£¬µ÷ÓÃthis.getSqlSession()»ñÈ¡sqlsession²Ù×÷¶ÔÏó 
+ÕûºÏspringºóÊÇ½»¸øspring¹ÜÀísqlsession£¬ÎŞĞèÊÖ¶¯¹Ø±Õsqlsession£¬ÊÇ·½·¨¼¶±ğµÄÏú»Ù
+
+mapper´úÀí¿ª·¢
+1.Ê¹ÓÃmapperFactoryBean¿ÉÒÔµ¥Ò»Ìí¼Ómapper´úÀí¶ÔÏó£¬Ö¸¶¨mapperInterfaceºÍsqlsessionfactory£¨ÒòÎªbean¼Ì³ĞÁËsqlsessiondaosupport£©£¬µ¥Ò»Ä£Ê½²»³£ÓÃ
+2.ÏîÄ¿ÖĞÊ¹ÓÃµÄÊÇmapperscanner£¬É¨Ãè³ömapper½Ó¿Ú£¬×Ô¶¯´´½¨´úÀí¶ÔÏó²¢ÇÒÔÚspringµÄÈİÆ÷ÖĞ×¢Èë
+<bean class="....mapperscannerconfigurer">
+	<property name="basePackage" value=""> É¨Ãè¶à¸ö°ü£¬Ê¹ÓÃ°ë½Ç£¬·Ö¸î
+	<property name="sqlsessionfactoryBeanName" value="sqlsessionfactory">  
+</bean>
+
+ÈİÆ÷Æô¶¯mapperÉ¨Ãè»áÏÈÖ´ĞĞ£¬datasourceÅäÖÃ ÖĞ£¬ÊôĞÔÎÄ¼ş¼ÓÔØÔİÊ±ÎŞĞ§£¬²»ÄÜÅäÖÃname="sqlsessionfactory" £¬Ò»°ãÎŞĞè×¢Òâ£¬ÓĞ¸öÓ¡Ïó¾Í¿ÉÒÔ
+ÖÁÓÚmapperÓ³ÉäÎÄ¼ş£¬ÊôÓÚsqlsession²Ù×÷µÄ·¶Î§£¬ÕûºÏµ½sqlsessionfactoryÖĞÒ²¿ÉÒÔ
+
+  <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="dataSource" />  
+        <!-- ×Ô¶¯É¨Ãèmapping.xmlÎÄ¼ş -->  
+        <property name="mapperLocations" value="classpath*:dao/*.xml"></property>  
+    </bean>  
+
+
+
+
+
+
+
+
+ÔÚjunit²âÊÔÖĞ£¬Ò²¿ÉÒÔÊ¹ÓÃnew ClassPathXmlApplicationContext("classPath:spring.xml")»ñµÃapplicationContext£¬springµÄÈİÆ÷¶ÔÏó
+
+
+
+ÄæÏò¹¤³Ì£º
+¼¸ÖÖÉú³É·½·¨£¬Ò»°ãÊÇjava¹¤³ÌºÍÃüÁîĞĞ£¬Ïê¼û¹Ù·½ÎÄµµ
+	
+
+39¡¢	throwÊÇÓï¾äÅ×³öÒ»¸öÒì³£¡£
+	throwsÊÇ·½·¨¿ÉÄÜÅ×³öÒì³£µÄÉùÃ÷¡£
+
+40¡¢ 	java·´Éä£º¶¯Ì¬»ñÈ¡ÀàÖĞµÄĞÅÏ¢
+	class.getMethods()//»ñÈ¡ËùÓĞµÄ¹²ÓĞ·½·¨
+	class.getDeclareMethods()//Ö»»ñÈ¡±¾ÀàÖĞµÄ·½·¨£¬°üÀ¨Ë½ÓĞ
+
+	method.invoke(pbj,param)
+
+
+41¡¢	¶ÁÈ¡ÊôĞÔÎÄ¼şµÄË¼Â·£¬
+	1¡¢½¨Ò»¸öfile£¬»ñÈ¡ÎÄ¼şµÄÊäÈëÁ÷
+	2¡¢½¨Ò»¸öproperties
+	3¡¢ÊäÈëÁ÷Ğ´Èëproperties
+
+
+
+
+
+
 
 
 
