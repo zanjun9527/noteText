@@ -1,0 +1,157 @@
+合并时间点
+
+1、	相关request和response操作
+	
+	1.	request.getRequestURL() http://localhost:8080/jqueryWeb/resources/request.jsp
+		request.getContextPath()/jqueryWeb
+		request.getServletPath()/resources/request.jsp
+		注： resources为WebContext下的目录名 	jqueryWeb 为工程名
+	  
+	2.	request.getParameter() 是从浏览器传递到服务器中的参数
+		request.getAttribute() 是服务器代码暂时保留在request的值，这些值在代码中通过setAttribute后才会有值
+		本页使用的变量可以用request.setAttribute("xx", xx);	
+		跨页可以这样request.getSession().setAttribute("xx", xx);跨页后相应的request.getSession()然后get出来
+	
+	3.	response.sendredirect(url);   对服务器的响应进行重定向。当server作出响应后，client客户端的请求的生存周期就终止了。这个时候再用request.getparameter()或request.getattribute()得到的只能是null。 
+		response.sendredirect(“sendredirect.htm?name=sparkwu&e-mail=spark.wu@cobra-tech.com”) 这样可以传值  
+	
+	
+2、	缓存相关
+
+	简单地比较Redis与Memcached：
+        1.Redis不仅仅支持简单的k/v类型的数据，同时还提供list，set，zset，hash等数据结构的存储。
+        2.Redis支持数据的备份，即master-slave（主从）模式的数据备份。
+        3.Redis支持数据的持久化，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用。
+		
+		
+3、数据库和sql相关
+
+	1.	ALTER TABLE `service_apply` ADD COLUMN `Price_Mode` int NULL COMMENT 'Price_Mode为0表示一口价' AFTER `Totoal_Price`;
+	    UPDATE  pp_withdraw_limit_policy_config SET SINGLE_DAY_LIMIT=2000000,SINGLE_MONTH_LIMIT=2000000 WHERE id=1
+	2.mybatis的自动参数绑定@param
+	3.关联自身查询：
+		<resultMap id="CitiesMap" type="com.xiaoyuer.core.dmo.BaseCountryArea">
+  		<id property="id" column="id1"></id>
+		<result property="name" column="name1"/>
+		<result property="arealevel" column="Level1"/>
+	 	 <association property="baseCountryArea" column="parentId1" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+	 	 		<id property="id" column="id2"></id>
+	  		<result property="name" column="name2"/>
+	  		<association property="baseCountryArea" column="parentId2" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+		  		<id property="id" column="id3"></id>
+		  		<result property="name" column="name3"/>
+		  		<association property="baseCountryArea" column="parentId3" javaType="com.xiaoyuer.core.dmo.BaseCountryArea">
+			  		<id property="id" column="id4"></id>
+			  		<result property="name" column="name4"/>
+	  		</association>
+	  	</association>
+	  	</association>
+  		</resultMap>
+		
+  		<select id="selectCities" parameterType="java.lang.Integer" resultMap="CitiesMap">
+  			select 
+			bca1.id as id1,bca1.name as name1,
+			bca2.id as id2,bca2.name as name2,
+			bca3.id as id3,bca3.name as name3,
+			bca4.id as id4,bca4.name as name4
+			from base_country_area bca1
+			LEFT JOIN base_country_area bca2 on  bca1.Parent_Id= bca2.ID
+			LEFT JOIN base_country_area bca3 on  bca2.Parent_Id= bca3.ID
+			LEFT JOIN base_country_area bca4 on  bca3.Parent_Id= bca4.ID
+			where bca1.id=#{id,jdbcType=INTEGER}
+  		</select>
+		<!---城市的关联查询--->
+		4.	<![CDATA[文本内容]]>标记xml中作为纯文本
+			alter table `pp_withdraw_order` change `Type` `TYPE` tinyint DEFAULT NULL 数据库更改字段名
+		5.	数据库操作的时候程序没有完成走完也可以用临时的数据操作，遇到事务回滚才会返回，否则顺利完成，*插入成功没数据 事务回滚
+		6.	<insert id="insertSelective" parameterType="com.xiaoyuer.core.dmo.RequireInfo" useGeneratedKeys="true" keyProperty="id">返回自增id
+		7.	SYSDATE() 数据库sql中获取系统的当前时间
+
+	
+4、	前端相关操作：
+	
+	1. 	function goStep2(){
+			mill=(parseInt(Math.random()*10000)).toString();
+			url="${serverAddr}${cpath}/wservice/release?mill="+mill;
+			location.href = url;
+		}
+		
+		
+5、	相关快捷键和命令
+	alt+↑  代码上移
+	alt+ shift+o 显示 选中的属性 高亮
+	ctrl + k 和 ctrl + shift+k 快速定位
+	
+	netstat -ano|findstr "8080"  查找系统当前端口号占用情况
+	
+	
+	
+	
+6、	soa服务化项目：
+
+	1.测试工具 postman
+	2.Spring MVC -- @PathVariable和@RequestParam   
+					 jersy访问框架restful--@PathPram和@QueryParam
+	
+	
+7、	maven相关
+
+	1.maven依赖jar,但是没有在eclispe中导入项目也看不到源码，除非jar中有resource文件
+	
+	
+8、	solr相关
+	
+	1.组合使用优化查询效率
+		query.addFilterQuery("status:0 AND biz_type:1 AND class_id:1 AND xxx:123");  
+		query.setQuery("xxx:123"); 
+	2.solradmin中 sort= id desc实现倒序排序
+		id:[533 TO *] 查询533之后的所有
+		
+		
+		
+9、	git
+
+
+10、linux相关
+		linux的常用命令 ：
+			1、鼠标选中复制，右键黏贴
+			2、cd..返回上级目录
+			./startup.sh启动tomcat
+			cd空格返回根目录
+			cd空格..返回上级目录
+			pwd-->示当前的工作目录（pwd:print working directory）
+			find / -name dubbo-2.8.4a.jar查找某个文件
+			tail -f  文件 可以实时follow日志信息
+			ctrl+c 退出tail -f
+			cd  / 退回到根路径
+			find 查找
+			:q!退出命令后加 ! 忽略提示   
+			clear清屏   
+
+
+			ls和dir查看所有文件命令，more 查看具体的文件
+			ctrl+shift+f  快速翻页
+	
+
+		
+		
+杂知识点：
+
+	1.两个Integer变量不能直接==，需要intvalue（）后判断
+	2.内部类：
+		静态内部类可以直接创建对象new B.C();
+		如果内部类不是静态的，那就得这样
+		B b = new B();
+		B.C c = b.new C();	 
+		
+	3.@Value("${PAGE_RETURN_URL}") 属性读取的条件是需要将属性文件加入容器
+	
+	
+	
+	
+
+
+	
+
+
+	
