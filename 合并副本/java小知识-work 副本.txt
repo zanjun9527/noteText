@@ -690,7 +690,9 @@ Map<String,Object> map = new HashMap<String,Object>();Integer updateFishfoodActi
 		出现eclipse可以正常编译但tomcat运行是找不到类
 
 175、
-	 
+	 JSP,Servlet获取前一个请求的url路径
+	 pageContext.getRequest().getAttribute("javax.servlet.forward.request_uri")
+	 经常用在分页中的下一页传递一个page过去即可。
 
 176、	pw.print("{\"result\":\"" + result + "\"}"); json串的转义输出
 
