@@ -1,1 +1,4 @@
-https://www.oschina.net/  开源中国社区
+https://www.oschina.net/	开源中国社区
+
+http://mirrors.melbourne.co.uk/	linux
+
