@@ -10,6 +10,47 @@ redis缓存如何实现同步
 InputStream输入流 
 
 
+//创建代理类
+public class StandardInvocation implements InvocationHandler {
+
+    private Object obj;
+    
+    StandardInvocation(Object obj){
+        this.obj=obj;
+    }
+    
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("before method excute!");
+        Object result = method.invoke(obj, args);
+        System.out.println("after method excute!");
+        return result;
+    }
+
+}
+
+
+//测试动态代理
+    public static void main(String[] args) {
+        //创建一个被代理者
+        Cls c = new Cls();
+        //创建一个InvocationHandler，描述我们希望代理者执行哪些操作
+        InvocationHandler i = new StandardInvocation(c);
+        //通过刚才创建的InvocationHandler，创建真正的代理者。第一个参数是类加载器，第二个参数是这个代理者实现哪些接口
+        Itf pxy = (Itf) Proxy.newProxyInstance(Cls.class.getClassLoader(), new Class[] { Itf.class }, i);
+        pxy.printSth("Hi");
+    }
+
+
+
+
+
+
+
+
+
+
+
 分布式   和rpc框架
 class.forname和class.newinstance
 
