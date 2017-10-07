@@ -609,7 +609,7 @@
 				org.springframework.web.context.ContextLoaderListener.
 				
 				在启动Web项目时，容器会读web.xml配置文件中<contex-param>,将读取到<context-param>转化为键值对,并交给ServletContext。
-				容器对于web.xml的加载过程是context-param >> listener  >> fileter  >> servlet  理发师 哈哈
+				容器对于web.xml的加载过程是context-param >> listener  >> filter  >> servlet  理发师 哈哈
 
 				spring的启动过程：
 				1、首先，对于一个web应用，其部署在web容器中，web容器提供其一个全局的上下文环境，这个上下文就是ServletContext，其为后面的spring IoC容器提供宿主环境；
@@ -1167,6 +1167,7 @@
 		反射本身的field可以直接设置，也可以通过setMethod.invoke()设值
 	4.	aop
 		将业务需求与系统需求分开来做，不具有继承关系的对象引入一个公共行为，会造成代码重复，这时提现aop的好处
+		使用@aspect或者xml中配置
 		
 		两种动态代理的模式：1、jdk动态代理	jdk实现的代理要求被代理类基于统一的接口，基于反射机制实现
 							2、cglib动态代理	采用动态创建子类的方法，对于final方法，无法进行代理 字节码技术
@@ -1177,6 +1178,7 @@
 
 		动态代理的核心就是代理对象的生成	Proxy.newProxyInstance(classLoader, proxyInterface, handler)
 		切面aspect的中可包含多个通知（Advice）
+		代理实现InvocationHandler
 
 		通知执行顺序：前置通知→环绕通知连接点之前→连接点执行→环绕通知连接点之后→返回通知→后通知→(如果发生异常)异常通知→后通知
 		×××代理其实是在原实例前后加了一层处理，堆原来的类进行了包装，并使用代理类来执行***

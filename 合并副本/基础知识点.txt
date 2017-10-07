@@ -67,8 +67,27 @@
 
 notify()后会沿wait()方法之后的路径继续执行，注意是wait方法之后
 
+11.set是无序，不可重复的 唯一
+	list有序，可重复
+	map是key-value
+12.hashtable:不允许null键，不允许null值
+	hashmap：只允许一条记录的键为null，值不限
+==============================项目中重点=================================
+1.json流的输出
+2.jersy框架
+3.maven多环境打包
+4.solr bf 整体打分  qf单个字段打分，输出  schema.xml配置各种field 	查询结果映射问题 ，结果集反射可获取值  也可以注解@Field("title")映射
+
+5.mvc框架  和ssm整合
+6.servlet,interceptor,filter
+
+7.代理，反射
+
+8.redis		jedis .setex(key,seconds, value);
+9.分布式  hessian 和dubbo
+
+10.高并发，select for update    sql语句索引 AtomicInteger  concurrent包
+11.事务
 
 
-
-
-==============================面试基础知识点=================================
+=========================================================================
