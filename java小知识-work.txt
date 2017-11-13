@@ -1374,7 +1374,7 @@
 			Element root = document.addElement("root");
 			root.addElement("user").addText(ids[1]);
 			root.addElement("sessionIdentifier").addText(ids[0]);
-			response.setContentType("text/html;charset=UTF-8");
+			response.setContentType("application/xml;charset=UTF-8");
 			response.getWriter().write(document.asXML());
 			response.getWriter().flush();
 216、	单点登录
@@ -2309,7 +2309,7 @@ public class InvocationHandlerTest implements InvocationHandler {
 331、	ajax 的返回的 json数据
 		response.addHeader("Access-Control-Allow-Methods", "POST,GET");
 		response.addHeader("Access-Control-Allow-Credentiais", "true");
-		response.setContentType("application/x-javascript;charset=utf-8");	设置为json数据返回 
+		response.setContentType("text/javascript;charset=utf-8");	设置为json数据返回 
 		Utils.resultJson(response, obj.toJSONString());
 
 
@@ -2406,3 +2406,133 @@ public class InvocationHandlerTest implements InvocationHandler {
 		项目用到了ApplicationContextAware，通过它Spring容器会自动把上下文环境对象调用ApplicationContextAware接口中的setApplicationContext方法，容器加载完后会把上下文set到类中，可以方便使用
 	
    
+335、	互联网媒体类型
+	例如： Content-Type: text/html;charset:utf-8;
+ 	常见的媒体格式类型如下：
+    		text/html ： HTML格式
+    		text/plain ：纯文本格式      
+    		text/xml ：  XML格式
+    		image/gif ：gif图片格式    
+    		image/jpeg ：jpg图片格式 
+    		image/png：png图片格式
+   	以application开头的媒体格式类型：
+   		application/xhtml+xml ：XHTML格式
+   		application/xml     ： XML数据格式 	和text/xml的区别是编码不同
+   		application/atom+xml  ：Atom XML聚合格式    
+   		application/json    ： JSON数据格式
+   		application/pdf       ：pdf格式  
+   		application/msword  ： Word文档格式
+   		application/octet-stream ： 二进制流数据（如常见的文件下载）
+   		application/x-www-form-urlencoded ： <form encType=””>中默认的encType，form表单数据被编码为key/value格式发送到服务器（表单默认的提交数据的格式）
+   	另外一种常见的媒体格式是上传文件之时使用的：
+   		multipart/form-data ： 需要在表单中进行文件上传时，就需要使用该格式
+
+	javascript的mime有三个：
+		text/javascript,application/javascript,application/x-javascript
+		text/javascript:传统的javascript程序，RFC4329规定了“text/javascript”类型，因为它普遍被使用
+		application/javascript：javascript程序并不是真正的文本文件，所以推荐使用这个
+		application/x-javascript：和application/javascript差不多，只是多了个x，x前缀表示这是实验性的，不是标准的类型
+
+		content-type:application/x-msdownload	打开save as对话框	直接在浏览器显示文件信息
+		content-disposition			打开save as对话框	下载文件，但不会打开save as对话框
+		content-type:application/octet-stream	打开save as对话框	直接在浏览器显示文件信息
+
+	配合response.setHeader用法，没啥好研究的，照着用就可以
+
+336、	****CROS协议解决跨域问题******
+	自建filter，加入http的头信息，实现跨域访问,
+	response.setHeader("Access-Control-Allow-Origin", "*")
+	但是服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。;
+	但是也可以引用org.apache.catalina.filters.CorsFilter现成的jar，web.xml中做相关的配置即可，解决了上诉问题
+	
+	服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。
+
+
+
+337、	distinct  和group by  一样
+
+
+338、	用表单提交，不要用ajax。ajax无法实现导出excel。
+
+	ajax 其实只是一个javascript中的一个组建 XmlHttpRequest, 他的作用是数据交互, 返回数据是组建内部处理的, 下载是需要浏览器识别http头的,所以肯定只能用iframe
+	可以使用表单提交，和地址重定向location.href就行,导出需要http的头，是属于页面级别的。
+
+	导出excel为什么不能用ajax请求？
+	因为导出excel，实际上是文件下载，后台需要往前端（浏览器）写文件流（浏览器解析）的。
+	而Ajax请求获取数据都是“字符串”，整个交互传输用的都是字符串数据，它没法解析后台返回的文件流，但浏览器可以。
+ 
+	ajax，看名字asyn JavaScript and xml，是不能传输2进制数据的，怎么可能导出，直接请求servlet或者action（struts2）或者controller（spring mvc），
+	将导出的文件流放入到response的outputStream中，同时设置好header和contentType就可以了
+
+	Ajax与Form表单提交的区别：
+	Ajax提交不会自动刷新页面，需要手动处理。
+	Form表单提交在数据提交后会刷新页面，如果是Post提交，点击刷新浏览器会提示 是否再次提交。
+
+
+339、	转二进制	// 序列化
+            baos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(baos);
+            oos.writeObject(object);
+            byte[] bytes = baos.toByteArray();
+            return bytes;
+
+340、	git stash 后切换分支后 apply stash 可能有冲突
+	git stash 后 dev有改动 在apply回来会有冲突
+	stash是本地的恢复操作，目前一般使用是：本地stash 切换分支，回来时本地文件没变apply回来
+
+
+341、	静态代码块 static 在第一次调用时候会执行 不允许访问非静态成员 
+	
+	加载类的集中方式：
+		new StaticCode();//生成了一个匿名的对象（过后不能再使用），加载类  
+		StaticCode.show();//通过类名调用静态方法，加载类  
+		StaticCode s = new StaticCode();//生成了一个对象，加载类  
+		StaticCode s = null;//没有生成类，与StaticCode类没有关系，不加载类  
+
+
+342、	try catch多个异常时：顺序匹配，匹配到后面的就跳过
+	在写异常处理的时候，一定要把异常范围小的放在前面，范围大的放在后面，
+	Exception这个异常的根类一定要刚在最后一个catch里面，
+	如果放在前面或者中间，任何异常都会和Exception匹配的，就会报已捕获到...异常的错误。
+
+343、	transient关键字只能修饰变量，不再是对象持久化的一部分，不再能被序列化（静态变量也不能）传输
+
+344、	页面级别的特殊字符转换转换
+	value="${requireInfo.reqTitle ? replace("\"","&#34;")}" 转换页面中的字符串
+
+345、	DocumentBuilderFactory解析xml用 工具类的级别
+	DocumentBuilder builder = factory.newDocumentBuilder();
+ 	Document doc = builder.parse(f);
+  	解析xml文件
+
+346、	在springjdbc的dmo类中 关系映射，@Column(name="DATE_UPDATE")的参数绑定和数据库中的默认0是相冲突的，初始化属性是null
+
+347、	Person person = (Person) new SuperMan()
+	向下转型，向上无需转型
+
+
+348、	
+	服务化使用rest访问的必须要添加token访问权限，不能随意访问
+@PreMatching
+public class TokenFilter implements ContainerRequestFilter {
+
+	@Context
+	HttpServletRequest request;
+	@Context
+	private HttpServletResponse response;
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String token = request.getParameter("token");
+		if (!TokenUtil.validToken(token)) {
+			BaseModel failModel = new BaseModel();
+			failModel.setCode(FunsionCode.FAILED_CODE_90101);
+			failModel.setErrMsg(FunsionCode.FAILED_MSG_90101);
+			Response result = Response.ok().entity(JSONObject.toJSON(failModel)).header(HttpHeaders.CONTENT_TYPE,
+					ContentType.APPLICATION_JSON_UTF_8).build();
+			requestContext.abortWith(result);
+		}
+	}
+}
+
+

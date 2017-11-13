@@ -95,6 +95,10 @@ nio 和io
 代理对象
 
 
+使用qq和微博账号登录
+
+
+
 tomcat实现热部署，在不关机的情况下部署工程
  
 springmvc的传输对象 加modelattribute标签和不加标签都可以
