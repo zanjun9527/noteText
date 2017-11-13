@@ -436,11 +436,27 @@
 			cd  / 退回到根路径
 			find 查找
 			:q!退出命令后加 ! 忽略提示   
-			clear清屏   
-
+			clear清屏
+			mv abc.txt 1234.txt 重命名 
+			rm -rf ../logs/ 删除logs以及目录下的所有文件  
+			tar zxvf
+				x : 从 tar 包中把文件提取出来
+				z : 表示 tar 包是被 gzip 压缩过的，所以解压时需要用 gunzip 解压
+				v : 显示详细信息搜索
+				f xxx.tar.gz :  指定被处理的文件是 xxx.tar.gz
 
 			ls和dir查看所有文件命令，more 查看具体的文件
 			ctrl+shift+f  快速翻页
+			CTL + b :上翻
+			CTL + f : 下翻
+			查找 ?或/   查找下一个  N前翻 n后翻 
+			g第一行 G最后一行
+			cp -r 文件夹1  文件夹2 复制到当前目录
+			whereis命令只能用于程序名的搜索，而且只搜索二进制文件（参数-b）、man说明文件（参数-m）和源代码文件（参数-s）。如果省略参数，则返回所有信息。只能用于查找文件
+			which命令的作用是，在PATH变量指定的路径中，搜索某个系统命令的位置
+			/etc/sysconfig/iptables linux需要在该文件中开放指定的端口才能对外访问
+			开启指定的端口后，service iptbales restart更新配置
+
 
 66、			多个tomcat实例运行：
 			1、复制多个tomcat目录副本,catalina.bat中不需要改动
@@ -1417,7 +1433,7 @@
 223、	double保留两位小数	
 	private  Double getDouble2(Double d){
 		
-		BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP);
+		BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP); //本身不改变new BigDecimal(d)的值
 		
 		return bg.doubleValue();
 
@@ -1630,7 +1646,7 @@
 		}
 	在普通的ssm工程中：在这里是在war工程中进行测试，也因为各个jar的引用集中，mybattis也是集成在这里。不引入spring-mvc.xml的原因是这里是接口测试，无需controller相关，引入spring.xml是获得容器中的service，引入spring-mybatis.xml是因为接口中需要mapper等，否则接口注入失败
 		@RunWith(SpringJUnit4ClassRunner.class)
-		@ContextConfiguration(locations = { "classpath:spring.xml","classpath:spring-mybatis.xml" })
+		@ContextConfiguration(locations = { "classpath:spring.xml","classpath:spring-mybatis.xml" }) /////单个的文件读取	@ContextConfiguration("/applicationContext.xml")  
 		public class UserInfoServiceImplTest {
 			@Autowired
 			IUserInfoService userInfoService;
@@ -1639,7 +1655,6 @@
 				UserInfo selectById = userInfoService.selectById(203);
 			}
 		}
-
 	3、postman测试，这种入口是路径测试
 		在spring 接受参数是@pathvariable和@requestparam
 		在springboot jboos中节后参数是@pathparam，@queryparam和@requestparam   @path标签和这些标签的匹配比较严格
@@ -2132,10 +2147,10 @@
 320、	日志：
 	logger.error("用户{},获取月份信息失败", "nini"); 日志快捷传参
 	
-======================================================================================整理分割线=================================================
+======================================================================================整理分割线========================================================================================
 
 
-311、	动态代理：
+321、	动态代理：
 	import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -2197,6 +2212,164 @@ public class InvocationHandlerTest implements InvocationHandler {
 
 }
 
+322、消息队列
+	个人认为消息队列的主要特点是异步处理，主要目的是减少请求响应时间和解耦。
+	所以主要的使用场景就是将比较耗时而且不需要即时（同步）返回结果的操作作为消息放入消息队列。
+	同时由于使用了消息队列，只要保证消息格式不变，消息的发送方和接收方并不需要彼此联系，也不需要受对方的影响，即解耦和。
+
+
+	基于的设计模式是观察者模式
+	redis继续list形式以进出栈的形式实现队列
+
+	生产消费模型、发布者/订阅者模型。
+
+	spring整合mq连接异常，需要在mq.xml中配置相应的本地连接参数
+
+	(1)、点对点方式（point-to-point）
+		点对点的消息发送方式主要建立在 Message Queue,Sender,reciever上，Message Queue 存贮消息，Sneder 发送消息，receive接收消息.
+		具体点就是Sender Client发送Message Queue ,而 receiver Cliernt从Queue中接收消息和"发送消息已接受"到Quere,确认消息接收。
+		消息发送客户端与接收客户端没有时间上的依赖，发送客户端可以在任何时刻发送信息到Queue，而不需要知道接收客户端是不是在运行
+	(2)、发布/订阅 方式（publish/subscriber Messaging）
+		发布/订阅方式用于多接收客户端的方式.作为发布订阅的方式，可能存在多个接收客户端，并且接收端客户端与发送客户端存在时间上的依赖。
+		一个接收端只能接收他创建以后发送客户端发送的信息。作为subscriber ,在接收消息时有两种方法，destination的receive方法（同步），和实现message listener 接口的onMessage 方法(异步)。
+
+
+
+323、手机的动静分开部署：
+	部署在webapp和root区别
+	区别是：前者带工程文件名访问，存在工程名目录，后者不带工程名目录，访问的工程名是根路径/
+	对于手机这种动静分离的做法，将手机后台放在webapp下，静态文件放在root下，访问更上即可，路径访问的优先原则，默认全路径匹配，
+
+324、	
+	<a class="react label-bar pr" href="http://m.yu.com/xye-phone-html/usercenter/paydetails.html">
+	加不加http://    不加就会默认加上项目路径访问，加就全路径访问
+
+
+325、单独读取xmlContext作为上下文容器
+	ApplicationContext ctx = new FileSystemXmlApplicationContext("classpath:applicationContext-*.xml");  
+        JmsTemplate jmsTemplate = (JmsTemplate) ctx.getBean("jmsTemplate"); 
+
+326、	web.xml配置全局错误页面
+		调试错误跳转页面出现一个问题,即在web.xml中配置的<error-page></error-page>不起作用，在web.xml中配置代码通常有两种方式：
+		1、根据错误代码
+		<error-page>
+		<error-code>404</error-code>
+		<location>/404.jsp</location>
+		</error-page>
+		2、根据异常类型（相对优先原则）
+		<error-page exception-type="java.lang.NullPointerException" location="/nullpointer.jsp"/>
+		注1：对于resin服务器也可以将错误跳转配置在resin-web.xml文件中，效果一样。
+ 	
+		对于无法跳转的解决：
+		1.确保location属性中填写的错误页面是绝对路径
+		2.确保error.jsp的大小>1024字节
+		3.确保在error.jsp页面中添加<%@ page isErrorPage="true"%> 
+
+
+327、	反射相关
+		Person person = new Person();		
+		Field declaredField = person.getClass().getDeclaredField("name");			
+		Method method = person.getClass().getMethod("setName", new Class[] {declaredField.getType()});
+		method.invoke(person,new Object[] {1001});
+		Long namehaha = person.getName();
+		System.out.println(namehaha);
+	
+
+328、	hessian接口的调用
+	server端
+	<bean name="/eBankReceiptManagerExpService" class="org.springframework.remoting.caucho.HessianServiceExporter">
+  		<property name="service" ref="eBankReceiptManagerService" />
+  		<property name="serviceInterface" value="com.xiaoyuer.pay.service.intf.IEBankReceiptManagerService" />
+    	</bean>
+
+
+	交给DispatcherServlet处理
+  	<servlet>
+		默认加载web-inf下的servlet.xml
+  	</servlet>
+
+
+	client端
+	<bean id="eBankReceiptManagerExtService" class="org.springframework.remoting.caucho.HessianProxyFactoryBean">
+  		<property name="serviceUrl" value="${xye.paycore.server}/remoting/eBankReceiptManagerExpService" />
+  		<property name="serviceInterface" value="com.xiaoyuer.pay.service.intf.IEBankReceiptManagerService" />
+  		<property name="readTimeout" value="30000"/>
+    	</bean>
+
+
+
+
+
+329、	sql相关
+	like concat(concat('%',#{name,jdbcType=VARCHAR}),'%'）
+
+330、	basemodelinfo 序列化  远程接口调用的对象都需要序列化 内部的类也需要序列化
+
+
+331、	ajax 的返回的 json数据
+		response.addHeader("Access-Control-Allow-Methods", "POST,GET");
+		response.addHeader("Access-Control-Allow-Credentiais", "true");
+		response.setContentType("application/x-javascript;charset=utf-8");	设置为json数据返回 
+		Utils.resultJson(response, obj.toJSONString());
+
+
+
+	流文件的附件下载	
+	windows路径跳转
+		String realName="收支明细_"+DateUtil.getCurrentDate("yyyyMMddHHmmss")+".xls";
+		    response.reset();//设置为没有缓存
+		    response.setContentType("application/x-download;charset=GBK");		设置为下载application/x-download  
+		    response.setHeader("Content-disposition", "attachment; filename="+ new String(realName.getBytes("utf-8"), "ISO8859-1"));	 /*attachment是以附件下载的形式，inline是以线上浏览的形式。当点击“保存”的时候都可以下载，当点击“打开”的时候attachment是在本地机里打开，inline是在浏览器里打开。*/		
+		    OutputStream output = response.getOutputStream();
+		    byte[] buf = new byte[1024];
+		    int r = 0;
+			ByteArrayInputStream bin = new ByteArrayInputStream(byteOut.toByteArray());
+			while ((r = bin.read(buf, 0, buf.length)) != -1) {
+			     output.write(buf, 0, r);
+			    }    
+			 response.getOutputStream().flush();
+			 response.getOutputStream().close();
+	
+	
+332、	自关联表查询sql
+	SELECT 'outComeSumAmt' AS CODE, oott.outComeSumAmt AS fund  FROM
+		(
+			SELECT 123 AS outComeSumAmt
+		) AS oott
+
+
+333、	IO流的：
+	1.字节流读取的时候，读到一个字节就返回一个字节； 字符流使用了字节流读到一个或多个字节（中文对应的字节数是两个，在UTF-8码表中是3个字节）时。先去查指定的编码表，将查到的字符返回。 
+	2.字节流可以处理所有类型数据，如：图片，MP3，AVI视频文件，而字符流只能处理字符数据。只要是处理纯文本数据，就要优先考虑使用字符流，除此之外都用字节流。
+
+
+
+334、	事务相关 Spring配置文件中关于事务配置总是由三个组成部分，分别是DataSource、TransactionManager和代理机制这三部分，无论哪种配置方式，一般变化的只是代理机制这部分。
+
+335、	文件的流读取，char[3]类型 是每次读取固定长度的串写入，多次执行
+ 	if((c=fr.read(a))!=-1)	{
+					fw.write(a,0,c);
+				}
+
+336、	声明式事务
+		1、tx配合aop标签
+		2、代理
+		3、拦截器
+	
+	编程式事务
+		注解@Transactional 需要开启通用注解标签<context:annotation-config />
+		<!-- 第四种配置事务的方式，注解 -->
+		<tx:annotation-driven transaction-manager="transactionManager"/>
+
+	Spring配置文件中关于事务配置总是由三个组成部分，分别是DataSource、TransactionManager和代理机制这三部分，无论哪种配置方式，一般变化的只是代理机制这部分。
+	SpringMVC启动时的配置文件，包含组件扫描、url映射以及设置freemarker参数，让spring不扫描带有@Service注解的类。
+	为什么要这样设置？因为servlet-context.xml与service-context.xml不是同时加载，如果不进行这样的设置，那么，spring就会将所有带@Service注解的类都扫描到容器中，等到加载service-context.xml的时候，
+	会因为容器已经存在Service类，使得cglib将不对Service进行代理，直接导致的结果就是在service-context中的事务配置不起作用，发生异常时，无法对数据进行回滚。
+
+
+	*******事务回滚的更新测试******
+	@Transactional 先执行更新1  在try住更新2回滚， 全部回滚
+		       先执行更新1  在try住更新2回滚， 再更新3 全部回滚
 
 
 
@@ -2206,14 +2379,30 @@ public class InvocationHandlerTest implements InvocationHandler {
 
 
 
+337、	拦截器的优化	一般在拦截器中定义全局的ctx，建议定义在afterCompletion中，这样在异常处理返回后页面中还能获取到值，在controller中的异常一般是500错误，可在web.xml中定义错误页面返回
+	提现的明细记录问题，事务优化，对于跨系统之间事务，会涉及到一些不是很重要的操作，对于非重要的操作，整个try住，即使异常也不能影响主要事务的进行
+
+338、	jsp页面保留两位小数:
+	引入标签	    	<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+	使用标签		<fmt:formatNumber value="${item.amount}"  pattern="0.00" maxFractionDigits="2" type="number"/>
+	$.each(data,function(i,tem){ });
+
+339、	追踪日志的日后 注意cause by
+	pom中引用统一jar的snapshot大小写必须一致，默认一般是大写
+
+340、	select 'accountFix' as code, uba.account_fix as fund map返回类型{code=incomeSumAmt, fund=1104.84} 转json	{"code":"incomeSumAmt","fund":"1104.84"} 在取属性组装单entry 的 map
+	UNION 需要查看 column字段的对应
 
 
+341、	 pluginManagement的配置和plugins的配置是一样的，只是用于继承，使得可以在子pom中使用父pom：
+
+342、	jersy测试框架好恶心，入参必须要加上相应的标签
+    	
+343、	try finally 一般用来关闭文件流操作等
 
 
-
-
-
-
-
-
-
+344、	dubbo的源码分析：
+		InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，凡是继承该接口的类，在初始化bean的时候会执行该方法。
+		项目用到了ApplicationContextAware，通过它Spring容器会自动把上下文环境对象调用ApplicationContextAware接口中的setApplicationContext方法，容器加载完后会把上下文set到类中，可以方便使用
+	
+   
