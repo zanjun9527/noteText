@@ -5,9 +5,8 @@ httpclient工具的使用
 redis缓存如何实现同步
 
 字符流和字节流
-compareTo
 
-InputStream输入流 
+compareTo
 
 springboot的启动类@ComponentScan扫描范围
 
@@ -33,7 +32,6 @@ public class StandardInvocation implements InvocationHandler {
 
 }
 
-
 //测试动态代理
     public static void main(String[] args) {
         //创建一个被代理者
@@ -46,25 +44,12 @@ public class StandardInvocation implements InvocationHandler {
     }
 
 
-
-
-
-
-
-
-
-
-
 分布式   和rpc框架
 class.forname和class.newinstance
-
-jsonp的使用
 
 sso和缓存和缓存同步的区别
 
 分页查询
-
-正向代理和反向代理
 
 外网和内网使用
 
@@ -72,21 +57,14 @@ zookeeper配置 以及集群  dubbo的
 
 处理数据库级别的并发问题
 
-事务的回滚问题，属于事务的控制问题，
-
 分库分表的设计
 
-整合redis
 
 springmvc.xml的头配置
-@modelattribute的使用
 
 redis持久化的解决方案
-dubbo和rpc框架
 
 solradmin中的df查询
-
-springmvc中的上传图片一定要表单提交吗
 
 在sql中${}和#{}
 
@@ -94,20 +72,9 @@ nio 和io
 
 代理对象
 
-
 使用qq和微博账号登录
 
-
-
 tomcat实现热部署，在不关机的情况下部署工程
- 
-springmvc的传输对象 加modelattribute标签和不加标签都可以
-
-controller层实现controller接口
-spring的事务控制
-beanutils.copyproperties(a,b)
-
-生产的日志级别，看错误信息
 
 
 使用mapper代理的 名称 一定是首字母小写吗

@@ -2535,4 +2535,11 @@ public class TokenFilter implements ContainerRequestFilter {
 	}
 }
 
+349、	springmvc，就参数绑定来说，加modelattribute标签和不加标签都可以
+	其他的功能，相对而言都不怎么实用
+	
+350、	正向代理：类似挂vpn从服务端获取数据，	特点：多个客户端
+	反向代理：使用负载均衡配多个服务端	特点：多个服务端	
 
+351、	相对路径会出现问题	 绝对路径和全路径	不会	 
+	js路径的继承 相对地址 	默认继承访问当前页面的地址，末路径匹配		
