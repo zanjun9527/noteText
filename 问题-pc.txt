@@ -4,8 +4,6 @@ httpclient工具的使用
 
 redis缓存如何实现同步
 
-字符流和字节流
-
 compareTo
 
 springboot的启动类@ComponentScan扫描范围
@@ -45,7 +43,6 @@ public class StandardInvocation implements InvocationHandler {
 
 
 分布式   和rpc框架
-class.forname和class.newinstance
 
 sso和缓存和缓存同步的区别
 
@@ -59,14 +56,9 @@ zookeeper配置 以及集群  dubbo的
 
 分库分表的设计
 
-
-springmvc.xml的头配置
-
 redis持久化的解决方案
 
 solradmin中的df查询
-
-在sql中${}和#{}
 
 nio 和io
 
@@ -77,7 +69,8 @@ nio 和io
 tomcat实现热部署，在不关机的情况下部署工程
 
 
-使用mapper代理的 名称 一定是首字母小写吗
+
+spring的schema.xml文件
 
 
 320121197809151713 952789

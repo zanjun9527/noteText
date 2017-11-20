@@ -1452,11 +1452,6 @@
     		new: 强类型。相对高效。能调用任何public构造。
 
 
-
-
-
-
-
 228、		xml的解析:dom和sax
 			xpath解析：先流读取xml文件获得doc，创建xpath对象，第一参数是xml中的路径，//表示只匹配名称，读取节点xpath.evaluate("/person", doc, XPathConstants.NODESET)  使用xpath.evaluate("background", node，XPathConstants.STRING)读取节点值.
 
@@ -2543,3 +2538,67 @@ public class TokenFilter implements ContainerRequestFilter {
 
 351、	相对路径会出现问题	 绝对路径和全路径	不会	 
 	js路径的继承 相对地址 	默认继承访问当前页面的地址，末路径匹配		
+
+
+352、	Class.forName().newInstance()和 new对象的区别：
+	1、使用newInstance可以解耦。使用newInstance的前提是，类已加载并且这个类已连接，这是正是class的静态方法forName（）完成的工作。newInstance实际上是把new         这个方式分解为两步，即，首先调用class的加载方法加载某个类，然后实例化。
+	2、newInstance: 弱类型。低效率。只能调用无参构造。 new: 强类型。相对高效。能调用任何public构造。 
+	3、newInstance()是实现IOC、反射、面对接口编程和依赖倒置等技术方法的必然选择，new只能实现具体类的实例化，不适合于接口编程。 
+	4、 newInstance() 一般用于动态加载类。 
+
+353、	转换流的最强功能就是基于 字节流 + 编码表 。没有转换，没有字符流
+
+
+354、	sql中的${} 和#{} sql注入
+
+
+	1、#{}能够很大程度上防止sql注入，作为字符串处理;${}方式无法防止sql注入;
+
+	2、mybaties排序时使用order by 动态参数时需要注意，使用${}而不用#{};  表名也用${}
+	   如果你要做动态的排序，比如 order by column，要用${},因为如果你使用了#{},会拼上字符串，那么打印出来的将会是
+	   select * from table order by 'name' ,这样是无法排序。
+
+								
+	3、#将传入的数据都当成一个字符串，$将传入的数据直接显示生成在sql中。
+
+	4、select * from user where id=${id} and username=#{username}
+
+	在经过编译后，得到如下语句
+
+	select * from user where id=2 and username=?
+
+	如果是#{}的形式是编译成?，而如果${}是编译成直接的数据。
+
+	区别：
+
+	#{}: 是以预编译的形式，将参数设置到SQL语句中;PreparedStatement:防止SQL注入
+
+	${}: 取出的值直接拼装在SQL语句中;会有安全问题
+	
+	sql攻击案例：
+		select * from ${tableName} where name = #{name}  
+
+		我们的参数 tableName 为 user; delete user; --，
+
+		select * from user; delete user; -- where name = ?;  
+		
+355、	reloadable="true" 监听类路径下的class文件
+
+356、	dubbo的源码分析：
+		dubbo的工作流程。RPC的亮点在于将远程调用的细节隐藏起来，使得调用远程服务像调用本地服务一样简单，而实现上面的功能就是代理。
+		dubbo由于有服务端信息的本地缓存，提供者的地址列表，所以当注册中心挂掉后调用端依然能够工作，也就是说调用端不是强依赖服务端。
+
+		短连接的操作步骤是：建立连接——数据传输——关闭连接…建立连接——数据传输——关闭连接
+		长连接的操作步骤是：建立连接——数据传输…（保持连接）…数据传输——关闭连接
+
+
+		<dubbo:protocol name="dubbo" port="20880" /> 解析成相应的对象，name目前来看映射的是id属性
+
+		ApplicationEvent	是个抽象类，里面只有一个构造函数和一个长整型的timestamp。
+		ApplicationListener	是一个接口，里面只有一个onApplicationEvent方法。
+
+		如果在上下文中部署一个实现了ApplicationListener接口的bean,那么每当在一个ApplicationEvent发布到 ApplicationContext时，
+		这个bean得到通知。其实这就是标准的Oberver设计模式。当一个ApplicationContext被初始化或刷新触发，这时候，监听到的是ContextRefreshedEvent事件（容器初始化完成），和InitializingBean（本bean初始化完成）不同，
+		
+		用Object[0]来代替null 很多时候我们需要传递参数的类型，而不是传null，所以用Object[0]	实际传递的是带泛型的null	new Class<?>[0]
+		在dubbo中的xml解析，不写id 会默认dubbo 或者interface 相关源码有默认id值
