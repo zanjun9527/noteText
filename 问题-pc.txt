@@ -112,4 +112,23 @@ beanutils.copyproperties(a,b)
 320121197809151713 952789
 http://www.95598.cn/
 zanjun9527	z3-4
+vector数据类型
+枚举的使用
 
+
+printstream 和 printwriter
+
+字符流读取的长度问题 文本长度超过1024 的再次读取问题
+
+字节流读取一个中文字
+
+bytearrayinputsteam 和bytearrayoutputstream（）写入到哪里去了
+
+bytearrayinputsteam 和bytearrayoutputsteam
+
+
+流输出到控制台  设计到转换流 io 	转换流的使用 硬盘中的都是字节
+
+byte码表对应
+
+getByte（）编码 默认编码是gbk

@@ -681,15 +681,165 @@ mapper代理开发
 ======================================================================================整理分割线=================================================
 
 
+45. java操作excel的两种方式： poi和jxl，都很简单 看看简单的demo，分模块理解即可
+
+46、 io流 输入（读）输出（写）（相对内存而言  主要是内存和外围设备（打印机，硬盘和u盘））
+
+	流操作分为两种：字节流和字符流（字节流+编码表）
+	电脑存储的原理：二进制--码表--信息
+	硬盘的数据基本体现是文件，
+
+字节流的抽象基类：操作对象是字节数组,无需编解码，无需缓冲刷新，但需要关闭
+inputstream：
+
+inputstrea in =system.in     
+int ch= in.read() 键盘输入  阻塞式方法 没数据会等
+system.out.println((char) ch )
+
+键盘输入流对象只有一个，无需关闭
+
+outputstream：
+
+fileOutputStream
+
+fs.write("adc".getBytes())  建议使用1024数组
+fs.available()返回文本的字节长度 ，可以定义一个刚好的读取数组，容易大文件造成内存溢出
+
+
+bufferedOutputStream.read(a) 缓冲区也存在读取数组 
+bufferedOutputStream.read()也行 效率太低
+
+
+字符流的抽象基类：操作对象是字符数组
+reader：
+filereader流对象  可以读取单个字符和数组
+ int ch = fr.read()  返回对应的asc码  最后一位再读取 返回-1 (作为流的结束标记)
+ char[] a= new char[3]    默认 1024 千字节为单位 abcde#
+ int length = fr.read(a) 将读取指定长度的字符存储到数组中 重复读取会覆盖 返回读取的字符个数
+fw.writer（a，0，length ） a作为两个流之间的中转
+
+
+writer： 
+filewriter- 默认新建，存在覆盖   new filewriter("a.txt",true)有续写功能
+filewriter.write("数据写入"); 数据存储到临时存储缓冲区中， 
+filewriter.flush.刷新流的缓冲区，将数据直接写到目的地中
+close内部先flush    流对象最后一定要close
+ 
+获取系统的换行符 system.getProperty("line.separator")
+
+filewriter.flush.刷新流的缓冲区，将数据直接写到目的地中
+filewriter.close都可以刷新流缓存
+
+字符流的缓冲区：提高读写的效率，一定要有缓冲对象
+bufferedRead：可以读取行readline（） 没有返回null
+		先将源中数据读取到缓冲区，再从缓冲区中一个一个读取数据或整行读取
+	
+bufferedWriter 特有newline（）
+	BufferWriter bw = new BufferWriter（fw） 封装数组提高数组操作数据的效率
+	bw.writer("aa");
+	bw.flush();
+	bw.close(); fw 同时关闭
 
 
 
+装饰模式和继承的灵活性
+装饰类和被装饰类需要实现统一接口或者属于同一父类
+
+转换流的使用：
+
+字节流转换成字符流  	使用指定的charset读取字节并解码为字符
+inputStreamReader isr=new inputstreamreader(inputStream),然后可以作为缓冲流的处理对象
+字节流读取中文字2个字符，会读取两次，一次一个，字符流读一次，
+
+字符流转换成字节流	使用指定的charset将写入流中的字符编码成字节
+outputStreamWriter  子类filterWriter
+
+输入源（inputStream）-转换流成字符流-使用缓冲区读取-将读取到的写入到输出地（outPutStream的缓冲区）
+
+new bufferedreader（new inputstreamreader(system.in，码表)）
+new bufferedwriter（new outputstreamwriter(system.out，码表)）字符流
+转换流接收的目前都是字节流，如fileInputStream和fileOutputStream
+outputstreamwriter/inputstreamreader 可以指定编码写/读
+filterwriter/filereader是其子类，使用默认本机的编码
 
 
+操作流的一些规律：
+1、明确源和目的
+	源：inputstream		reader
+	目的：outputstream	writer
+2.明确数据是否是纯文本数据
+	源：是reader	否 inputstream
+	目的：是writer	否outputstream
+3、明确具体的设备
+	源:
+		硬盘：file
+		键盘：system.in
+		内存：数组
+		网络：socket
+	目的：
+		硬盘：
+		控制台：system.out
+		内存：
+		网络：
+		
+4、是否需要其他的额外功能
+	1、是否需要缓冲区： 加上buffer
+	2、转换
+	
+
+  
+gbk一个中文两个字节，utf8中一个中文可能两个字符
+filereader/filewriter默认gbk ，如果去读取utf8的文件内容，则会出现乱码，使用inputstreamreader指定码表即可
+
+转换流热点 指定码表读写
+
+转换流的使用场景：
+1、源或目的对应的设备是字节流，但操作的是文本数据
+2、操作文本涉及到指定编码，必须使用转换流
 
 
+file对象:封装了文件和文件夹相关的操作 也可操作盘符，文件夹
+	linxus 中的文件路径一般是/ windows中一般是\\   
+	获取系统的路径分割符号 system.getProperty("file.separator")
+	或者file.separator 封装好了的
+	迅雷等 默认安装路径是最大盘符
 
+递归一定要明确条件 否则出现栈溢出，还要注意下递归的次数
 
+properties:属于map类型，setproperty 和getproperty	可以存取store
+	1、属性中的key-value是string类型
+	2、集合中的数据可以保存到流中，或者从流中获取
+	3、通常用于操作以键值对形式存在的配置文件  最常用
+	prop.load(new fileinputstream("info.txt")) 相当于按=划分存入map数据类型
+
+printstream 	写字节
+ system.out.println 常用对象
+out.print   可以保持数据形式 将数据先变成字符串，再打印到目的地
+
+out.writer 一般打印不用
+
+printwriter	写字符打印流
+
+io序列流主要涉及文件的切割和合并 不做研究
+
+序列化相关
+	objectoutputstream
+	oos = new objectoutputstream(new fileoutputstream("a.txt")).writerObject(obj)  obj需要实现序列化
+（person）oos.readerObject() 反序列化
+
+serializable
+存在唯一的序列化id，没有显示id，默认存在的
+流对象是可以直接读取对象的，ios.readObject(),序列化接受
+序列化过程中，有些属性不想传输，但是也不能static 可以使用tranient关键字	，static无法序列化传输
+
+操作字节数组的流对象  内存操作对象  源和目的都是数组 
+bytearrayinputsteam 和bytearrayoutputsteam（内存缓冲区的数据，转换成字节数组。）
+
+编码表
+
+二进制-码表-文字信息
+
+tomcat内置的码表是iso8859-1
 
 
 
