@@ -436,11 +436,27 @@
 			cd  / 退回到根路径
 			find 查找
 			:q!退出命令后加 ! 忽略提示   
-			clear清屏   
-
+			clear清屏
+			mv abc.txt 1234.txt 重命名 
+			rm -rf ../logs/ 删除logs以及目录下的所有文件  
+			tar zxvf
+				x : 从 tar 包中把文件提取出来
+				z : 表示 tar 包是被 gzip 压缩过的，所以解压时需要用 gunzip 解压
+				v : 显示详细信息搜索
+				f xxx.tar.gz :  指定被处理的文件是 xxx.tar.gz
 
 			ls和dir查看所有文件命令，more 查看具体的文件
 			ctrl+shift+f  快速翻页
+			CTL + b :上翻
+			CTL + f : 下翻
+			查找 ?或/   查找下一个  N前翻 n后翻 
+			g第一行 G最后一行
+			cp -r 文件夹1  文件夹2 复制到当前目录
+			whereis命令只能用于程序名的搜索，而且只搜索二进制文件（参数-b）、man说明文件（参数-m）和源代码文件（参数-s）。如果省略参数，则返回所有信息。只能用于查找文件
+			which命令的作用是，在PATH变量指定的路径中，搜索某个系统命令的位置
+			/etc/sysconfig/iptables linux需要在该文件中开放指定的端口才能对外访问
+			开启指定的端口后，service iptbales restart更新配置
+
 
 66、			多个tomcat实例运行：
 			1、复制多个tomcat目录副本,catalina.bat中不需要改动
@@ -1358,7 +1374,7 @@
 			Element root = document.addElement("root");
 			root.addElement("user").addText(ids[1]);
 			root.addElement("sessionIdentifier").addText(ids[0]);
-			response.setContentType("text/html;charset=UTF-8");
+			response.setContentType("application/xml;charset=UTF-8");
 			response.getWriter().write(document.asXML());
 			response.getWriter().flush();
 216、	单点登录
@@ -1417,7 +1433,7 @@
 223、	double保留两位小数	
 	private  Double getDouble2(Double d){
 		
-		BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP);
+		BigDecimal bg = new BigDecimal(d).setScale(2,  BigDecimal.ROUND_HALF_UP); //本身不改变new BigDecimal(d)的值
 		
 		return bg.doubleValue();
 
@@ -1434,11 +1450,6 @@
 227、		newinstance()和new()的区别
 		newInstance: 弱类型。低效率。只能调用无参构造。 
     		new: 强类型。相对高效。能调用任何public构造。
-
-
-
-
-
 
 
 228、		xml的解析:dom和sax
@@ -1630,7 +1641,7 @@
 		}
 	在普通的ssm工程中：在这里是在war工程中进行测试，也因为各个jar的引用集中，mybattis也是集成在这里。不引入spring-mvc.xml的原因是这里是接口测试，无需controller相关，引入spring.xml是获得容器中的service，引入spring-mybatis.xml是因为接口中需要mapper等，否则接口注入失败
 		@RunWith(SpringJUnit4ClassRunner.class)
-		@ContextConfiguration(locations = { "classpath:spring.xml","classpath:spring-mybatis.xml" })
+		@ContextConfiguration(locations = { "classpath:spring.xml","classpath:spring-mybatis.xml" }) /////单个的文件读取	@ContextConfiguration("/applicationContext.xml")  
 		public class UserInfoServiceImplTest {
 			@Autowired
 			IUserInfoService userInfoService;
@@ -1639,7 +1650,6 @@
 				UserInfo selectById = userInfoService.selectById(203);
 			}
 		}
-
 	3、postman测试，这种入口是路径测试
 		在spring 接受参数是@pathvariable和@requestparam
 		在springboot jboos中节后参数是@pathparam，@queryparam和@requestparam   @path标签和这些标签的匹配比较严格
@@ -2132,10 +2142,10 @@
 320、	日志：
 	logger.error("用户{},获取月份信息失败", "nini"); 日志快捷传参
 	
-======================================================================================整理分割线=================================================
+======================================================================================整理分割线========================================================================================
 
 
-311、	动态代理：
+321、	动态代理：
 	import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -2197,6 +2207,164 @@ public class InvocationHandlerTest implements InvocationHandler {
 
 }
 
+322、消息队列
+	个人认为消息队列的主要特点是异步处理，主要目的是减少请求响应时间和解耦。
+	所以主要的使用场景就是将比较耗时而且不需要即时（同步）返回结果的操作作为消息放入消息队列。
+	同时由于使用了消息队列，只要保证消息格式不变，消息的发送方和接收方并不需要彼此联系，也不需要受对方的影响，即解耦和。
+
+
+	基于的设计模式是观察者模式
+	redis继续list形式以进出栈的形式实现队列
+
+	生产消费模型、发布者/订阅者模型。
+
+	spring整合mq连接异常，需要在mq.xml中配置相应的本地连接参数
+
+	(1)、点对点方式（point-to-point）
+		点对点的消息发送方式主要建立在 Message Queue,Sender,reciever上，Message Queue 存贮消息，Sneder 发送消息，receive接收消息.
+		具体点就是Sender Client发送Message Queue ,而 receiver Cliernt从Queue中接收消息和"发送消息已接受"到Quere,确认消息接收。
+		消息发送客户端与接收客户端没有时间上的依赖，发送客户端可以在任何时刻发送信息到Queue，而不需要知道接收客户端是不是在运行
+	(2)、发布/订阅 方式（publish/subscriber Messaging）
+		发布/订阅方式用于多接收客户端的方式.作为发布订阅的方式，可能存在多个接收客户端，并且接收端客户端与发送客户端存在时间上的依赖。
+		一个接收端只能接收他创建以后发送客户端发送的信息。作为subscriber ,在接收消息时有两种方法，destination的receive方法（同步），和实现message listener 接口的onMessage 方法(异步)。
+
+
+
+323、手机的动静分开部署：
+	部署在webapp和root区别
+	区别是：前者带工程文件名访问，存在工程名目录，后者不带工程名目录，访问的工程名是根路径/
+	对于手机这种动静分离的做法，将手机后台放在webapp下，静态文件放在root下，访问更上即可，路径访问的优先原则，默认全路径匹配，
+
+324、	
+	<a class="react label-bar pr" href="http://m.yu.com/xye-phone-html/usercenter/paydetails.html">
+	加不加http://    不加就会默认加上项目路径访问，加就全路径访问
+
+
+325、单独读取xmlContext作为上下文容器
+	ApplicationContext ctx = new FileSystemXmlApplicationContext("classpath:applicationContext-*.xml");  
+        JmsTemplate jmsTemplate = (JmsTemplate) ctx.getBean("jmsTemplate"); 
+
+326、	web.xml配置全局错误页面
+		调试错误跳转页面出现一个问题,即在web.xml中配置的<error-page></error-page>不起作用，在web.xml中配置代码通常有两种方式：
+		1、根据错误代码
+		<error-page>
+		<error-code>404</error-code>
+		<location>/404.jsp</location>
+		</error-page>
+		2、根据异常类型（相对优先原则）
+		<error-page exception-type="java.lang.NullPointerException" location="/nullpointer.jsp"/>
+		注1：对于resin服务器也可以将错误跳转配置在resin-web.xml文件中，效果一样。
+ 	
+		对于无法跳转的解决：
+		1.确保location属性中填写的错误页面是绝对路径
+		2.确保error.jsp的大小>1024字节
+		3.确保在error.jsp页面中添加<%@ page isErrorPage="true"%> 
+
+
+327、	反射相关
+		Person person = new Person();		
+		Field declaredField = person.getClass().getDeclaredField("name");			
+		Method method = person.getClass().getMethod("setName", new Class[] {declaredField.getType()});
+		method.invoke(person,new Object[] {1001});
+		Long namehaha = person.getName();
+		System.out.println(namehaha);
+	
+
+328、	hessian接口的调用
+	server端
+	<bean name="/eBankReceiptManagerExpService" class="org.springframework.remoting.caucho.HessianServiceExporter">
+  		<property name="service" ref="eBankReceiptManagerService" />
+  		<property name="serviceInterface" value="com.xiaoyuer.pay.service.intf.IEBankReceiptManagerService" />
+    	</bean>
+
+
+	交给DispatcherServlet处理
+  	<servlet>
+		默认加载web-inf下的servlet.xml
+  	</servlet>
+
+
+	client端
+	<bean id="eBankReceiptManagerExtService" class="org.springframework.remoting.caucho.HessianProxyFactoryBean">
+  		<property name="serviceUrl" value="${xye.paycore.server}/remoting/eBankReceiptManagerExpService" />
+  		<property name="serviceInterface" value="com.xiaoyuer.pay.service.intf.IEBankReceiptManagerService" />
+  		<property name="readTimeout" value="30000"/>
+    	</bean>
+
+
+
+
+
+329、	sql相关
+	like concat(concat('%',#{name,jdbcType=VARCHAR}),'%'）
+
+330、	basemodelinfo 序列化  远程接口调用的对象都需要序列化 内部的类也需要序列化
+
+
+331、	ajax 的返回的 json数据
+		response.addHeader("Access-Control-Allow-Methods", "POST,GET");
+		response.addHeader("Access-Control-Allow-Credentiais", "true");
+		response.setContentType("text/javascript;charset=utf-8");	设置为json数据返回 
+		Utils.resultJson(response, obj.toJSONString());
+
+
+
+	流文件的附件下载	
+	windows路径跳转
+		String realName="收支明细_"+DateUtil.getCurrentDate("yyyyMMddHHmmss")+".xls";
+		    response.reset();//设置为没有缓存
+		    response.setContentType("application/x-download;charset=GBK");		设置为下载application/x-download  
+		    response.setHeader("Content-disposition", "attachment; filename="+ new String(realName.getBytes("utf-8"), "ISO8859-1"));	 /*attachment是以附件下载的形式，inline是以线上浏览的形式。当点击“保存”的时候都可以下载，当点击“打开”的时候attachment是在本地机里打开，inline是在浏览器里打开。*/		
+		    OutputStream output = response.getOutputStream();
+		    byte[] buf = new byte[1024];
+		    int r = 0;
+			ByteArrayInputStream bin = new ByteArrayInputStream(byteOut.toByteArray());
+			while ((r = bin.read(buf, 0, buf.length)) != -1) {
+			     output.write(buf, 0, r);
+			    }    
+			 response.getOutputStream().flush();
+			 response.getOutputStream().close();
+	
+	
+332、	自关联表查询sql
+	SELECT 'outComeSumAmt' AS CODE, oott.outComeSumAmt AS fund  FROM
+		(
+			SELECT 123 AS outComeSumAmt
+		) AS oott
+
+
+333、	IO流的：
+	1.字节流读取的时候，读到一个字节就返回一个字节； 字符流使用了字节流读到一个或多个字节（中文对应的字节数是两个，在UTF-8码表中是3个字节）时。先去查指定的编码表，将查到的字符返回。 
+	2.字节流可以处理所有类型数据，如：图片，MP3，AVI视频文件，而字符流只能处理字符数据。只要是处理纯文本数据，就要优先考虑使用字符流，除此之外都用字节流。
+
+
+
+334、	事务相关 Spring配置文件中关于事务配置总是由三个组成部分，分别是DataSource、TransactionManager和代理机制这三部分，无论哪种配置方式，一般变化的只是代理机制这部分。
+
+335、	文件的流读取，char[3]类型 是每次读取固定长度的串写入，多次执行
+ 	if((c=fr.read(a))!=-1)	{
+					fw.write(a,0,c);
+				}
+
+336、	声明式事务
+		1、tx配合aop标签
+		2、代理
+		3、拦截器
+	
+	编程式事务
+		注解@Transactional 需要开启通用注解标签<context:annotation-config />
+		<!-- 第四种配置事务的方式，注解 -->
+		<tx:annotation-driven transaction-manager="transactionManager"/>
+
+	Spring配置文件中关于事务配置总是由三个组成部分，分别是DataSource、TransactionManager和代理机制这三部分，无论哪种配置方式，一般变化的只是代理机制这部分。
+	SpringMVC启动时的配置文件，包含组件扫描、url映射以及设置freemarker参数，让spring不扫描带有@Service注解的类。
+	为什么要这样设置？因为servlet-context.xml与service-context.xml不是同时加载，如果不进行这样的设置，那么，spring就会将所有带@Service注解的类都扫描到容器中，等到加载service-context.xml的时候，
+	会因为容器已经存在Service类，使得cglib将不对Service进行代理，直接导致的结果就是在service-context中的事务配置不起作用，发生异常时，无法对数据进行回滚。
+
+
+	*******事务回滚的更新测试******
+	@Transactional 先执行更新1  在try住更新2回滚， 全部回滚
+		       先执行更新1  在try住更新2回滚， 再更新3 全部回滚
 
 
 
@@ -2206,14 +2374,231 @@ public class InvocationHandlerTest implements InvocationHandler {
 
 
 
+337、	拦截器的优化	一般在拦截器中定义全局的ctx，建议定义在afterCompletion中，这样在异常处理返回后页面中还能获取到值，在controller中的异常一般是500错误，可在web.xml中定义错误页面返回
+	提现的明细记录问题，事务优化，对于跨系统之间事务，会涉及到一些不是很重要的操作，对于非重要的操作，整个try住，即使异常也不能影响主要事务的进行
+
+338、	jsp页面保留两位小数:
+	引入标签	    	<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+	使用标签		<fmt:formatNumber value="${item.amount}"  pattern="0.00" maxFractionDigits="2" type="number"/>
+	$.each(data,function(i,tem){ });
+
+339、	追踪日志的日后 注意cause by
+	pom中引用统一jar的snapshot大小写必须一致，默认一般是大写
+
+340、	select 'accountFix' as code, uba.account_fix as fund map返回类型{code=incomeSumAmt, fund=1104.84} 转json	{"code":"incomeSumAmt","fund":"1104.84"} 在取属性组装单entry 的 map
+	UNION 需要查看 column字段的对应
+
+
+341、	 pluginManagement的配置和plugins的配置是一样的，只是用于继承，使得可以在子pom中使用父pom：
+
+342、	jersy测试框架好恶心，入参必须要加上相应的标签
+    	
+343、	try finally 一般用来关闭文件流操作等
+
+
+344、	dubbo的源码分析：
+		InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，凡是继承该接口的类，在初始化bean的时候会执行该方法。
+		项目用到了ApplicationContextAware，通过它Spring容器会自动把上下文环境对象调用ApplicationContextAware接口中的setApplicationContext方法，容器加载完后会把上下文set到类中，可以方便使用
+	
+   
+335、	互联网媒体类型
+	例如： Content-Type: text/html;charset:utf-8;
+ 	常见的媒体格式类型如下：
+    		text/html ： HTML格式
+    		text/plain ：纯文本格式      
+    		text/xml ：  XML格式
+    		image/gif ：gif图片格式    
+    		image/jpeg ：jpg图片格式 
+    		image/png：png图片格式
+   	以application开头的媒体格式类型：
+   		application/xhtml+xml ：XHTML格式
+   		application/xml     ： XML数据格式 	和text/xml的区别是编码不同
+   		application/atom+xml  ：Atom XML聚合格式    
+   		application/json    ： JSON数据格式
+   		application/pdf       ：pdf格式  
+   		application/msword  ： Word文档格式
+   		application/octet-stream ： 二进制流数据（如常见的文件下载）
+   		application/x-www-form-urlencoded ： <form encType=””>中默认的encType，form表单数据被编码为key/value格式发送到服务器（表单默认的提交数据的格式）
+   	另外一种常见的媒体格式是上传文件之时使用的：
+   		multipart/form-data ： 需要在表单中进行文件上传时，就需要使用该格式
+
+	javascript的mime有三个：
+		text/javascript,application/javascript,application/x-javascript
+		text/javascript:传统的javascript程序，RFC4329规定了“text/javascript”类型，因为它普遍被使用
+		application/javascript：javascript程序并不是真正的文本文件，所以推荐使用这个
+		application/x-javascript：和application/javascript差不多，只是多了个x，x前缀表示这是实验性的，不是标准的类型
+
+		content-type:application/x-msdownload	打开save as对话框	直接在浏览器显示文件信息
+		content-disposition			打开save as对话框	下载文件，但不会打开save as对话框
+		content-type:application/octet-stream	打开save as对话框	直接在浏览器显示文件信息
+
+	配合response.setHeader用法，没啥好研究的，照着用就可以
+
+336、	****CROS协议解决跨域问题******
+	自建filter，加入http的头信息，实现跨域访问,
+	response.setHeader("Access-Control-Allow-Origin", "*")
+	但是服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。;
+	但是也可以引用org.apache.catalina.filters.CorsFilter现成的jar，web.xml中做相关的配置即可，解决了上诉问题
+	
+	服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。
 
 
 
+337、	distinct  和group by  一样
 
 
+338、	用表单提交，不要用ajax。ajax无法实现导出excel。
+
+	ajax 其实只是一个javascript中的一个组建 XmlHttpRequest, 他的作用是数据交互, 返回数据是组建内部处理的, 下载是需要浏览器识别http头的,所以肯定只能用iframe
+	可以使用表单提交，和地址重定向location.href就行,导出需要http的头，是属于页面级别的。
+
+	导出excel为什么不能用ajax请求？
+	因为导出excel，实际上是文件下载，后台需要往前端（浏览器）写文件流（浏览器解析）的。
+	而Ajax请求获取数据都是“字符串”，整个交互传输用的都是字符串数据，它没法解析后台返回的文件流，但浏览器可以。
+ 
+	ajax，看名字asyn JavaScript and xml，是不能传输2进制数据的，怎么可能导出，直接请求servlet或者action（struts2）或者controller（spring mvc），
+	将导出的文件流放入到response的outputStream中，同时设置好header和contentType就可以了
+
+	Ajax与Form表单提交的区别：
+	Ajax提交不会自动刷新页面，需要手动处理。
+	Form表单提交在数据提交后会刷新页面，如果是Post提交，点击刷新浏览器会提示 是否再次提交。
 
 
+339、	转二进制	// 序列化
+            baos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(baos);
+            oos.writeObject(object);
+            byte[] bytes = baos.toByteArray();
+            return bytes;
+
+340、	git stash 后切换分支后 apply stash 可能有冲突
+	git stash 后 dev有改动 在apply回来会有冲突
+	stash是本地的恢复操作，目前一般使用是：本地stash 切换分支，回来时本地文件没变apply回来
 
 
+341、	静态代码块 static 在第一次调用时候会执行 不允许访问非静态成员 
+	
+	加载类的集中方式：
+		new StaticCode();//生成了一个匿名的对象（过后不能再使用），加载类  
+		StaticCode.show();//通过类名调用静态方法，加载类  
+		StaticCode s = new StaticCode();//生成了一个对象，加载类  
+		StaticCode s = null;//没有生成类，与StaticCode类没有关系，不加载类  
 
 
+342、	try catch多个异常时：顺序匹配，匹配到后面的就跳过
+	在写异常处理的时候，一定要把异常范围小的放在前面，范围大的放在后面，
+	Exception这个异常的根类一定要刚在最后一个catch里面，
+	如果放在前面或者中间，任何异常都会和Exception匹配的，就会报已捕获到...异常的错误。
+
+343、	transient关键字只能修饰变量，不再是对象持久化的一部分，不再能被序列化（静态变量也不能）传输
+
+344、	页面级别的特殊字符转换转换
+	value="${requireInfo.reqTitle ? replace("\"","&#34;")}" 转换页面中的字符串
+
+345、	DocumentBuilderFactory解析xml用 工具类的级别
+	DocumentBuilder builder = factory.newDocumentBuilder();
+ 	Document doc = builder.parse(f);
+  	解析xml文件
+
+346、	在springjdbc的dmo类中 关系映射，@Column(name="DATE_UPDATE")的参数绑定和数据库中的默认0是相冲突的，初始化属性是null
+
+347、	Person person = (Person) new SuperMan()
+	向下转型，向上无需转型
+
+
+348、	
+	服务化使用rest访问的必须要添加token访问权限，不能随意访问
+@PreMatching
+public class TokenFilter implements ContainerRequestFilter {
+
+	@Context
+	HttpServletRequest request;
+	@Context
+	private HttpServletResponse response;
+
+	@Override
+	public void filter(ContainerRequestContext requestContext) throws IOException {
+		String token = request.getParameter("token");
+		if (!TokenUtil.validToken(token)) {
+			BaseModel failModel = new BaseModel();
+			failModel.setCode(FunsionCode.FAILED_CODE_90101);
+			failModel.setErrMsg(FunsionCode.FAILED_MSG_90101);
+			Response result = Response.ok().entity(JSONObject.toJSON(failModel)).header(HttpHeaders.CONTENT_TYPE,
+					ContentType.APPLICATION_JSON_UTF_8).build();
+			requestContext.abortWith(result);
+		}
+	}
+}
+
+349、	springmvc，就参数绑定来说，加modelattribute标签和不加标签都可以
+	其他的功能，相对而言都不怎么实用
+	
+350、	正向代理：类似挂vpn从服务端获取数据，	特点：多个客户端
+	反向代理：使用负载均衡配多个服务端	特点：多个服务端	
+
+351、	相对路径会出现问题	 绝对路径和全路径	不会	 
+	js路径的继承 相对地址 	默认继承访问当前页面的地址，末路径匹配		
+
+
+352、	Class.forName().newInstance()和 new对象的区别：
+	1、使用newInstance可以解耦。使用newInstance的前提是，类已加载并且这个类已连接，这是正是class的静态方法forName（）完成的工作。newInstance实际上是把new         这个方式分解为两步，即，首先调用class的加载方法加载某个类，然后实例化。
+	2、newInstance: 弱类型。低效率。只能调用无参构造。 new: 强类型。相对高效。能调用任何public构造。 
+	3、newInstance()是实现IOC、反射、面对接口编程和依赖倒置等技术方法的必然选择，new只能实现具体类的实例化，不适合于接口编程。 
+	4、 newInstance() 一般用于动态加载类。 
+
+353、	转换流的最强功能就是基于 字节流 + 编码表 。没有转换，没有字符流
+
+
+354、	sql中的${} 和#{} sql注入
+
+
+	1、#{}能够很大程度上防止sql注入，作为字符串处理;${}方式无法防止sql注入;
+
+	2、mybaties排序时使用order by 动态参数时需要注意，使用${}而不用#{};  表名也用${}
+	   如果你要做动态的排序，比如 order by column，要用${},因为如果你使用了#{},会拼上字符串，那么打印出来的将会是
+	   select * from table order by 'name' ,这样是无法排序。
+
+								
+	3、#将传入的数据都当成一个字符串，$将传入的数据直接显示生成在sql中。
+
+	4、select * from user where id=${id} and username=#{username}
+
+	在经过编译后，得到如下语句
+
+	select * from user where id=2 and username=?
+
+	如果是#{}的形式是编译成?，而如果${}是编译成直接的数据。
+
+	区别：
+
+	#{}: 是以预编译的形式，将参数设置到SQL语句中;PreparedStatement:防止SQL注入
+
+	${}: 取出的值直接拼装在SQL语句中;会有安全问题
+	
+	sql攻击案例：
+		select * from ${tableName} where name = #{name}  
+
+		我们的参数 tableName 为 user; delete user; --，
+
+		select * from user; delete user; -- where name = ?;  
+		
+355、	reloadable="true" 监听类路径下的class文件
+
+356、	dubbo的源码分析：
+		dubbo的工作流程。RPC的亮点在于将远程调用的细节隐藏起来，使得调用远程服务像调用本地服务一样简单，而实现上面的功能就是代理。
+		dubbo由于有服务端信息的本地缓存，提供者的地址列表，所以当注册中心挂掉后调用端依然能够工作，也就是说调用端不是强依赖服务端。
+
+		短连接的操作步骤是：建立连接——数据传输——关闭连接…建立连接——数据传输——关闭连接
+		长连接的操作步骤是：建立连接——数据传输…（保持连接）…数据传输——关闭连接
+
+
+		<dubbo:protocol name="dubbo" port="20880" /> 解析成相应的对象，name目前来看映射的是id属性
+
+		ApplicationEvent	是个抽象类，里面只有一个构造函数和一个长整型的timestamp。
+		ApplicationListener	是一个接口，里面只有一个onApplicationEvent方法。
+
+		如果在上下文中部署一个实现了ApplicationListener接口的bean,那么每当在一个ApplicationEvent发布到 ApplicationContext时，
+		这个bean得到通知。其实这就是标准的Oberver设计模式。当一个ApplicationContext被初始化或刷新触发，这时候，监听到的是ContextRefreshedEvent事件（容器初始化完成），和InitializingBean（本bean初始化完成）不同，
+		
+		用Object[0]来代替null 很多时候我们需要传递参数的类型，而不是传null，所以用Object[0]	实际传递的是带泛型的null	new Class<?>[0]
+		在dubbo中的xml解析，不写id 会默认dubbo 或者interface 相关源码有默认id值
