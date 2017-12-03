@@ -96,3 +96,20 @@ bytearrayinputsteam 和bytearrayoutputsteam
 byte码表对应
 
 getByte（）编码 默认编码是gbk
+
+多线程相关的知识
+
+war包读取vars下的属性文件
+
+context.start的服务提供
+
+dubbo的main启动中的class.wait作用
+
+内部类的直接传值使用
+
+maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
+
+暂时先不dubbo的源码编译，先学习相关的使用，先引用dubbo的jar使用先，先看熟再搭
+目前看 path 环境变量应该是和cmd命令有关
+
+maven的几个常用plugin

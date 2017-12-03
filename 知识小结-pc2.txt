@@ -1,0 +1,32 @@
+起步dubbo
+
+1、<dubbo:protocol name="dubbo" port="20880"/> 使用dubbo在某端口暴露服务
+
+2、缓存提供者的地址后，consumer调用provider是直接invoke调用的，不在经过zookeeper。
+	消费者启动获得提供者地址后，可以不依赖zookkeper
+	
+3、	dubbo的三种运行方式：
+	1、使用servlet容器运行   缺点：浪费资源，内存、端口和管理
+	2、自建main方法运行
+		context.start()
+	3、dubbo框架提供的main方法运行 com.alibaba.dubbo.container.Main启动类
+		这里需要包spring的配置文件打包到META-INF下，dubbo默认
+	
+linux强杀进程	kill -9 pid 
+	
+	在spring-context中<import resource="classpath:spring/spring-mybatis.xml">,只有两者在同级目录才能省略前缀目录
+	，当道meta-inf下后需要加上前缀的目录
+	maven配置的时候还是要加path的，不然不识别mvn命令
+	
+dubbo源码编译遇到的坑：
+在cmd中使用mvn install 打包全部的工程
+POM中的maven-plugin一定要带上版本号，
+maven-resources-plugin-2.4.3.jar使用这个版本，2.6报错
+
+更换jdk版本后的eclipse启动失败，在eclipse.ini加入
+-vm
+C:\Program Files\Java\jdk1.7.0_79\bin
+
+jdk版本之间更换后instal失败：
+Unsupported major.minor version 52.0（jdk8用的）  项目的库和java版本都要统一，最好使用一个版本的jdk，不要随意切换
+	
