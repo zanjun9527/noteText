@@ -84,8 +84,6 @@ printstream 和 printwriter
 
 字符流读取的长度问题 文本长度超过1024 的再次读取问题
 
-字节流读取一个中文字
-
 bytearrayinputsteam 和bytearrayoutputstream（）写入到哪里去了
 
 bytearrayinputsteam 和bytearrayoutputsteam

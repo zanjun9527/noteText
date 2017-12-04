@@ -2160,6 +2160,7 @@ public class InvocationHandlerTest implements InvocationHandler {
         warpedItf = Proxy.newProxyInstance(target.getClass().getClassLoader(), i.getClass().getInterfaces(), this);
         return warpedItf;
     }
+参数中的接口，提供代理方法和具体的返回类型，handler是代理核心实现，这里可以将Proxy.newProxyInstance也封装进来
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -2193,7 +2194,7 @@ public class InvocationHandlerTest implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         System.out.println("before method excute!");
-        method.invoke(target, args);
+        method.invoke(target, args);			//注意这里类时属性参数
         System.out.println("after method excute!");
         return null;
     }
@@ -2206,6 +2207,15 @@ public class InvocationHandlerTest implements InvocationHandler {
     }
 
 }
+
+
+动态代理的作用：
+主要用来做方法的增强，让你可以在不修改源码的情况下，增强一些方法，
+在方法执行前后做任何你想做的事情（甚至根本不去执行这个方法），
+因为在InvocationHandler的invoke这个方法中，你可以直接获取正在调用方法对应的Method对象，
+具体应用，比如，添加日志，做事物控制等。
+
+
 
 322、消息队列
 	个人认为消息队列的主要特点是异步处理，主要目的是减少请求响应时间和解耦。
@@ -2270,7 +2280,7 @@ public class InvocationHandlerTest implements InvocationHandler {
 		System.out.println(namehaha);
 	
 
-328、	hessian接口的调用
+328、	hessian接口的调用基于http的访问，路径管理还是比较麻烦的，访问单一
 	server端
 	<bean name="/eBankReceiptManagerExpService" class="org.springframework.remoting.caucho.HessianServiceExporter">
   		<property name="service" ref="eBankReceiptManagerService" />
@@ -2602,3 +2612,148 @@ public class TokenFilter implements ContainerRequestFilter {
 		
 		用Object[0]来代替null 很多时候我们需要传递参数的类型，而不是传null，所以用Object[0]	实际传递的是带泛型的null	new Class<?>[0]
 		在dubbo中的xml解析，不写id 会默认dubbo 或者interface 相关源码有默认id值
+
+357、	Person[] persons = new Person[3];
+
+358、	jenkins的源码库浏览器，默认是自动，选择其他也行 但要配上相应的浏览器地址
+
+
+359、	在计算一年的时间毫秒数时候，365*24*3600*1000超出了int的最大范围（-2147483648-2147483647），会溢出计算以long类型计算即可
+
+360、	在读取属性文件的时候，可以通过文件路径或者类路径读取，但是形如/D:/apache-tomcat-sso/webapps/XiaoyuerAdmin-war/WEB-INF/lib/fastdfs-client-java-1.27-SNAPSHOT.jar!/fdfs_client.conf
+	这种路径文件路径是读取不到的，因为没有jar没有目录结构，同样类路径也读取不到
+	// 优先从文件系统路径加载
+      		if (new File(filePath).exists()) {
+       		in = new FileInputStream(filePath);
+		 }
+      	// 从类路径加载
+      		in = classLoader().getResourceAsStream(filePath);
+ 
+361、	processData：默认是true，重在在于是当成处理对象还是字符串
+	要求为Boolean类型的参数，默认为true。默认情况下，发送的数据将被转换为对象（从技术角度来讲并非字符串）以配合默认内容类型"application/x-www-form-urlencoded"。
+	如果要发送DOM树信息或者其他不希望转换的信息，请设置为false。这是后ajax无法传json数据
+
+
+362、	实现了Iterable<s>接口的类就可以遍历了,遍历类型就是s
+
+363、	JavaSPI ***源码级别，这里的具体serviceloader的代理实现，暂不研究***
+	spi Service Provider Interface 服务提供接口 		动态加载机制，一种服务发现机制
+	在模块装配的时，基于接口从配置文件中装配实现类 SPI的应用之一是可替换的插件机制，javaspi就是提供这样的一个机制：为某个接口寻找服务实现的机制。工具类：java.util.ServiceLoader
+	就是将装配的控制权移到程序之外，在模块化设计中这个机制尤其重要。 同时实现了两个spi接口的类，如果不做限制，都会执行
+	
+	ServiceLoader<ISpiTestService> loads = ServiceLoader.load(ISpiTestService.class);//这里拿到的是实现接口的实现类，具体的实现类在classpath下的META-INF/services/下
+		for (ISpiTestService iSpiTestService : loads) {
+			iSpiTestService.say();
+			System.out.println("end-------");
+		}
+
+
+	类加载器的有趣味解读，总结就是先加载类，再实例化一个类的对象
+	在 Java 中，Class<T> 和 ClassLoader 是造物之始。万物皆是“某类T” 的存在物，而“某类T” 是“万类之类 Class<T>” 的存在物，类别也是一种存在物，存在物即 Object。实例 t -> 类别 T -> 所有类别的抽象 Class<T> -> Object。要创造类别 T 的实例，先通过某种方式(ClassLoader)找到该物的“种子”(Class<T> 对象)，然后通过该种子来创造具体的物 t。要生成一个 Integer 对象，先找到 Class<Integer> , 然后 newInstance 出 Integer 的实例。
+	java本身并不实现，会到META-INF下去寻找相应接口名文件中的实现类去实现  
+
+364、	统一个接口的并发操作，每次的请求都是一个线程，
+
+	具体的是两个同样的工程同时发送同样的请求，同时经过数据库唯一判断，并执行后续操作，就会发现问题，这事不要用update 对象的方法，
+	可以数据库加上乐观锁，两个version版本一致才执行操作
+
+	两次的请求
+	update obj1  a=2
+	update obj1  a=3
+
+	update a+1
+	update a+1
+	
+365、	hashmap中的get方法返回null，表示不存在该键或者键对应的value是null	
+	hashmap的原理是基于hash运算计算存储位置，统一hash位置的多个entry根据key.equals（）取值
+
+
+366、	mv级别的重定向:
+	ModelAndView mv = new ModelAndView("redirect:/404.htm");
+
+367、	加上事务标签后，抛出异常，能是可以接受到的
+	git合并记录的历史看总的pom工程
+
+368、	一代版本一代jar，
+	 logger.info ("订单:{}动作 重复 类型:{}",orderCode,type);
+	异常日志如下
+	catch (Exception e) {
+    		logger.error("订单{}退款失败",orderCode，e);
+		
+	}
+369、	ConcurrentMap继承map接口，实现类是ConcurrentHashMap，并发级别的map
+	public class Locale {  
+    	private final static Map<String, Locale> map = new HashMap<String,Locale>();  
+   	public static Locale getInstance(String language, String country,  
+            String variant) {  
+        //...  
+        String key = some_string;  
+        Locale locale = map.get(key);  
+        if (locale == null) {  
+            locale = new Locale(language, country, variant);  
+            map.put(key, locale);  
+        	}  
+        	return locale;  
+    	}  
+	}  
+	***在一个类中的static的map中，同时多个请求过来，在经过null判断后，会返回同key不同value的情况***
+	ConcurrentHashMap，putIfAbsent()是有返回值的，使用 putIfAbsent 方法时切记要对返回值进行判断，
+	“如果（调用该方法时）key-value 已经存在，则返回那个 value 值。如果调用时 map 里没有找到 key 的 mapping，返回一个 null 值
+
+370、	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+	判断某个class有没有相应的注解
+
+371、	在filter中加入MDC变量容器，这样在日志管理可以统一处理变量，但是记得一定要在最后finally中移除掉相应的变量	
+
+372、	在dubbo的extensionloader中，只会处理@spi标签的接口，通过loadFile(extensionClasses, SERVICES_DIRECTORY);加载指定的实现类来，完成spi的服务提供
+
+	不足之处是把所有的实现都给你了。你也许只想用某个特殊的实现类呢？
+
+373、	循环中的break是中断
+
+374、	//数据量大的job任务，加入分批处理
+		QueryPage queryPage =new QueryPage();
+		queryPage.setTotal(总数量num);
+		if(queryPage.init()){
+			初始化执行次数，开始位置和每次执行数据
+		}
+
+375、	在try{}catch的执行体中，尾处有异常被捕获，头部的操作还是保留了，除非设置回滚相关
+
+376、	spring的事务管理，有几种隔离级别方式，
+	NESTED嵌套事务；内部事务是外部事务的子事务，外部的异常能触发所调用的NESTED事务回滚,内部事务的异常回滚不影响外部事务
+	REQUIRES_NEW,连个独立的事务，互不影响
+	REQUIRED 链接一体的事务，内外事务回滚一致
+		
+
+373、使用注解aop的相关条件
+	1、依赖相关的spring和aop的jar
+	2、被拦截的类和aop的aspect类都必须加入spring的容器
+	3、配置先关的拦截规则：
+	@Aspect
+	public class AopAdviser {
+		@Pointcut("execution(* test.Person.go(..))")  
+		public void say(){
+		};
+	
+		@Before("say()")
+		public void lie(){
+		System.out.println("前置执行");
+		};
+	
+		@After("say()")
+		public void gone(){
+		System.out.println("后置执行");
+		};
+	}
+	aop是spring动态代理的一种体现：
+	需要被代理的类，需要有个实现了invocationhandler的处理核心handler（针对方法前后添加相关操作），最后再有proxy生成代理的对象，
+
+374、	实现invocationHandler接口的代理处理的核心类中，有三个重点的东西：
+	1、构造函数，将代理对象传入
+	2、invoke方法，实现aop的增强的所有逻辑
+	3、getproxy方法，获取代理类
+
+	所以动态代理的方法实现三个要点：被代理类，代理处理核心handler，生成代理类
+
+375、	Objects.requireNonNull(h);判断可是否为空，是抛出空指针异常
