@@ -2757,3 +2757,56 @@ public class TokenFilter implements ContainerRequestFilter {
 	所以动态代理的方法实现三个要点：被代理类，代理处理核心handler，生成代理类
 
 375、	Objects.requireNonNull(h);判断可是否为空，是抛出空指针异常
+
+376、	classPathXmlApplicationContext.start(); 
+		synchronized (Testmain.class) {
+
+			while (true) {
+
+							try {
+								Testmain.class.wait();
+							} catch (InterruptedException e) {
+								System.out.println(e);
+							}
+		
+						}
+
+			}
+	自定义启动类，启动dubbo     加上System.in.read(); 也行 详见dubbo 的官方文档
+
+	使用线程和输入流是因为：保持服务提供，使用线程或者流的阻塞模拟
+
+	<dubbo:protocol name="dubbo" port="20886"/> provider必要的属性
+
+	
+
+377、	常用的你得知道吧 dubbo 
+	-DskipTests，不执行测试用例，但编译测试用例类生成相应的class文件至target/test-classes下。
+
+	-Dmaven.test.skip=true，不执行测试用例，也不编译测试用例类。
+
+378、	hierarchical项目分层管理，常用的操作
+	projects presentation：工程查看
+	top level elements：工程或者目录
+	package presentation：包查看
+
+
+379、	对于一个final变量，如果是基本数据类型的变量，则其数值一旦在初始化之后便不能更改；
+	如果是引用类型的变量，则在对其初始化之后便不能再让其指向另一个对象。
+	在匿名内部类中只能使用final变量，
+	
+380、	匿名内部类的使用中 	基于面向对象的思想，外部final变量作为参数传入进行对象构造，在调用对象的方法
+	final Person person = new Person();
+		person.setName("法海");
+		person.setAge("101");
+		new ISpiTestService() {
+			
+			@Override
+			public void say() {
+				person.setName("ad");
+				Object json = JSONObject.toJSON(person);
+				System.out.println(json.toString());
+			}
+		}.say();
+
+	匿名内部类直接使用相关接口，定义实现方法，传入final变量，一次性使用

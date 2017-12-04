@@ -111,3 +111,5 @@ maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 目前看 path 环境变量应该是和cmd命令有关
 
 maven的几个常用plugin
+
+使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
