@@ -841,5 +841,8 @@ bytearrayinputsteam 和bytearrayoutputsteam（内存缓冲区的数据，转换成字节数组。）
 
 tomcat内置的码表是iso8859-1
 
+47、在安装mysql的过程中出现server一直启动中，很可能是之前的版本没有，删除干净，使用Uninstall Tool删除干净后再安装即可
+删除管路中的服务，sc delete xxx即可
+
 
 
