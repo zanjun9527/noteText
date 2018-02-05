@@ -4,42 +4,10 @@ httpclient工具的使用
 
 redis缓存如何实现同步
 
-compareTo
-
 springboot的启动类@ComponentScan扫描范围
 
 mybatis查询获得map集合
 
-
-//创建代理类
-public class StandardInvocation implements InvocationHandler {
-
-    private Object obj;
-    
-    StandardInvocation(Object obj){
-        this.obj=obj;
-    }
-    
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("before method excute!");
-        Object result = method.invoke(obj, args);
-        System.out.println("after method excute!");
-        return result;
-    }
-
-}
-
-//测试动态代理
-    public static void main(String[] args) {
-        //创建一个被代理者
-        Cls c = new Cls();
-        //创建一个InvocationHandler，描述我们希望代理者执行哪些操作
-        InvocationHandler i = new StandardInvocation(c);
-        //通过刚才创建的InvocationHandler，创建真正的代理者。第一个参数是类加载器，第二个参数是这个代理者实现哪些接口
-        Itf pxy = (Itf) Proxy.newProxyInstance(Cls.class.getClassLoader(), new Class[] { Itf.class }, i);
-        pxy.printSth("Hi");
-    }
 
 
 分布式   和rpc框架
@@ -49,8 +17,6 @@ sso和缓存和缓存同步的区别
 分页查询
 
 外网和内网使用
-
-zookeeper配置 以及集群  dubbo的
 
 处理数据库级别的并发问题
 
@@ -80,6 +46,7 @@ vector数据类型
 枚举的使用
 
 
+
 printstream 和 printwriter
 
 字符流读取的长度问题 文本长度超过1024 的再次读取问题
@@ -99,17 +66,23 @@ getByte（）编码 默认编码是gbk
 
 war包读取vars下的属性文件
 
-context.start的服务提供
-
-dubbo的main启动中的class.wait作用
-
-内部类的直接传值使用
-
-maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 
 暂时先不dubbo的源码编译，先学习相关的使用，先引用dubbo的jar使用先，先看熟再搭
 目前看 path 环境变量应该是和cmd命令有关
 
-maven的几个常用plugin
 
-使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
+
+全部还原重做
+maven的几个常用plugin	maven教程可以学习一下
+使用 mvn clean install -Dmaven.test.skip pom工程 ，
+maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
+
+
+主从数据库的读写分离
+数据库的并发配置
+nginx的动静分离
+solr权重处理，基本排序，暂不深究
+
+
+
+copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建

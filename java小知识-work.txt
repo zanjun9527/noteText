@@ -1437,6 +1437,9 @@
 		
 		return bg.doubleValue();
 
+		DecimalFormat df = new DecimalFormat("0.00");
+		df.form();建议使用java自带的转换方法
+
 224、		cookie：
 		读取-	Cookie[] cookies = request.getCookies(); 然后遍历看cookie.getName()有匹配cookiename参数的，有则存在该cookie，
 		添加-	cookie添加的时候，需要设置Path默认根路径，Domain域名，MaxAge过期时间
@@ -1773,6 +1776,8 @@
     	</mvc:interceptor>
     	<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
 	</mvc:interceptors>
+
+	配置拦截器的路径一定要controller存在的路径，否则也拦不到
 
 
 
@@ -2613,6 +2618,9 @@ public class TokenFilter implements ContainerRequestFilter {
 		用Object[0]来代替null 很多时候我们需要传递参数的类型，而不是传null，所以用Object[0]	实际传递的是带泛型的null	new Class<?>[0]
 		在dubbo中的xml解析，不写id 会默认dubbo 或者interface 相关源码有默认id值
 
+		spring的xml中自定义bean 都需要一个实现了BeanDefinitionParser接口的解析parser
+
+
 357、	Person[] persons = new Person[3];
 
 358、	jenkins的源码库浏览器，默认是自动，选择其他也行 但要配上相应的浏览器地址
@@ -2804,9 +2812,250 @@ public class TokenFilter implements ContainerRequestFilter {
 			@Override
 			public void say() {
 				person.setName("ad");
-				Object json = JSONObject.toJSON(person);
+				Object json = JSONObject.toJSON(person);时
 				System.out.println(json.toString());
 			}
 		}.say();
 
 	匿名内部类直接使用相关接口，定义实现方法，传入final变量，一次性使用
+	将final变量作为参数传入匿名内部类，构建成功
+	
+
+381、	首次的request请求到服务器，都会生成一个session，返回sessionid到客户端，之后的每次请求都会带sessionid到服务端获取相应的session
+
+382、	spring的兼容问题：默认兼容之前版本的xsd
+	spring的兼容问题spring-context-3.0.xsd低版本的问题
+
+383、	hashset的去重功能还是可以使用的
+	hashmap是无序 treemap有序
+	Arrays.asList() 数组转list	
+384、	本地的maven pom的配置在本地工程中已经完成了实现（当需要打包外显的时候才指定），所以直接部署tomcatserver即可，
+	springboot是默认加载appplication.properties文件倒容器中直接${}读取即可
+	一般的ssm工程中，使用maven的-p dev激活profile属性，在其<build>节点中过滤var到过滤器中，然后在<bulid>构建节点中<filtering>true</filtering>开启过滤器即可
+385、	拦截器中的路径全匹配
+	controller中路径不存在，进不了拦截器
+	posthandler调用是在，dispatcherservlet进行视图渲染之前调用，这过程中可以处理mv，和prehandler执行顺序相反，
+	afterconpletion在dispatcherservlet进行视图渲染之后开始执行，主要进行清理工作
+
+386、	默认使用的target下的classpath和容器中的web-inf下的class一样的，暂不深究
+	deployment assembly 容器中指定的默认的classpath	
+	java build path java的编译路径指定classpath
+
+387、	jsonobject对象put会覆盖相同key的内容，string转对象时候，相同key属性默认最后一个赋值
+
+388、	默认conroller默认访问路径    @RequestMapping默认
+
+389、	遇到的日志异常位置：
+	tomcat的日志的问题 catalina.out和localhost文件的异常位置
+	目前的错误日志问题手动抛出runtimeexcepton是在localhost文件下，jsp页面的错误也在localhost文件下
+
+390、	String path = request.getContextPath();  
+  
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";  
+  
+	<base href="<%=basePath%>">  
+	获取项目的访问路径
+
+391、	数据库左关联一定要吧需要关注的对象放在左边，重点在以谁为准
+
+392、	UNION会自动删除重复项，刷选出部分字段的时候要注意了，如果刷选出来的两个字段的值完全相同就会剩下一个。
+
+	UNION ALL 和 UNION 不同之处在于 UNION ALL 会将左右两个查询的结果的所有的资料都列出来，无论资料值有无重复。
+
+393、	post请求的时候 传到后端的参数中文乱码：
+	tomcat 中的编码   <Connector connectionTimeout="20000" port="8080" protocol="HTTP/1.1" redirectPort="9443" URIEncoding="UTF-8"/>
+394、	TreeMap默认实现的是对key进行排序 使用插入排序使用linkedhashmap
+
+395、	SELECT * FROM require_info WHERE delete_mark=0  ORDER BY id LIMIT 0,10 使用的limit顺序在最后
+396、	Collections.max(list)  集合的最大值获取
+	
+	session.invalidate()退出登录时候清空session
+
+397、	普通http请求和hessian  
+	hessian也是轻量级的 ws服务，好处是不需要关心过程，调用时就像调用本地一样，毕竟是RMI，http的话，需要自己做好对象的解析，
+
+398、	java类中的始终导入文件不进去，build path中的相关移除重新导入
+
+399、	union all 的没有字段 null补齐
+
+400、	@responseBody效果等同于response.getwriter.writer(jsonString)流输出
+
+401、	-- 增加联合索引
+	ALTER TABLE income_expense_detail ADD UNIQUE NO_ID_STATUS (ORDER_NO,ACCOUNT_NO,ITEM_ORDER_ID,TYPE);
+402、	使用WebApplicationContextUtils在servlet中获取context
+
+403、	使用sql工具先操作后查看语句，预览执行语句
+
+404、	LIST<map<k,v>>  Mybatis返回的Map是这样的一种格式：Map<字段名称，字段值> 一个Map对象代表一行数据！ 	
+
+405、	批量处理sql数据的问题 update table1  表关联即可
+
+406、	pagecallback和servercallback 
+		支付的pagecallback 关闭浏览器，redirect到浏览器的表单提交无法提交，request生命周期结束，无法页面表单提交回调
+		回调区别在于是否要经过redirect的页面重定向
+406、	pagecallback和servercallback 
+		支付的pagecallback 关闭浏览器，redirect到浏览器的表单提交无法提交，request生命周期结束，无法页面表单提交回调
+		回调区别在于是否要经过redirect的页面重定向
+		
+407、	使用treemap来实现加密时候的顺序一致问题
+
+408、	eval `ssh-agent`		//启用ssh-agent
+		ssh-add D:/id_rsa_zhanjun.zhanjun	//添加本地的私钥，使用的类似linux，系统的路径要使用反斜杠
+		git branch -r 			//查看远程分支
+		git remote prune origin 	//刷新远程不存在的分支
+
+
+409、	键约束和索引
+
+索引：
+	大大加快数据的检索速度; 
+	唯一性索引列允许空值。
+	普通索引和唯一性索引：都可以提高查询效率，后者的值唯一，后者主要的作用是防止重复
+	
+
+外键：	ALTER TABLE pc ADD CONSTRAINT fk_cpu_model
+	FOREIGN KEY (cpumodel)
+	REFERENCES parts(model);
+	ON UPDATE CASCADE;		//主表更新，字表也更新
+	如果我们试着CREATE一台Pc，
+	它所使用的CPU的型号是Parts表中不存在的，那么MySQL会禁止这台PC被CREATE出来。
+
+	创建索引，例如CREATE INDEX <索引的名字> ON tablename (列的列表); 修改表，例如ALTER TABLE tablename ADD INDEX [索引的名字] (列的列表); 
+	创建表的时候指定索引，例如CREATE TABLE tablename ( [...], INDEX [索引的名字] (列的列表) );
+	
+	创建唯一性索引，例如CREATE UNIQUE INDEX <索引的名字> ON tablename (列的列表); 修改表，例如ALTER TABLE tablename ADD UNIQUE [索引的名字] (列的列表); 
+	创建表的时候指定索引，例如CREATE TABLE tablename ( [...], UNIQUE [索引的名字] (列的列表) );
+
+410、	mysql的导出： 备份sql转储（注意database的勾选项）和导出数据（不包含表结构）
+
+411、	
+	复杂的关联语句 待定	
+    <select id="getStatisticData" parameterType="int" resultMap = "statisticResult">
+        select p.ID PAPER_ID,p.TITLE,p.CONTENT,p.SUM_ANSWER,q.ID QUESTION_ID,q.TITLE QUESTION_TITLE,q.TYPE,
+        i.ID QUESTION_ITEM_ID,i.TEXT,i.CHECKED_NUM 
+        from paper p 
+        left join question q on p.ID =  q.SURVEY_ID 
+        left join question_item i on q.ID = i.QUESTION_ID 
+        where p.ID = #{id}
+    </select>
+    <resultMap type="main.java.com.gazi.survey.bean.SurveyInfo" id="statisticResult">
+        <id property = "id" column = "PAPER_ID"/>
+        <association property ="paper" javaType = "Paper">
+            <id property = "id" column = "PAPER_ID"/>
+            <result property = "title" column = "TITLE"/>
+            <result property = "content" column = "CONTENT"/>
+            <result property = "sumAnswer" column = "SUM_ANSWER"/>
+        </association>
+        <collection property="questionInfoList" ofType = "main.java.com.gazi.survey.bean.SurveyInfo$QuestionInfo">
+            <id property = "id" column = "QUESTION_ID"/>
+            <association property = "question" javaType = "Question">
+                <id property = "id" column = "QUESTION_ID"/>
+                <result property = "title" column = "QUESTION_TYPE"/>
+                <result property = "type" column = "TYPE"/>
+            </association>
+            <collection property="questionItemList" ofType = "QuestionItem">
+                <id property = "id" column = "QUESTION_ITEM_ID"/>
+                <result property = "text" column = "TEXT"/>
+                <result property = "checkedNum" column = "CHECKED_NUM"/>
+            </collection>
+        </collection>
+    </resultMap>
+		
+412、	其实id跟result标签可以通用，只是id有特殊标识可以在影射的时候更快的匹配到，如果我没猜错的话这个id标识其实不是主键也能用
+
+413、	<resultMap type="com.xiaoyuer.core.dmo.PersonAddressRelation"  id="BaseResultMapByTaxbureauId" extends="BaseResultMap" >
+    	<association property="adminUser"  javaType="com.xiaoyuer.core.dmo.AdminUser">
+  		<id property="id" column="Tax_Person_Id"></id>
+  		<result property="userName" column="User_Name"/>
+  	</association>
+	暂时看来只是内部的排序，提高效率用，查询缓存，作为缓存key，
+
+414、	在post请求中传递的参数中有带空格的，需要用url编码%20替换掉
+
+415、	打包找打包的配置  pom.xml和 右击属性
+	区别于打war和本地的target下的class使用，两种不同的使用场景
+	<resource>
+		<directory>../vars/${pay_env}/datasource</directory>
+		<targetPath>WEB-INF/classes/config</targetPath>
+	</resource>
+416、	left join 和 where 的条件的限制不一样，前者是弱限制，后者是强限制
+
+426、	　匹配方法只有三种，要么是路径匹配（以“/”字符开头，并以“/*”结尾），要么是扩展名匹配（以“*.”开头），要么是精确匹配，三种匹配方法不能进行组合，不要想当然使用通配符或正则规则。
+　　	  如<url-pattern>/user/*.action</url-pattern>是非法的
+	  另外注意：<url-pattern>/aa/*/bb</url-pattern>是精确匹配，合法，这里的*不是通配的含义
+	
+	匹配顺序：
+	1、精确匹配，
+	2、路径匹配，先最长路径匹配，再最短路径匹配servlet-mapping1：<url-pattern>/user/*</url-pattern>，servlet-mapping2：<url-pattern>/*</url-pattern>。当一个请求http://localhost:8080/appDemo/user/users.html来的时候，servlet-mapping1匹配到，不再用servlet-mapping2匹配
+	3、扩展名匹配
+	4、缺省匹配，以上都找不到servlet，就用默认的servlet，配置为<url-pattern>/</url-pattern>
+	
+
+	“/*”属于路径匹配，并且可以匹配所有request，由于路径匹配的优先级仅次于精确匹配，所以“/*”会覆盖所有的扩展名匹配，很多404错误均由此引起，所以这是一种特别恶劣的匹配模式，一般只用于filter的url-pattern
+	“/”是servlet中特殊的匹配模式，切该模式有且仅有一个实例，优先级最低，不会覆盖其他任何url-pattern，只是会替换servlet容器的内建default servlet ，该模式同样会匹配所有request。
+	配置“/”后，一种可能的现象是myServlet会拦截诸如http://localhost:8080/appDemo/user/addUser.action、http://localhost:8080/appDemo/user/updateUser的格式的请求，但是并不会拦截http://localhost:8080/appDemo/user/users.jsp、http://localhost:8080/appDemo/index.jsp，这是应为servlet容器有内置的“*.jsp”匹配器，而扩展名匹配的优先级高于缺省匹配，所以才会有上述现象。
+	/*在filter中使用的较多
+
+	而且当有一个servlet匹配成功以后，就不会去理会剩下的servlet了。  这个蛮重要的
+
+	注意Filter的匹配规则与servlet一样，但对于filter，不会像servlet那样只匹配一个servlet，因为filter的集合是一个链，所以只会有处理的顺序不同，而不会出现只选择一个filter。Filter的处理顺序和filter-mapping在web.xml中定义的顺序相同。 
+	精确路径 > 最长路径>扩展名
+
+	<resources mapping="/resources/**" location="/resources/" />
+    	<resources mapping="/images/**" location="/images/" />
+    	<resources mapping="/js/**" location="/js/" />
+	mapping：映射
+
+	location：本地资源路径，注意必须是webapp根目录下的路径。
+	
+	两个*，它表示映射resources/下所有的URL，包括子路径（即接多个/）
+	WEB-INF是Java的WEB应用的安全目录。所谓安全就是客户端无法访问，只有服务端可以访问的目录
+	
+	静态资源映射不需要考虑jsp，容器自带*.jsp的匹配，相对/优先级别高，
+ 	即:/是匹配不带*.jsp的，
+	   /*是全路径匹配，会匹配到*.jsp路径
+
+427、	远程的代码库分支占用,本地是不能推送的  
+
+428、	UNION ALL 的Order by，是依据最终的字段排序的
+	mysql中的日期格式化	DATE_FORMAT(created_time, '%Y-%m-%d %H:%i:%s')
+
+429、	<dubbo:registry check="false"/> 需要取消zookeeper的地址后才生效：关闭注册中心的检查，感觉没什么作用
+
+430、	mysql中的数字格式化
+	FORMAT（）目前是String类型展示，金额大会出现逗号
+	round（）数字形式的格式化，没有逗号分割
+	
+431、	VerifyImage.java 	VerifyResult.java  图形验证
+	1、使用的是随机生成Stringcode
+	2、使用图片流将String转成相应的图片输出，使用的jar多为java.awt包下的内容
+	3、生成的图片中的String存到缓存中，用于校验输入
+	4、使用servlet配置在web.xml中生成和返回
+	5、相关的代码已经上传github
+
+
+432、	@Transactional
+	建议是打在实现类的public（必须）方法上，不建议在类上声明使用，非必要的方法不需要使用事务管理
+	和编程式事务相比，声明式事务唯一不足地方是，后者的最细粒度只能作用到方法级别，无法做到像编程式事务那样可以作用到代码块级别。但是即便有这样的需求，也存在很多变通的方法，
+	比如，可以将需要进行事务管理的代码块独立为方法等等。
+	
+	事务只有配置在public方法上，且是被外部调用时才有效，也就是说：事务配置在private和protected方法上肯定是没有用处的；
+	事务配置在public方法上，但该public方法被内部调用时事务也是无效的。
+	目标方法由外部调用，目标方法才由 Spring 生成的代理对象来管理
+
+	问题解决。1. 使用public访求；2. 写在外部类中，可被调用； 3. 使用注入的方式进行该方法的执行。
+
+	3.非事务声明方法调用事务声明方法，则事务失效。使用了@Transactional的方法，被同一个类里面的方法调用， @Transactional无效。比如有一个类Test，它的一个方法A，A再调用Test本类的方法B（不管B是否public还是private），
+	但A没有声明注解事务，而B有。则外部调用A之后，B的事务是不会起作用的。（经常在这里出错）
+
+	4.一个service中声明事务方法，调用了另外一个service中的声明事务方法，则被调用的方法事务也还起作用，事务不太建议放到2个见service中。下面的例子，下面的事务是起作用的，跟上面第3条写的注意区分：
+	5、目前只能从外部方法开始另一个事务，否则内部调用的常规方法   先这样理解
+	service内部的多个方法默认等效一个事务管理的常规方法，从外部的有效，内部想要有效需要注入自身的接口实现（不推荐），
+	
+	
+	@Transactional放在类级别上等同于该类的每个公有方法都放上了@Transactional
+	@Transactional只对公有法有效
+
+	即使打上@Transactional标签的方法运行中抛出异常，是会往上级走的，上级需要处理
+
+433、	增值服务的归集 多个httpclient请求 异常问题  间隔1秒 原因是支付端同时受到请求生成的orderno违反唯一索引
