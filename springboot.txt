@@ -1,0 +1,24 @@
+springboot-52
+
+
+1、springboot的中的配置文件：目前看 @Configuration 和 @bean是搭配使用的
+
+2、annotationconfigapplicationcontext作为容器，接受一个配置类作为参数
+
+3、@configuration声明当前类时一个配置类，相当于spring的xml文件
+   @bean注解在方法上，声明当前方法返回一个bean，方法名就是返回的bean名称
+
+4、在spring容器中，只要容器中存在某个bean，就可以在另一个bean的声明方法的参数中写入，入参中
+		@Bean
+		public A (B b){
+			return a;
+		}
+	这里b实际上是容器中的一个bean
+
+5、在spring中使用@after等都可以定义一份advice，执行切面程序
+
+6、spring中的作用域 scope      singleton 管理的同一个bean实例
+
+7、springboot中可以导入xml文件，也可以注入属性文件 @propertySource  但是还要配置个propertySourceplaceholder的bean
+
+8、ApplicationContextAware，使bean可以获得spring容器中的服务

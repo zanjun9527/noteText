@@ -2480,7 +2480,6 @@ public class InvocationHandlerTest implements InvocationHandler {
 344、	dubbo的源码分析：
 		InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，凡是继承该接口的类，在初始化bean的时候会执行该方法。
 		项目用到了ApplicationContextAware，通过它Spring容器会自动把上下文环境对象调用ApplicationContextAware接口中的setApplicationContext方法，容器加载完后会把上下文set到类中，可以方便使用
-	
    
 335、	互联网媒体类型
 	例如： Content-Type: text/html;charset:utf-8;
@@ -3655,6 +3654,39 @@ public class TokenFilter implements ContainerRequestFilter {
 		8.messagequeue是一个长度无限的数组，offset是下标
 		9.消费去重，保证幂等性，重复情况少，一般建议业务去重
 
+
+
+
+
+		
+		mq 的 .RemotingConnectException     需要设置producer.setVipChannelEnabled(false);  
+
+	监听者监听不到消息
+    	<Host appBase="webRoot" autoDeploy="true" name="localhost" unpackWARs="true">
+        	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs" pattern="%h %l %u %t &quot;%r&quot; %s %b" prefix="localhost_access_log." suffix=".txt"/>
+		<Context docBase="../webapps/xye-paycore-war" path="/xye-paycore" reloadable="true" source="org.eclipse.jst.jee.server:xye-paycore-war"/>
+	</Host>
+    	
+  	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 482、	装饰模式：
 	//装饰器模式的写法，必须将被装饰的对象初始化到装饰类中
 	HttpServletRequestWrapper的使用  
@@ -3669,4 +3701,33 @@ public class TokenFilter implements ContainerRequestFilter {
 484、	<context:annotation-config> 开启已在spring容器中注册过的bean（无论是通过xml的方式还是通过package sanning的方式）上面的注解。
 	<context:component-scan>除了具有<context:annotation-config>的功能之外，<context:component-scan>还可以在指定的package下扫描以及注册javabean ，这一个标签足够了，上面的不需要
 	<mvc:annotation-driven/> 是mvc 必须的标签
+
+
+485、	xstream:xml 和 java对象之间的转换工具类   
+	XStream
+	XStream.alias("INFO", InfoReq.class);	相当于将类路径的标签转换为自定义的标签，节点重命名
+
+	xstream.aliasField("author", Blog.class, "writer");     不使用别名，还是要使用具体的class
+
+	使用隐式集合:	xstream.addImplicitCollection(Person.class, "list");
+		<list><element><element /></list>   变为 <element><element />
+
+
+	XStream的优点很多，但是也有一些小bug，比如在定义别名中的下划线“_”转换为xml后会变成“__”这个符号。
+ 	IOUtils.copy(fis, toClient);可以直接实现文件从输入流到输出流的文件写入
+ 	try {
+            toClient = new BufferedOutputStream(response.getOutputStream());
+            fis = new BufferedInputStream(new FileInputStream(myfile));
+            IOUtils.copy(fis, toClient);  //通过ioutil 对接输入输出流，实现文件下载
+            toClient.flush();
+        } catch (Exception e) {
+            throw new RuntimeException("文件下载失败");
+        } finally {
+            //关闭流
+            IOUtils.closeQuietly(fis);
+            IOUtils.closeQuietly(toClient);
+        }
+	
+
+
 
