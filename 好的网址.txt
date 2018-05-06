@@ -100,6 +100,7 @@ Sam_7_19_透彻理解HashMap底层设计精髓及手写分析
 ********************
 
 
+<<<<<<< HEAD
 http://www.ybjk.com/kms/     驾照考试
 
 
@@ -110,3 +111,44 @@ vm12 5A02H-AU243-TZJ49-GTC7K-3C61N
 
 
 http://www.itsource.com.cn/   zanjun9527 3-4  
+=======
+http://www.ybjk.com/kms/     驾照考试
+
+http://gold.cnfol.com/jinshizhibo/20171214/25765304.shtml
+
+
+
+《2017阿里技术年度精选集上》下载链接：
+http://techforum-img.cn-hangzhou.oss-pub.aliyun-inc.com/2017alitech_01.pdf 
+
+
+《2017阿里技术年度精选集下》下载链接：
+http://techforum-img.cn-hangzhou.oss-pub.aliyun-inc.com/2017alitech_02.pdf 
+
+
+温馨提醒：
+
+1、本书支持目录跳转。上册内容为架构、数据库、中间件、运维、开源、技术人生等；下册内容为算法、机器学习、大数据等。
+
+2、每册各有300多页，约20M，需要一定下载时间，请耐心等待哦。
+
+3、流量不足的童鞋，建议将地址复制到PC端浏览器后打开下载。
+
+
+慕课网
+
+企查查			http://www.qichacha.com/
+专注java和安卓分享	http://www.importnew.com/
+
+
+https://gitee.com/gvp  码云最有价值的开源项目分享
+
+
+中国工程信息网  建筑相关的信息
+看准网  查看企业相关的评价
+
+JeeSite
+
+
+http://www.java1234.com/ java资源共享
+>>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c

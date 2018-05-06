@@ -456,6 +456,11 @@
 			which命令的作用是，在PATH变量指定的路径中，搜索某个系统命令的位置
 			/etc/sysconfig/iptables linux需要在该文件中开放指定的端口才能对外访问
 			开启指定的端口后，service iptbales restart更新配置
+			nohup是永久执行
+			&是指在后台运行
+			tar -zxvf apache-rocketmq.tar.gz -C rocketmq/  解压文件到指定的目录
+			kill -9 pid
+			lsof -i :22 查看22端口被哪个进程占用
 
 
 66、			多个tomcat实例运行：
@@ -838,6 +843,10 @@
    			<property name="password" value="${jdbc.password}" /> 
 		</bean>
 
+		标签引入<context:property-placeholder location="classpath:jdbc.properties" />
+
+
+
 108		关联自身表查询
 		//查询技能标签
 		<select id="getUserClass" resultMap="ResultMapName" parameterType="java.lang.Integer">
@@ -1087,7 +1096,23 @@
 
 159、		一般的jar是不让看到源码的，fastjson-1.2.2-sources.jar，jar包中加入类似的sources文件就可以看了
 
-160、		忘记本地数据库 mysqld --skip-grant-tables
+160、		忘记本地数据库 
+		1、cmd mysql的bin目录下
+		mysqld --skip-grant-tables
+		2、重开cmd ，bin目录下mysql，进入
+
+		修改mysql的root密码后，出现Host 'localhost' is not allowed to connect to this MySQL server 错误。
+
+		解决办法：
+		C:\Program Files\MySQL\MySQL Server 5.5\my.ini
+		在[mysqld]下加下面两行，
+		skip-name-resolve
+		skip-grant-tables
+		重启mysql的windows服务
+	
+
+
+
 
 161、		修改数据库字段的编码    
 		1.网上查到一段代码可以直接修改 已经测试过（可以使用） 留作参考
@@ -1305,6 +1330,7 @@
 	配置多个PropertyPlaceholderConfigurer时 重点是：ignoreUnresolvablePlaceholders属性需要设置为true
 
 197、	netstat -aon|findstr "9443"  查看端口占用情况，找到pid，关闭进程中对应的进程即可
+	以左边的local地址为主，查看进程pid
 
 198、	nginx可以监听80端口将不同域名绑定到tomcat上的不同端口的不同项目
 
@@ -1437,11 +1463,33 @@
 		
 		return bg.doubleValue();
 
+		DecimalFormat df = new DecimalFormat("0.00");
+		df.form();建议使用java自带的转换方法
+
 224、		cookie：
 		读取-	Cookie[] cookies = request.getCookies(); 然后遍历看cookie.getName()有匹配cookiename参数的，有则存在该cookie，
 		添加-	cookie添加的时候，需要设置Path默认根路径，Domain域名，MaxAge过期时间
 
-225、		nginx.exe -t 检查配置文件是否正确
+225、		nginx相关
+		nginx.exe -t 检查配置文件是否正确
+		2.命令行输入 /安装路径/sbin/nginx -t 查看nginx配置是否正确
+		3.命令行输入 /安装路径/sbin/nginx -s reload 重新加载nginx
+
+		nginx配置多域名转发的时候：
+		if ($http_host ~* "^(.*?)\.yu\.com$") {
+					set $domain $1;
+	    		}
+		 		 location / {
+		 			if ($domain ~* "www") {
+        	 			proxy_pass https://192.168.6.222:9443;
+				 	 }
+			 		if ($domain ~* "m") {
+        	 			proxy_pass https://192.168.6.222:9443;
+					 }
+        		}
+
+		每次的请求都会先经过系统的nginx转发，主站发起请求-主站nginx转发到251-经过251的nginx转发-到实际运行的服务器上
+		http://192.168.6.251:8086/upload  没有转发 访问251file  先有跨域问题在有路径问题  访问先经过filter和servlet	 	http://www.yu.com 
 
 226、		流读取文件
 		Thread.currentThread().getContextClassLoader().getResourceAsStream("abc.properties") 	默认是classpath下
@@ -1565,8 +1613,9 @@
 				  }
 		</script >
 
-245、cmd 查看当前目录， dir
-
+245、	cmd 相关的命令：
+		查看当前目录， dir
+		cmd输入cls清屏
 246、	ftl   
 	<#if requireType=="1">
 	1111
@@ -1727,13 +1776,11 @@
 		<directory>${basedir}/src/main/resources</directory>
 		<filtering>true</filtering> 	----开启过滤功能
 	</resource>
-270、maven多环境 <resources>中，pom中不指定具体的路径，默认 web deployment assembly 中配置的resource 全目录打包，
+270、	maven多环境 <resources>中，pom中不指定具体的路径，默认 web deployment assembly 中配置的resource 全目录打包，
 	配置了<resource>就会严格固定pom中的配置目录
-	
 
-
-
-271、zookeeper+dubbo 框架实现soa
+271、	zookeeper+dubbo 框架实现soa
+	C:\Users\xiaoyuer\.dubbo  下的zookeeper缓存
 
 
 272、tomcat的session共享，tomca中配置缓存共享的问题
@@ -1773,6 +1820,8 @@
     	</mvc:interceptor>
     	<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
 	</mvc:interceptors>
+
+	配置拦截器的路径一定要controller存在的路径，否则也拦不到
 
 
 
@@ -1821,6 +1870,7 @@
 	     总的而言，抽象类实现接口可以自选实现的方法
 	     普通类继承抽象类需要实现抽象类中的抽象方法
 	     ***由上面的例子可以看出，只要一个类是抽象的或是一个接口，那么其子类中的方法都可以使用匿名内部类来实现***
+
 
 	2)、field.setAccessible(true); 忽略访问修饰符权限
 	    field.get(obj),对象实例换取对象的属性值，拿到对象实例的 域成员的值
@@ -1907,6 +1957,7 @@
 	浏览器缓存
 
 294、	git cherry-pick	用于把另一个本地分支的commit修改应用到当前分支。
+	gitreflog中可以查看回退版本的信息，可以挑选分支进行操作
 
 295、	tag是基于分支存在的，远程有分支才能pull对应的tag
 
@@ -1974,6 +2025,8 @@
 
 	客户端——>序列化写到输出流——>远程方法(服务器端)——>序列化写到输出流 ——>客户端读取输入流——>输出结果
 	目前想到的和dubbo的区别是，hessian只能连接单一远程服务，但是dubbo可以有zookeeper提供多个提供者
+
+	获取对远程的调用的代理，通过代理服务实现远程服务的调用，创建基于接口的代理给引用
 
 
 305、	泛型
@@ -2044,6 +2097,11 @@
 312、	nio
 	传统的socket io需要为每个连接创建一个线程，开销巨大
 	使用NIO，可用一个含有限数量的线程的线程池，甚至一个线程来为任意数量的连接服务。由于线程数量小于连接数量，所以每个线程进行IO操作的时候就不能阻塞，如果阻塞的话，有些连接就得不到处理，NIO提供了这种非阻塞的能力。
+	io：面向流，阻塞
+	nio：面向缓冲区，非阻塞	
+	Java NIO的选择器：一个单独的线程很容易来管理多个通道
+
+
 
 313、	不想编译报错，处理可以抛出RuntimeException，
 	Throwable是java.lang包中一个专门用来处理异常的类。
@@ -2239,6 +2297,13 @@ public class InvocationHandlerTest implements InvocationHandler {
 		一个接收端只能接收他创建以后发送客户端发送的信息。作为subscriber ,在接收消息时有两种方法，destination的receive方法（同步），和实现message listener 接口的onMessage 方法(异步)。
 
 
+	消息模型只有两种：	○ Point-to-Point(P2P)(一旦被消费，消息就不再在消息队列中) 
+				○ Publish/Subscribe(Pub/Sub)
+
+
+
+
+
 
 323、手机的动静分开部署：
 	部署在webapp和root区别
@@ -2278,6 +2343,12 @@ public class InvocationHandlerTest implements InvocationHandler {
 		method.invoke(person,new Object[] {1001});
 		Long namehaha = person.getName();
 		System.out.println(namehaha);
+
+
+	<bean id="person" class="test.Person">
+		<property name="name" value="xiaoming212"/>
+	</bean> 
+	注入的时候bean中需要无参构造，name属性还是根据setter（）方法注入的，类似反射的setter+属性首字母大写，保证setter方法一致就可以了
 	
 
 328、	hessian接口的调用基于http的访问，路径管理还是比较麻烦的，访问单一
@@ -2409,7 +2480,6 @@ public class InvocationHandlerTest implements InvocationHandler {
 344、	dubbo的源码分析：
 		InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，凡是继承该接口的类，在初始化bean的时候会执行该方法。
 		项目用到了ApplicationContextAware，通过它Spring容器会自动把上下文环境对象调用ApplicationContextAware接口中的setApplicationContext方法，容器加载完后会把上下文set到类中，可以方便使用
-	
    
 335、	互联网媒体类型
 	例如： Content-Type: text/html;charset:utf-8;
@@ -2613,6 +2683,9 @@ public class TokenFilter implements ContainerRequestFilter {
 		用Object[0]来代替null 很多时候我们需要传递参数的类型，而不是传null，所以用Object[0]	实际传递的是带泛型的null	new Class<?>[0]
 		在dubbo中的xml解析，不写id 会默认dubbo 或者interface 相关源码有默认id值
 
+		spring的xml中自定义bean 都需要一个实现了BeanDefinitionParser接口的解析parser
+
+
 357、	Person[] persons = new Person[3];
 
 358、	jenkins的源码库浏览器，默认是自动，选择其他也行 但要配上相应的浏览器地址
@@ -2640,7 +2713,7 @@ public class TokenFilter implements ContainerRequestFilter {
 	spi Service Provider Interface 服务提供接口 		动态加载机制，一种服务发现机制
 	在模块装配的时，基于接口从配置文件中装配实现类 SPI的应用之一是可替换的插件机制，javaspi就是提供这样的一个机制：为某个接口寻找服务实现的机制。工具类：java.util.ServiceLoader
 	就是将装配的控制权移到程序之外，在模块化设计中这个机制尤其重要。 同时实现了两个spi接口的类，如果不做限制，都会执行
-	
+	重点的思想是使用jar的形式，可插拔
 	ServiceLoader<ISpiTestService> loads = ServiceLoader.load(ISpiTestService.class);//这里拿到的是实现接口的实现类，具体的实现类在classpath下的META-INF/services/下
 		for (ISpiTestService iSpiTestService : loads) {
 			iSpiTestService.say();
@@ -2746,6 +2819,7 @@ public class TokenFilter implements ContainerRequestFilter {
 		System.out.println("后置执行");
 		};
 	}
+	spring中开启注解标签<aop:aspectj-autoproxy/>  
 	aop是spring动态代理的一种体现：
 	需要被代理的类，需要有个实现了invocationhandler的处理核心handler（针对方法前后添加相关操作），最后再有proxy生成代理的对象，
 
@@ -2755,6 +2829,27 @@ public class TokenFilter implements ContainerRequestFilter {
 	3、getproxy方法，获取代理类
 
 	所以动态代理的方法实现三个要点：被代理类，代理处理核心handler，生成代理类
+
+	简单的代理生成，养成使用代理工厂的思想，将一套东西封装起来
+	public class Proxyfactory {
+	public Object target;//目标类，一般需要实现接口
+	public Proxyfactory(Object target){
+		this.target=target;
+	}
+	
+	public  Object newProxyInstance(){
+		//返回代理实例
+		return Proxy.newProxyInstance(target.getClass().getClassLoader(), target.getClass().getInterfaces(), new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				System.out.println("kaishiqian");
+				method.invoke(target, args);
+				System.out.println("kaishihou");
+				return null;
+			}
+		});
+	}
+}
 
 375、	Objects.requireNonNull(h);判断可是否为空，是抛出空指针异常
 
@@ -2804,9 +2899,835 @@ public class TokenFilter implements ContainerRequestFilter {
 			@Override
 			public void say() {
 				person.setName("ad");
-				Object json = JSONObject.toJSON(person);
+				Object json = JSONObject.toJSON(person);时
 				System.out.println(json.toString());
 			}
 		}.say();
 
 	匿名内部类直接使用相关接口，定义实现方法，传入final变量，一次性使用
+	将final变量作为参数传入匿名内部类，构建成功
+	
+
+381、	首次的request请求到服务器，都会生成一个session，返回sessionid到客户端，之后的每次请求都会带sessionid到服务端获取相应的session
+
+382、	spring的兼容问题：默认兼容之前版本的xsd
+	spring的兼容问题spring-context-3.0.xsd低版本的问题
+
+383、	hashset的去重功能还是可以使用的
+	hashmap是无序 treemap有序
+	Arrays.asList() 数组转list	
+384、	本地的maven pom的配置在本地工程中已经完成了实现（当需要打包外显的时候才指定），所以直接部署tomcatserver即可，
+	springboot是默认加载appplication.properties文件倒容器中直接${}读取即可
+	一般的ssm工程中，使用maven的-p dev激活profile属性，在其<build>节点中过滤var到过滤器中，然后在<bulid>构建节点中<filtering>true</filtering>开启过滤器即可
+385、	拦截器中的路径全匹配
+	controller中路径不存在，进不了拦截器
+	posthandler调用是在，dispatcherservlet进行视图渲染之前调用，这过程中可以处理mv，和prehandler执行顺序相反，
+	afterconpletion在dispatcherservlet进行视图渲染之后开始执行，主要进行清理工作
+
+386、	默认使用的target下的classpath和容器中的web-inf下的class一样的，暂不深究
+	deployment assembly 容器中指定的默认的classpath	
+	java build path java的编译路径指定classpath
+
+387、	jsonobject对象put会覆盖相同key的内容，string转对象时候，相同key属性默认最后一个赋值
+
+388、	默认conroller默认访问路径    @RequestMapping默认
+
+389、	遇到的日志异常位置：
+	tomcat的日志的问题 catalina.out和localhost文件的异常位置
+	目前的错误日志问题手动抛出runtimeexcepton是在localhost文件下，jsp页面的错误也在localhost文件下
+
+390、	String path = request.getContextPath();  
+  
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";  
+  
+	<base href="<%=basePath%>">  
+	获取项目的访问路径
+
+391、	数据库左关联一定要吧需要关注的对象放在左边，重点在以谁为准
+
+392、	UNION会自动删除重复项，刷选出部分字段的时候要注意了，如果刷选出来的两个字段的值完全相同就会剩下一个。
+
+	UNION ALL 和 UNION 不同之处在于 UNION ALL 会将左右两个查询的结果的所有的资料都列出来，无论资料值有无重复。
+
+393、	post请求的时候 传到后端的参数中文乱码：
+	tomcat 中的编码   <Connector connectionTimeout="20000" port="8080" protocol="HTTP/1.1" redirectPort="9443" URIEncoding="UTF-8"/>
+394、	TreeMap默认实现的是对key进行排序 使用插入排序使用linkedhashmap
+	按照一定的顺序排序后，使用MD5加密，可以实现验签的功能
+
+395、	SELECT * FROM require_info WHERE delete_mark=0  ORDER BY id LIMIT 0,10 使用的limit顺序在最后
+396、	Collections.max(list)  集合的最大值获取
+	
+	session.invalidate()退出登录时候清空session
+
+397、	普通http请求和hessian  
+	hessian也是轻量级的 ws服务，好处是不需要关心过程，调用时就像调用本地一样，毕竟是RMI，http的话，需要自己做好对象的解析，
+
+398、	java类中的始终导入文件不进去，build path中的相关移除重新导入
+
+399、	union all 的没有字段 null补齐
+
+400、	@responseBody效果等同于response.getwriter.writer(jsonString)流输出
+
+401、	-- 增加联合索引
+	ALTER TABLE income_expense_detail ADD UNIQUE NO_ID_STATUS (ORDER_NO,ACCOUNT_NO,ITEM_ORDER_ID,TYPE);
+402、	使用WebApplicationContextUtils在servlet中获取context
+
+403、	使用sql工具先操作后查看语句，预览执行语句
+
+404、	LIST<map<k,v>>  Mybatis返回的Map是这样的一种格式：Map<字段名称，字段值> 一个Map对象代表一行数据！ 	
+
+405、	批量处理sql数据的问题 update table1  表关联即可
+
+406、	pagecallback和servercallback 
+		支付的pagecallback 关闭浏览器，redirect到浏览器的表单提交无法提交，request生命周期结束，无法页面表单提交回调
+		回调区别在于是否要经过redirect的页面重定向
+406、	pagecallback和servercallback 
+		支付的pagecallback 关闭浏览器，redirect到浏览器的表单提交无法提交，request生命周期结束，无法页面表单提交回调
+		回调区别在于是否要经过redirect的页面重定向
+		
+407、	使用treemap来实现加密时候的顺序一致问题
+
+408、	eval `ssh-agent`		//启用ssh-agent
+		ssh-add D:/id_rsa_zhanjun.zhanjun	//添加本地的私钥，使用的类似linux，系统的路径要使用反斜杠
+		git branch -r 			//查看远程分支
+		git remote prune origin 	//刷新远程不存在的分支
+
+
+409、	键约束和索引
+
+索引：
+	大大加快数据的检索速度; 
+	唯一性索引列允许空值。
+	普通索引和唯一性索引：都可以提高查询效率，后者的值唯一，后者主要的作用是防止重复
+	
+
+外键：	ALTER TABLE pc ADD CONSTRAINT fk_cpu_model
+	FOREIGN KEY (cpumodel)
+	REFERENCES parts(model);
+	ON UPDATE CASCADE;		//主表更新，字表也更新
+	如果我们试着CREATE一台Pc，
+	它所使用的CPU的型号是Parts表中不存在的，那么MySQL会禁止这台PC被CREATE出来。
+
+	创建索引，例如CREATE INDEX <索引的名字> ON tablename (列的列表); 修改表，例如ALTER TABLE tablename ADD INDEX [索引的名字] (列的列表); 
+	创建表的时候指定索引，例如CREATE TABLE tablename ( [...], INDEX [索引的名字] (列的列表) );
+	
+	创建唯一性索引，例如CREATE UNIQUE INDEX <索引的名字> ON tablename (列的列表); 修改表，例如ALTER TABLE tablename ADD UNIQUE [索引的名字] (列的列表); 
+	创建表的时候指定索引，例如CREATE TABLE tablename ( [...], UNIQUE [索引的名字] (列的列表) );
+
+410、	mysql的导出： 备份sql转储（注意database的勾选项）和导出数据（不包含表结构）
+
+411、	
+	复杂的关联语句 待定	
+    <select id="getStatisticData" parameterType="int" resultMap = "statisticResult">
+        select p.ID PAPER_ID,p.TITLE,p.CONTENT,p.SUM_ANSWER,q.ID QUESTION_ID,q.TITLE QUESTION_TITLE,q.TYPE,
+        i.ID QUESTION_ITEM_ID,i.TEXT,i.CHECKED_NUM 
+        from paper p 
+        left join question q on p.ID =  q.SURVEY_ID 
+        left join question_item i on q.ID = i.QUESTION_ID 
+        where p.ID = #{id}
+    </select>
+    <resultMap type="main.java.com.gazi.survey.bean.SurveyInfo" id="statisticResult">
+        <id property = "id" column = "PAPER_ID"/>
+        <association property ="paper" javaType = "Paper">
+            <id property = "id" column = "PAPER_ID"/>
+            <result property = "title" column = "TITLE"/>
+            <result property = "content" column = "CONTENT"/>
+            <result property = "sumAnswer" column = "SUM_ANSWER"/>
+        </association>
+        <collection property="questionInfoList" ofType = "main.java.com.gazi.survey.bean.SurveyInfo$QuestionInfo">
+            <id property = "id" column = "QUESTION_ID"/>
+            <association property = "question" javaType = "Question">
+                <id property = "id" column = "QUESTION_ID"/>
+                <result property = "title" column = "QUESTION_TYPE"/>
+                <result property = "type" column = "TYPE"/>
+            </association>
+            <collection property="questionItemList" ofType = "QuestionItem">
+                <id property = "id" column = "QUESTION_ITEM_ID"/>
+                <result property = "text" column = "TEXT"/>
+                <result property = "checkedNum" column = "CHECKED_NUM"/>
+            </collection>
+        </collection>
+    </resultMap>
+		
+412、	其实id跟result标签可以通用，只是id有特殊标识可以在影射的时候更快的匹配到，如果我没猜错的话这个id标识其实不是主键也能用
+
+413、	<resultMap type="com.xiaoyuer.core.dmo.PersonAddressRelation"  id="BaseResultMapByTaxbureauId" extends="BaseResultMap" >
+    	<association property="adminUser"  javaType="com.xiaoyuer.core.dmo.AdminUser">
+  		<id property="id" column="Tax_Person_Id"></id>
+  		<result property="userName" column="User_Name"/>
+  	</association>
+	暂时看来只是内部的排序，提高效率用，查询缓存，作为缓存key，
+
+414、	在post请求中传递的参数中有带空格的，需要用url编码%20替换掉
+
+415、	打包找打包的配置  pom.xml和 右击属性
+	区别于打war和本地的target下的class使用，两种不同的使用场景
+	<resource>
+		<directory>../vars/${pay_env}/datasource</directory>
+		<targetPath>WEB-INF/classes/config</targetPath>
+	</resource>
+416、	left join 和 where 的条件的限制不一样，前者是弱限制，后者是强限制
+
+426、	　匹配方法只有三种，要么是路径匹配（以“/”字符开头，并以“/*”结尾），要么是扩展名匹配（以“*.”开头），要么是精确匹配，三种匹配方法不能进行组合，不要想当然使用通配符或正则规则。
+　　	  如<url-pattern>/user/*.action</url-pattern>是非法的
+	  另外注意：<url-pattern>/aa/*/bb</url-pattern>是精确匹配，合法，这里的*不是通配的含义
+	
+	匹配顺序：
+	1、精确匹配，
+	2、路径匹配，先最长路径匹配，再最短路径匹配servlet-mapping1：<url-pattern>/user/*</url-pattern>，servlet-mapping2：<url-pattern>/*</url-pattern>。当一个请求http://localhost:8080/appDemo/user/users.html来的时候，servlet-mapping1匹配到，不再用servlet-mapping2匹配
+	3、扩展名匹配
+	4、缺省匹配，以上都找不到servlet，就用默认的servlet，配置为<url-pattern>/</url-pattern>
+	
+
+	“/*”属于路径匹配，并且可以匹配所有request，由于路径匹配的优先级仅次于精确匹配，所以“/*”会覆盖所有的扩展名匹配，很多404错误均由此引起，所以这是一种特别恶劣的匹配模式，一般只用于filter的url-pattern
+	“/”是servlet中特殊的匹配模式，切该模式有且仅有一个实例，优先级最低，不会覆盖其他任何url-pattern，只是会替换servlet容器的内建default servlet ，该模式同样会匹配所有request。
+	配置“/”后，一种可能的现象是myServlet会拦截诸如http://localhost:8080/appDemo/user/addUser.action、http://localhost:8080/appDemo/user/updateUser的格式的请求，但是并不会拦截http://localhost:8080/appDemo/user/users.jsp、http://localhost:8080/appDemo/index.jsp，这是应为servlet容器有内置的“*.jsp”匹配器，而扩展名匹配的优先级高于缺省匹配，所以才会有上述现象。
+	/*在filter中使用的较多
+
+	而且当有一个servlet匹配成功以后，就不会去理会剩下的servlet了。  这个蛮重要的
+
+	注意Filter的匹配规则与servlet一样，但对于filter，不会像servlet那样只匹配一个servlet，因为filter的集合是一个链，所以只会有处理的顺序不同，而不会出现只选择一个filter。Filter的处理顺序和filter-mapping在web.xml中定义的顺序相同。 
+	精确路径 > 最长路径>扩展名
+
+	<resources mapping="/resources/**" location="/resources/" />
+    	<resources mapping="/images/**" location="/images/" />
+    	<resources mapping="/js/**" location="/js/" />
+	mapping：映射
+
+	location：本地资源路径，注意必须是webapp根目录下的路径。
+	
+	两个*，它表示映射resources/下所有的URL，包括子路径（即接多个/）
+	WEB-INF是Java的WEB应用的安全目录。所谓安全就是客户端无法访问，只有服务端可以访问的目录
+	
+	静态资源映射不需要考虑jsp，容器自带*.jsp的匹配，相对/优先级别高，
+ 	即:/是匹配不带*.jsp的，
+	   /*是全路径匹配，会匹配到*.jsp路径
+
+427、	远程的代码库分支占用,本地是不能推送的  
+
+428、	UNION ALL 的Order by，是依据最终的字段排序的
+	mysql中的日期格式化	DATE_FORMAT(created_time, '%Y-%m-%d %H:%i:%s')
+
+429、	<dubbo:registry check="false"/> 需要取消zookeeper的地址后才生效：关闭注册中心的检查，感觉没什么作用
+
+430、	mysql中的数字格式化
+	FORMAT（）目前是String类型展示，金额大会出现逗号
+	round（）数字形式的格式化，没有逗号分割
+	
+431、	VerifyImage.java 	VerifyResult.java  图形验证
+	1、使用的是随机生成Stringcode
+	2、使用图片流将String转成相应的图片输出，使用的jar多为java.awt包下的内容
+	3、生成的图片中的String存到缓存中，用于校验输入
+	4、使用servlet配置在web.xml中生成和返回
+	5、相关的代码已经上传github
+
+
+432、	@Transactional
+	建议是打在实现类的public（必须）方法上，不建议在类上声明使用，非必要的方法不需要使用事务管理
+	和编程式事务相比，声明式事务唯一不足地方是，后者的最细粒度只能作用到方法级别，无法做到像编程式事务那样可以作用到代码块级别。但是即便有这样的需求，也存在很多变通的方法，
+	比如，可以将需要进行事务管理的代码块独立为方法等等。
+	
+	事务只有配置在public方法上，且是被外部调用时才有效，也就是说：事务配置在private和protected方法上肯定是没有用处的；
+	事务配置在public方法上，但该public方法被内部调用时事务也是无效的。
+	目标方法由外部调用，目标方法才由 Spring 生成的代理对象来管理
+
+	问题解决。1. 使用public访求；2. 写在外部类中，可被调用； 3. 使用注入的方式进行该方法的执行。
+
+	3.非事务声明方法调用事务声明方法，则事务失效。使用了@Transactional的方法，被同一个类里面的方法调用， @Transactional无效。比如有一个类Test，它的一个方法A，A再调用Test本类的方法B（不管B是否public还是private），
+	但A没有声明注解事务，而B有。则外部调用A之后，B的事务是不会起作用的。（经常在这里出错）
+
+	4.一个service中声明事务方法，调用了另外一个service中的声明事务方法，则被调用的方法事务也还起作用，事务不太建议放到2个见service中。下面的例子，下面的事务是起作用的，跟上面第3条写的注意区分：
+	5、目前只能从外部方法开始另一个事务，否则内部调用的常规方法   先这样理解
+	service内部的多个方法默认等效一个事务管理的常规方法，从外部的有效，内部想要有效需要注入自身的接口实现（不推荐），
+	
+	
+	@Transactional放在类级别上等同于该类的每个公有方法都放上了@Transactional
+	@Transactional只对公有法有效
+
+	即使打上@Transactional标签的方法运行中抛出异常，是会往上级走的，上级需要处理
+
+433、	增值服务的归集 多个httpclient请求 异常问题  间隔1秒 原因是支付端同时受到请求生成的orderno违反唯一索引
+
+434、	使用枚举类型的简单例子
+	public enum Color {  
+    	RED("红色", 1), GREEN("绿色", 2), BLANK("白色", 3), YELLO("黄色", 4);  
+    	// 成员变量  
+    	private String name;  
+    	private int index;  
+    	// 构造方法  
+    	private Color(String name, int index) {  
+        this.name = name;  
+        this.index = index;  
+    	}  
+		} 
+		
+435、	redis的缓存同步
+	1.只做Mysql的增、删、改，同等需要删除Redis里的数据。
+	2.读取Redis数据，只要不存在，就读取Mysql，并且装入Redis中。
+
+	读数据：先读取缓存，若不存在则从DB中读取，并将结果写入到缓存中；下次数据读取时便可以直接从缓存中获取数据。
+	改数据：直接失效缓存数据，再修改DB内容（避免突发情况：避免DB修改成功，但由于网络或者其他问题导致缓存数据没有清理，造成了脏数据）
+436、	reset实现代码回退、还原  包括分支的tag也可以
+
+437、	maven 提示可导 但是进不来 java buildpath重新设置下
+
+438、	反射生成Java对象实例
+	通过类对象调用newInstance()方法，适用于无参构造方法：
+	
+	通过类对象的getConstructor()或getDeclaredConstructor()方法获得构造器（Constructor）对象并调用其newInstance()方法创建对象，适用于无参和有参构造方法。
+   	例如：String.class.getConstructor(new Class[] { String.class, int.class }).newInstance("Hello",10);
+
+	java.lang.ClassLoader：类装载器类，将类的字节码装载到 Java 虚拟机（JVM）中并为其定义类对象，然后该类才能被使用。
+	Proxy类与普通类的唯一区别就是其字节码是由 JVM 在运行时动态生成的而非预存在于任何一个 .class 文件中。 
+
+439、	使用匿名内部类访问外部方法的局部变量必须是final类型，但是访问成员变量不用
+
+440、	gmt_create、gmt_modified使用DATETIME类型（精确到ss） date类型精确到dd
+	SELECT IFNULL(orderstatus,0) FROM platform_order WHERE id=26721   id不存在 无法为空，无法转为0
+
+441、	查看端口的占用情况：
+	netstat -aon|find port
+	a表示显示所用的连接    n表示显示出ip地址和端口号  不加n，显示是计算机的netbios名称和端口号
+	可能查询到local和远程的调用方，以local为主
+
+442、	Cast(字段名 as 转换的类型 ) sql中的数转换
+	DATE_ADD(t.pay_date,INTERVAL 90 DAY) sql 中的日期加
+	DATE_SUB(d,INTERVAL expr type) 	
+ 	DATE_FORMAT(ubm.deal_date,'%Y-%m-%d %H:%i:%S') 日期格式化
+
+443、	在filter中需要注入相应的bean，
+
+	在filter中获取spring的bean
+	@Override 
+	public void init(FilterConfig config) throws ServletException { 
+	ServletContext context = config.getServletContext(); 
+	ApplicationContext ac = WebApplicationContextUtils .getWebApplicationContext(context); 
+	userService1 = (UserService)ac.getBean("userService"); 
+	}
+
+	在Spring Security，过滤器类也是定义在xml中的spring bean， 因此可以获得Spring的依赖注入机制和生命周期接口。 
+	spring的DelegatingFilterProxy提供了在 web.xml和application context之间的联系。可以直接使用spring中的bean，暂时这样理解
+	也可以理解为过滤器的代理
+	作用是自动到Spring容器查找名字为shiroFilter（filter-name）的bean并把所有Filter的操作委托给它。
+
+	shiro 中的session 中 request.getSeesion()与subject.getSeesion()获取session后，对session的操作是相同的。
+444、	java项目中的源文件和生成文件：
+	ac_service 中的目录结构问题   bin中是生成的  package下的才是最新的
+
+445、	git的基于a点回退，但是a之后又有b点的提交，切换新分支，根据commitId挑选
+
+446、	本地线程变量
+	ThreadLocal并不能替代同步机制,线程同步时共享了同一个变量,但ThreadLocal变量是线程之间相互独立的，
+	ThreadLocal不是用来解决对象共享访问问题的，而主要是提供了线程保持对象的方法和避免参数传递的方便的对象访问方式 
+	ThreadLocal的应用场合，最适合的是按线程多实例（每个线程对应一个实例）的对象的访问，并且这个对象很多地方都要用到。
+	我觉得threadlocal更多是解决了同一个线程里参数的传递问题。 
+
+	概括起来说，对于多线程资源共享的问题，同步机制采用了“以时间换空间”的方式，比如定义一个static变量，同步访问，而ThreadLocal采用了“以空间换时间”的方式。
+	前者仅提供一份变量，让不同的线程排队访问，而后者为每一个线程都提供了一份变量，因此可以同时访问而互不影响。
+
+	函数调用栈比较深以及代码入口的多样性，使用threadlocal实现线程内的资源共享，每个线程都有自己的资源副本
+	若多个线程之间需要共享资源，以达到线程间的通信时，就使用同步机制；若仅仅需要隔离多线程之间的关系资源，则可以使用ThreadLocal
+
+
+447、	右击class中的类名获取包名,右击文件是获取/路径的	
+
+448、	多线程相关：
+	多线程中的Future.get()没有结束会一直阻塞
+
+	线程池中调用	ExecutorService
+	 shutdown调用后，不可以再submit新的task，已经submit的将继续执行。
+        shutdownNow试图停止当前正执行的task，并返回尚未执行的task的list。
+
+	ListenableFuture可以监听的Future，是Future的扩展增强。我们知道Future表示一个异步计算任务，当任务完成时可以得到计算结果。如果我们希望一旦计算完成就拿到结果展示给用户或者做另外的计算，就必须使用另一个线程不断的查询计算状态。
+	使用ListenableFuture.addCallback()检测Future,如果完成就自动调用回调函数，这样可以减少并发程序的复杂度
+	可以使用RateLimiter  并发限流器
+	如果我们关心线程池执行的结果，则需要使用submit来提交task，使用Future处理，
+	如果我们不关心这个任务的结果，execute方法（实际是继承Executor接口）来直接去执行任务，
+
+	实现线程的三种方法需要总结
+	1、继承tread类
+	2、实现runnable接口
+	3、实现callable接口，搭配线程池使用，可以实现带返回结果future
+
+449、	springboot中的：
+	WebMvcConfigurationSupport 与WebMvcConfigurerAdapter 都可以配置MVC,WebMvcConfigurationSupport 支持的自定义的配置更多更全，WebMvcConfigurerAdapter有的WebMvcConfigurationSupport 都有
+
+450、	线程的相关：
+
+	一个进程中同时有多个线程在运行
+	实现Runnable接口比继承Thread类所具有的优势：
+	2）：可以避免java中的单继承的限制
+	4）：线程池只能放入实现Runable或callable类线程，不能直接放入继承Thread的类
+
+
+	在java中，每次程序运行至少启动2个线程。一个是main线程，一个是垃圾收集线程。
+	因为每当使用java命令执行一个类的时候，实际上都会启动一个ＪＶＭ，每一个ｊＶＭ实际在就是在操作系统中启动了一个进程。 
+	thread类中的setPriority方法可以设置优先级
+
+	sleep()和yield()的区别
+	sleep()使当前线程进入停滞状态，所以执行sleep()的线程在指定的时间内肯定不会被执行；，sleep进入阻塞状态，
+	yield()让出 CPU 占有权，时间是不可设定的，同级别的让步，让步到就绪状态，使当前线程重新回到可执行状态
+
+	yield()方法对应了如下操作：先检测当前是否有相同优先级的线程处于同可运行状态，如有，则把 CPU  的占有权交给此线程，否则，继续运行原来的线程。所以yield()方法称为“退让”，它把运行机会让给了同等优先级的其他线程
+	另外，sleep 方法允许较低优先级的线程获得运行机会，但 yield()  方法执行时
+	①、sleep方法暂停当前线程后，会进入阻塞状态，只有当睡眠时间到了，才会转入就绪状态。而yield方法调用后 ，是直接进入就绪状态，所以有可能刚进入就绪状态，又被调度到运行状态。
+	②、sleep方法声明抛出了InterruptedException，所以调用sleep方法的时候要捕获该异常，或者显示声明抛出该异常。而yield方法则没有声明抛出任务异常。
+	sleep相对于wait：
+	sleep可以在任何地方使用。而wait，notify，notifyAll只能在同步控制方法或者同步控制块中使用。
+	sleep必须捕获异常，而wait，notify，notifyAll的不需要捕获异常。
+
+	wait(),notify(),notifyall(),  在使用时必须标识它们所操作的线程持有的锁，因为等待和唤醒必须是同一锁下的线程；而锁可以是任意对象，所以这3个方法都是Object类中的方法。
+	
+	线程执行wait()后，就放弃了运行资格，处于冻结状态；线程运行时，内存中会建立一个线程池，冻结状态的线程都存在于线程池中，notify()执行时唤醒的也是线程池中的线程，线程池中有多个线程时唤醒第一个被冻结的线程。notifyall(), 唤醒线程池中所有线程。
+	
+	Obj.wait(),Obj.notify必须在synchronized(Obj){...}语句块内。
+
+
+	isDaemon 是否是守护线程，守护主线程，主消失 守护消失，不用手动触发
+	Callable的future模式：并发模式的一种，可以有两种形式，即无阻塞和阻塞，分别是isDone和get。其中Future对象用来存放该线程的返回值以及状态
+	Thread.sleep()对当前正在运行的线程睡眠
+	实际测试的时候synchronized加在方法上的，方法体内sleep，另一个线程是等待的，进不来
+
+	join在当前的线程中加入该线程，主线程等待子线程的结束
+	
+	结束线程的安全方案：
+	正常执行完run方法，然后结束掉；
+    	控制循环条件和判断条件的标识符来结束掉线程。
+
+	多线程的并发操作中，为了保证变量的唯一性和准确性，需要对加入同步锁
+	
+	synchronized关键字一般用过来修饰方法，锁住相关的方法，也可以修饰静态方法，此时如果调用该静态方法，将会锁住整个类
+	同步是一种高开销的操作，因此应该尽量减少同步的内容。通常没有必要同步整个方法，使用synchronized代码块同步关键代码即可。
+
+	synchronized锁住的是代码还是对象。答案是：synchronized锁住的是括号里的对象，而不是代码。对于非static的synchronized方法，锁的就是对象本身也就是this。实现同步必须是同一个对象（是锁方法所在的对象），如果不是同一个对象，那么多个线程同时运行synchronized方法或代码段
+	用synchronized关键字的时候，能缩小代码段的范围就尽量缩小，减小锁的粒度，使代码更大程度的并发
+
+	上面代码用synchronized(Sync.class)实现了全局锁的效果。
+	
+
+	synchronized锁在方法上也相当于锁住了整个实例对象，sleep过程中其他的所方法也不能执行
+
+	static synchronized方法，static方法可以直接类名加方法名调用，方法中无法使用this，所以它锁的不是this，而是类的Class对象，所以，static synchronized方法也相当于全局锁，相当于锁住了代码段，锁住了整个类对象
+	
+	lock锁相对于synchronized同步锁：
+	那么lock和synchronized的区别对比如下：
+	1）synchronized 在成功完成功能或者抛出异常时，虚拟机会自动释放线程占有的锁；Lock需在finally中手工释放锁（unlock()方法释放锁），否则容易造成线程死锁；
+	2）synchronized是java内置关键字，在jvm层面，Lock是个java类；
+	2）lock接口锁可以通过多种方法来尝试获取锁包括立即返回是否成功的tryLock(),以及一直尝试获取的lock()方法和尝试等待指定时间长度获取的方法，相对灵活了许多比synchronized;
+	3) 通过在读多，写少的高并发情况下，我们用ReentrantReadWriteLock分别获取读锁和写锁来提高系统的性能，因为读锁是共享锁，即可以同时有多个线
+	4）synchronized的锁可重入、不可中断、非公平，而Lock锁可重入、可判断、可公平（两者皆可）
+	5）synchronized无法判断是否获取锁的状态，Lock可以判断是否获取到锁；使用tryLock()返回结果
+	6）不让等待的线程一直无期限地等待下去（比如只等待一定的时间或者能够响应中断），通过Lock就可以办到。
+	
+	线程池 
+	ExecutorService executorService = Executors.newFixedThreadPool();使用静态类工厂创建线程池，也可以用装饰监听MoreExecutors.listeningDecorator(），一般用到的方法是submit()返回结果future
+	使用ExecutorService线程池，最后shutdownNow（）和shutdown（），后者不再接受新的线程请求，处理完所有线程关闭，前者立即关闭
+	线程锁的相关概念：
+	公平锁以请求锁的顺序来获取锁，非公平锁则是无法保证按照请求的顺序执行
+	线程中的集中锁的分类：
+	1、重入锁
+	2、可中断锁
+	3、公平锁
+	4、读写锁
+	
+	多线程特殊写法，但是不推荐
+	直接重写方法也行
+			new Thread(){
+					public void run(){
+						for (int i = 0; i < 10; i++) {
+							System.out.println("123123");
+						}
+					}
+				};
+
+
+	
+
+
+
+
+
+451、	实现md5加密的：
+	public static String md5Encode(String inputStr) {  
+        MessageDigest md5 = null;  
+        try {  
+            md5 = MessageDigest.getInstance("MD5");  
+            byte[] bytes = inputStr.getBytes("UTF-8");  
+            byte[] md5Bytes = md5.digest(bytes);  
+            StringBuffer hexValue = new StringBuffer();  
+            for (int i = 0; i < md5Bytes.length; i++) {  
+                  
+                int value = ((int) md5Bytes[i]) & 0xff;  
+                  
+                if (value < 16) {  
+                    hexValue.append("0");  
+                }  
+                hexValue.append(Integer.toHexString(value));  
+                  
+            }  
+            return hexValue.toString();  
+              
+        } catch (Exception e) {  
+            return "";  
+        }    
+    }  
+	总的过程是使用md5加密返回16长度的byte[]，使用16进制转换将每个byte转为两位的16进制，这样最终生成的固定长度的32位字符串
+
+451、	内存相关：
+	
+	在jstack分析工具中，查找相关的线程，标记为daemon的线程是守护线程，一般查找问题定为的是主线程
+
+	设置jvm的内存  可以在eclipse中的配置jdk的 default vm argument 中设置 ；也可以在eclipse.ini中设置，也可以右击工程run as 最下面配置项中的arguments中配置vm
+	jvm的相关概念：
+	两种类型的内存：
+	堆（heap）：-Xms 初始分配内存 -Xmx最大分配内存，服务器一般设置-Xms、 -Xmx相等以避免在每次GC 后调整堆的大小
+	非堆：也叫永久保存的区域，运行时gc不会释放其空间
+	-XX:PermSize设置非堆内存初始值，XX:MaxPermSize设置最大非堆内存的大小
+
+	使用jstack 定为死循环，线程阻塞、死锁问题”
+	找到cpu中使用率较高的进程，或者制定端口的pid去查看
+	C:\Users\xiaoyuer>jstack -l  13452 >> 123.txt  必须制定到uses目录下
+	1、cmd输入jps 查找进行中的java进程
+		-q：仅输出VM标识符，不包括classname,jar name,arguments in main method 
+		-m：输出main method的参数 
+		-l：输出完全的包名，应用主类名，jar的完全路径名 
+  	2、jstack 进程id 查看进程中的线程， 日志中可以看到相关线程的运行状态，其中daemo是守护线程
+	3、在日志中查找相关的代码情况，线索就是相应的包目录，
+
+	******查看WAITING的线程，重点查看包含自己代码行的方法调用栈。******
+
+452、	shiro相关：
+	SecurityManager：我们知道其在Shiro中的地位，类似于一个“安全大管家”，相当于SpringMVC中的DispatcherServlet或者Struts2中的FilterDispatcher，是Shiro的心脏，所有具体的交互都通过SecurityManager进行控制，它管理着所有Subject、且负责进行认证和授权、及会话、缓存的管理
+
+	shiro三大核心模块：Subject（用户）、SecurityManager(框架心脏)、Realm（Shiro与应用安全数据间的“桥梁”）
+
+
+	shiro.xml中配置ShiroFilterFactoryBean时候，在容器中注入的是filterbean，拦截/*请求，未登录，跳转loginUrl,unauthorizedUrl是没有权限跳转的路径
+
+	securityManager中继承了多个功能模块（继承链由顶端向下）：
+	1、CachingSecurityManager			主要提供缓存支持，管理缓存操作
+	2、RealmSecurityManager				可理解为数据处理组件，比如Realm根据用户名数据库，和输入的用户密码比对，验证登录，还有授权数据等）
+	3、AuthenticatingSecurityManager	实现接口Authenticator，处理用户登陆验证的 SecurityManager 的 抽象实现，仅仅代理Authenticator
+	4、AuthorizingSecurityManager		实现了Authorizer接口的抽象类，该类主要代理Authorizer进行授权
+	5、SessionsSecurityManager			实现类SessionManager的方法。代理了SessionManager来处理相关的session操作。
+	6、DefaultSecurityManager			默认的SessionManager的具体实现，该实现类会合适的初始化依赖组件。如subjectFactory、SubjectDAO
+	7、DefaultWebSecurityManager		WebSecurityManager实现被使用在web应用程序中或者需要http请求的应用程序中（如SOAP，http remoting, etc）
+
+
+
+	shiro的session是自己实现的，项目中是用的是redis作为缓存的框架
+
+	解析ini中的section，最终将每个section解析成为linkedmap使用   map<String,section> 配合scanner解析
+	ini.sections    Map<String, Section> sections
+	  
+	在ShiroFilterFactoryBean.createInstance实例化的过程中 FilterChainManager manager = createFilterChainManager()讲默认的filter和自定义的filter加载进来，使用的是manager.addFilter()
+
+
+	// 参数chainName形如 /admin/list**
+	// 参数chainDefinition形如 authc,perms[admin:manage]  每个前置元素表示的是一个filter，默认的和自定义的都会继承AccessControlFilter
+	[]中的只是作为filter的参数传递进去，并做相应的处理
+
+
+	// foo[bar, baz]       returned[0] == foo
+	// 					   returned[1] == bar, baz 
+	/ 保存用户配置的url与filter之间的映射关系
+	applyChainConfig(chainName, filter, chainSpecificFilterConfig);
+ 
+ 
+ 	filterChainDefinitions 从上到下，从左到右，如果有匹配的拦截器就会阻断并返回
+  
+  
+ 	在SecurityUtils.getSubject().login(token);获取的时候会获取securityManager实例中的realm，调用realm实例中的认证方法
+  
+  
+  	loginfilter中的返回false后会调用WebUtils.issueRedirect(request, response, loginUrl)跳转到loginUrl
+
+	<bean id="shiroManager" class="com.sojson.core.shiro.service.impl.ShiroManagerImpl"/>
+	<property name="filterChainDefinitions" value="#{shiroManager.loadFilterChainDefinitions()}"/> 
+	在xml中，相当于使用了一个bean实例调用了其方法返回了结果，但是在方法中需要使用ini4j的解析器，解析出String格式的ini信息
+	
+
+	一些常用的java类
+	SimpleAuthorizationInfo		用于存放该用户的权限和角色信息，授权的专用类
+	SimpleAuthenticationInfo	用于认证成功后返回的认证信息	
+
+	
+	用户查看	session中使用的是传递sessionid找到redis中的session信息，在找到session中的用户信息
+
+	踢出功能  	session存在 但是session中设置的status失效
+
+	根据前段的页面 使用的shiro标签 判断相应的权限控制展示
+
+	
+
+	
+
+453、	在tomcat中的web.xml中配置欢迎页，先判断静态页面存不存在，存在根据路径还有可能被前端控制器拦截转向动态的页面
+
+454、	maven和源码相关：
+	在maven的配置选项中勾选源码下载
+	jar包中的class中文乱码   修改workspace下的编码utf-8 和 content tyes下的text 为uf8，重开工程即可
+
+455、	maven多环境
+	<build>
+		<filters>
+			<filter>../vars/vars.pre.properties</filter>
+		</filters>
+	</build>
+	<resource>
+                <filtering>true</filtering>
+        </resource>	
+	pom.xml中，集中开启过滤器，在resource标签中开启
+
+465、	继承PropertyPlaceholderConfigurer，可以对properties中的某些属性进行加密解密
+
+467、	dubbo两次加载导致端口占用的问题：
+	autoDeploy="false" deployOnStartup="false"	
+	 			
+
+468、 linux安装mysql：
+	linux下安装 mysql https://www.linuxidc.com/Linux/2016-09/135288.htm
+	注意和centos的系统版本匹配 
+	不行重新yum  clean all 
+	yum install mysql-community-server
+	service mysqld start 启动
+
+	grant 权限 on 数据库.数据表 to '用户' @ '主机名';
+
+	例：给 xiaogang 分配所有的权限
+
+	grant all on *.* to 'xiaogang'@'%';
+
+	这个时候 xiaogang 就拥有了 所有权限了
+	 show grants for current_user() ; 当前登录用户的权限
+
+	SHOW GLOBAL VARIABLES LIKE 'port' 查看mysql的端口号
+	mysql中的创建密码，password("123123") ，自带加密
+
+	mysql中的root用户权限消失，重命名var/lib/mysql  然后重启，重启生成目录，然后将原先的重要数据(ibdata1，和db相关)copy过去即可，再次重启service mysqld restart
+
+	问题：
+	今天开发中在Centos7中安装MySQL5.6版本后，在表中新建了一个weicheng的账户，并且设置了密码，但是在用weicheng账号登陆mysql发现，如果使用“mysql -uweicheng -p”登陆会报错，即使密码正确也不能登录，最后发现，直接用“mysql -uweicheng”不输入密码也可以登陆。
+	后来，查询了资料原因是:应为数据库里面有空用户,通过
+	select * from mysql.user where user='';
+	查询如果有，然后通过
+	use mysql;
+	delete from user where user = '';
+	删除了多余的空白账户， 然后，通过
+	flush privileges;
+	重载一次权限表,最后用
+	service mysqld restart
+	重启mysql服务，问题得到解决，至此mark一下！
+	Tip：
+	1、一定要记住重启mysql服务，否则不会生效，自己就是因为没有重启msyql导致一直得不到解决！
+	2、msyql的用户表在mysql数据库中的user表中，主要字段有host，user，password等，作为mysql用的管理的主要表。
+
+	MYSQL：使用\G参数改变输出结果集的显示方式
+
+469、	maven install  默认是将src/main/java 和 src/main/reources打包
+	勾选maven下载项的源码选项，点击class文件查看文件所在位置，添加相关的resource文件
+	jar包的引用，一般打成的格式是和meta-inf同级的目录是直接可以访问的
+
+470、	String.format("%s%s ", fieldName) 字符串的拼接问题，%s代表一个站位符
+
+471、	动态的数据元切换：
+	动态数据源的切换，即xml中配置的datasource，是一定要继承AbstractRoutingDataSource类的，再aop的标签类，根据方法动态放入配置的数据源
+	动态切换数据源和service的事务关系：
+	原因在于：出现多数据源动态切换失败的原因是因为在事务开启后，数据源就不能再进行随意切换了，也就是说，一个事务对应一个数据源。
+	<tx:annotation-driven transaction-manager="transactionManager" order="2"/>  
+	修改事务管理器的数据源为动态数据源，指定事务注解的排序为2，我们会指定切换数据源的注解为1，这样在事务之前切换数据源，否则在事务之后切换的的话，无效。
+	定义数据源的aop标签加载顺序是1，保证数据源在事务之前
+	@Aspect  
+	@Order(1)  
+
+
+	配置spring的事务模板的时候，transactionTemplate需要指数据库的事务管理器transactionManager
+	<bean id="netpayTransactionTemplate"
+		class="org.springframework.transaction.support.TransactionTemplate">
+		<property name="transactionManager">
+			<bean
+				class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+				<property name="dataSource" ref="dataSource" />
+			</bean>
+		</property>
+	</bean>
+
+	这样才能进行数据库事务的相关操作
+
+
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+ 	<tx:attributes>
+   	<tx:method name="add*" propagation="REQUIRED"/>
+  	</tx:attributes>
+ 	</tx:advice> 
+ 	<!-- 配置数据库注解aop -->
+ 	<bean id="dataSourceAspect" class="com.we.database.DataSourceAspect"/>
+	 
+	<aop:config>
+  	<aop:pointcut id="transactionPointcut" expression="execution(* com.wewe.licai.service..*Impl.*(..))"/>
+  	<aop:advisor pointcut-ref="transactionPointcut" advice-ref="transactionAdvice" order="2"/>
+ 
+  	<!--数据源选择切面,保证在事务开始之前执行-->
+  	<aop:advisor pointcut-ref="transactionPointcut" advice-ref="dataSourceAspect" order="1" />
+ 	</aop:config>
+	实现接口MethodBeforeAdvice该拦截器会在调用方法前执行
+
+        实现接口   AfterReturningAdvice该拦截器会在调用方法后执行
+
+        实现接口  MethodInterceptor该拦截器会在调用方法前后都执行，实现环绕结果。
+ 	数据源的切换，aop的代码实现，aop实现过程中可以根据方法名选择数据源，也可以自定义标签加载相应的数据源
+	<aop:advisor>  	配置的advice需要实现以上的相关接口
+	<aop:aspect>	使用标签指定相关的方法
+	都可以实现aop的配置
+
+472、	nginx和hosts文件的相关:
+	http://www.yu.com/xye-open/gateWay/systemGateWay.htm请求先经过本地的host文件解析到本地的请求，在经过nginx转发ip路径到相应的服务器，但是服务器的请求requesturl还是原地址www.yu.com的
+	
+	目前请求先进过host域名解析在经过ningx转发
+
+473、	and	(pc_code!='7007' OR pc_code IS NULL)    	null的直接就不在比较的范围内
+
+474、	web项目的工程名 properties中web projects setting中修改
+
+475、	普通类继承抽象类，必须实现父类的抽象方法，也可以重写父类的非抽象方法
+
+476、	AntPathMatcher路径的匹配工具类
+	class文件是编译出来的，代码问题失败也会编译进去
+
+477、	tomcat相关：
+
+
+	防止项目加载两次
+	<Host appBase="webroot" autoDeploy="true" name="localhost" unpackWARs="true">
+       
+       	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs" pattern="%h %l %u %t &quot;%r&quot; %s %b" prefix="localhost_access_log." suffix=".txt"/>
+
+478、	高并发相关：
+	soa的两次同时请求
+	在分布式的接口重试调用考虑接口的幂等性的问题：
+	1、缓存解决方案：非业务性
+		在要求幂等性协议的接口上，调用方传递一个全局唯一id，server方通过aop拦截参数id，数据缓存中查找，存在返回，不存在就进行业务的处理，处理成功，存入缓存，有失效时间
+	2、数据库解决方案：
+		业务性的去重，比如业务判断，建立联合唯一索引
+		数据库的乐观锁
+	
+    	<Context docBase="../webapps/XiaoyuerProject" path="/" reloadable="true" source="org.eclipse.jst.jee.server:XiaoyuerProject"/></Host>
+
+
+479、	git-zheng相关：
+	fluent-validator 是一款百度开源的简洁验证框架，了解一下可以了
+	Result result = FluentValidator.checkAll()
+		.on("go", new NotNullValidator("cjhanu"))
+		.on("go", new LengthValidator(3, 5, "changdu "))
+		.doValidate().result(toSimple());
+	使用的 toSimple方法是import static com.baidu.unbiz.fluentvalidator.ResultCollectors.toSimple 导入进来的
+
+	继承AbstractRoutingDataSource类，配合aop原理，切到使用自定义标签的方法上，拿出自定义数据源的标签中的数据源的值，放到相应的treadlocal中，每次执行sql都会选取对应的数据源执行操作，动态数据源切换
+
+	但是这个由于有多个数据源导致我们只能管理默认的数据源的事务！，涉及回滚的时候，尽量读从库，写主库，主备份到从
+	实现数据源的切换注意事务的问题，必须要指定事务管理器在aop标签之后
+
+
+	实现jsp等静态文件的项目共享，可以打成jar包依赖，然后在servlet初始化时解压jar到相应的目录即可：JarUtil.decompress(jarPath, resources);
+
+	ZhengAdminUtil implements InitializingBean, ServletContextAware  只要将类注入spring中，初始化的时候进行相关操作即可
+
+	和meta-inf同级的静态文件是可以直接访问的，类似于web-app文件下
+
+	serveletContext.getRealPath得到根路径，tomcat中比如是	c:\tomcat\webapp\test
+
+480、	eclipse中的bookmark功能 暂留可能会用
+
+
+481、	rocketmq：
+		1、下载源码后进入主目录，执行mvn -Dmaven.test.skip=true clean package install assembly:assembly   -p release-all  -U
+    		在target目录下拿到压缩包，使用相关的即可
+		2、Unrecognized VM option 'MaxMetaspaceSize=1024m' rocketmq4.2.0版本使用的是jdk1.8，需要统一版本
+
+		原理相关：
+		1.其中的nameserver相当于zookeeper，服务的发现，
+		2.nameserver和broker之间是，b发30s心跳发送和2min检测断开
+		3.客户端指定nameserver的地址，与其长连接，连接后定时查看topic路由信息，默认时间30s
+		4.broker的持久化，。采用的是ext4文件系统，同步刷盘：写入后告知生产者；异步：收到消息就告知生产者，再异步从内存写入到磁盘
+		6.消费者中同一个Group中的实例，在集群模式下，以均摊的方式消费；在广播模式下，每个实例都全部消费。
+		7.广播消费，一条消息被多多个同组中的consumer消费，
+		8.messagequeue是一个长度无限的数组，offset是下标
+		9.消费去重，保证幂等性，重复情况少，一般建议业务去重
+
+
+
+
+
+		
+		mq 的 .RemotingConnectException     需要设置producer.setVipChannelEnabled(false);  
+
+	监听者监听不到消息
+    	<Host appBase="webRoot" autoDeploy="true" name="localhost" unpackWARs="true">
+        	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs" pattern="%h %l %u %t &quot;%r&quot; %s %b" prefix="localhost_access_log." suffix=".txt"/>
+		<Context docBase="../webapps/xye-paycore-war" path="/xye-paycore" reloadable="true" source="org.eclipse.jst.jee.server:xye-paycore-war"/>
+	</Host>
+    	
+  	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+482、	装饰模式：
+	//装饰器模式的写法，必须将被装饰的对象初始化到装饰类中
+	HttpServletRequestWrapper的使用  
+	HttpServletRequestWrapper 是HttpServletRequest的装饰器。
+	一般在filter中装饰request对象，进入servlet中，相当于封装了相应的request
+
+483、	springbean中的三种初始化和销毁方法
+	1、使用@PostConstruct注解初始化，使用@PreDestroy注解销毁Bean
+	2、实现InitializingBean, DisposableBean这两个接口，并复写afterPropertiesSet()和destroy()方法
+	3、使用init-method和destroy-method配置方法，在xml中注入时补全
+
+484、	<context:annotation-config> 开启已在spring容器中注册过的bean（无论是通过xml的方式还是通过package sanning的方式）上面的注解。
+	<context:component-scan>除了具有<context:annotation-config>的功能之外，<context:component-scan>还可以在指定的package下扫描以及注册javabean ，这一个标签足够了，上面的不需要
+	<mvc:annotation-driven/> 是mvc 必须的标签
+
+
+485、	xstream:xml 和 java对象之间的转换工具类   
+	XStream
+	XStream.alias("INFO", InfoReq.class);	相当于将类路径的标签转换为自定义的标签，节点重命名
+
+	xstream.aliasField("author", Blog.class, "writer");     不使用别名，还是要使用具体的class
+
+	使用隐式集合:	xstream.addImplicitCollection(Person.class, "list");
+		<list><element><element /></list>   变为 <element><element />
+
+
+	XStream的优点很多，但是也有一些小bug，比如在定义别名中的下划线“_”转换为xml后会变成“__”这个符号。
+ 	IOUtils.copy(fis, toClient);可以直接实现文件从输入流到输出流的文件写入
+ 	try {
+            toClient = new BufferedOutputStream(response.getOutputStream());
+            fis = new BufferedInputStream(new FileInputStream(myfile));
+            IOUtils.copy(fis, toClient);  //通过ioutil 对接输入输出流，实现文件下载
+            toClient.flush();
+        } catch (Exception e) {
+            throw new RuntimeException("文件下载失败");
+        } finally {
+            //关闭流
+            IOUtils.closeQuietly(fis);
+            IOUtils.closeQuietly(toClient);
+        }
+	
+
+
+

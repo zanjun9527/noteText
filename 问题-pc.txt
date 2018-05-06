@@ -1,117 +1,33 @@
-1、#itemAddForm [name=desc]
-
-httpclient工具的使用
-
-redis缓存如何实现同步
-
-compareTo
-
-springboot的启动类@ComponentScan扫描范围
-
-mybatis查询获得map集合
-
-
-//创建代理类
-public class StandardInvocation implements InvocationHandler {
-
-    private Object obj;
-    
-    StandardInvocation(Object obj){
-        this.obj=obj;
-    }
-    
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("before method excute!");
-        Object result = method.invoke(obj, args);
-        System.out.println("after method excute!");
-        return result;
-    }
-
-}
-
-//测试动态代理
-    public static void main(String[] args) {
-        //创建一个被代理者
-        Cls c = new Cls();
-        //创建一个InvocationHandler，描述我们希望代理者执行哪些操作
-        InvocationHandler i = new StandardInvocation(c);
-        //通过刚才创建的InvocationHandler，创建真正的代理者。第一个参数是类加载器，第二个参数是这个代理者实现哪些接口
-        Itf pxy = (Itf) Proxy.newProxyInstance(Cls.class.getClassLoader(), new Class[] { Itf.class }, i);
-        pxy.printSth("Hi");
-    }
-
-
-分布式   和rpc框架
-
-sso和缓存和缓存同步的区别
-
-分页查询
-
-外网和内网使用
-
-zookeeper配置 以及集群  dubbo的
-
-处理数据库级别的并发问题
-
-分库分表的设计
-
-redis持久化的解决方案
-
-solradmin中的df查询
-
-nio 和io
-
-代理对象
-
-使用qq和微博账号登录
-
-tomcat实现热部署，在不关机的情况下部署工程
-
-
-
-spring的schema.xml文件
-
-
 320121197809151713 952789
 http://www.95598.cn/
 zanjun9527	z3-4
-vector数据类型
-枚举的使用
 
+httpclient工具的使用，使用qq和微博账号登录
 
-printstream 和 printwriter
+外网和内网使用
 
-字符流读取的长度问题 文本长度超过1024 的再次读取问题
+分库分表的设计
 
-bytearrayinputsteam 和bytearrayoutputstream（）写入到哪里去了
+solradmin中的df查询
 
-bytearrayinputsteam 和bytearrayoutputsteam
+jvm的性能优化
+  
 
-
-流输出到控制台  设计到转换流 io 	转换流的使用 硬盘中的都是字节
-
-byte码表对应
-
-getByte（）编码 默认编码是gbk
-
-多线程相关的知识
-
-war包读取vars下的属性文件
-
-context.start的服务提供
-
-dubbo的main启动中的class.wait作用
-
-内部类的直接传值使用
-
+maven的几个常用plugin	maven教程可以学习一下
+使用 mvn clean install -Dmaven.test.skip pom工程 ，
 maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 
-暂时先不dubbo的源码编译，先学习相关的使用，先引用dubbo的jar使用先，先看熟再搭
-目前看 path 环境变量应该是和cmd命令有关
+使用PowerDesigner 设计数据库相关，暂时也不需要
 
-maven的几个常用plugin
 
+
+主从数据库的读写分离
+
+数据库的并发配置
+
+copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建
+
+<<<<<<< HEAD
 使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
 
 tomcat的内存性能调优
@@ -141,3 +57,5 @@ DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlS
 
 
 rocketmq的生产者在控制台中找不到
+=======
+>>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
