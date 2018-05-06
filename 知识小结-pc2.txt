@@ -1,4 +1,4 @@
-起步dubbo
+﻿起步dubbo
 
 1、<dubbo:protocol name="dubbo" port="20880"/> 使用dubbo在某端口暴露服务
 
@@ -29,4 +29,170 @@ C:\Program Files\Java\jdk1.7.0_79\bin
 
 jdk版本之间更换后instal失败：
 Unsupported major.minor version 52.0（jdk8用的）  项目的库和java版本都要统一，最好使用一个版本的jdk，不要随意切换
+
+win7系统编辑的文本内容，默认需要gbk编码，才能避免乱码
+
+困扰好几天的dubbo的install问题，终于在StackOverflow 上找到了答案，<fork>false</fork> 很关键。很关键
+<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <fork>false</fork>
+                    <source>${java_source_version}</source>
+                    <target>${java_target_version}</target>
+                    <encoding>${file_encoding}</encoding>
+                </configuration>
+            </plugin>
+			
+
+	mkdir -p 递归创建目录
+	
+2、mq中的相关观念
+jms消息模型
+ 1、点对点模型，消息一次性消费
+ 
+ 2、发布者/订阅者模型
+	
+	
+
+数据库建表的经验：
+	1、统一把主键设置为bigint类型，int类型最大值才20亿左右
+	2、tinyint 默认4，smallint 默认6，mediumint 默认9，int 默认11，bigint 默认20。一般使用默认，varchar需要按需设置显示长度
+	3、整型数系统已经限制了取值范围，tinyint占1个字节、int占4个字节。
+		所以整型数后面的m不是表示的数据长度，而是表示数据在显示时显示的最小长度。
+		没有zerofill(长度不足就补零)，(m)就是无用的。
+		总结：int(11)，tinyint(1)，bigint(20)，后面的数字，不代表占用空间容量。
+			而代表最小显示位数。这个东西基本没有意义，除非你对字段指定zerofill。
+	4、	字符类型若为gbk，每个字符最多占2个字节
+		字符类型若为utf8，每个字符最多占3个字节
+
+
+
+	dubbo的子服务的划分：
+	1、a服务和b服务之间的库耦合，考虑以后的分库问题
+	2、服务子系统避免出现环状调用，依赖的关系链不要过长 a\b\c
+	3、尽量避免分布式事务
+	
+	dubbo接口的设计原则
+	1、接口的粒度大点，通常是包含完成业务作为一个接口，减少系统之间的交互，dubbo暂未提供分布式事务支持。
+	2、不建议使用过于抽象的通用接口，如map query（map），不便于后期的维护
+	3、接口都应定义版本号，为后续的不兼容升级提供可能（暂不理解）
+	4、必要的接口参数校验
+	5、provider上尽量多配置consumer端属性，优先server端，比如超时时间，重试次数，并发数量
+	
+	dubbo的启动检查：
+	1、<dubbo:consumer check="false">  关闭所有服务的启动时检查
+	2、<dubbo:register check="false">	关闭注册中心启动时检查
+	3、也可以单独关闭某个服务的检查
+	4、	dubbo.reference.check=false，强制改变所有reference的check值，就算配置中有声明，也会被覆盖。
+		dubbo.consumer.check=false，是设置check的缺省值，如果配置中有显式的声明，如：<dubbo:reference check="true"/>，不会受影响。
+		dubbo.registry.check=false，前面两个都是指订阅成功，但提供者列表是否为空是否报错，如果注册订阅失败时，也允许启动，需使用此选项，将在后台定时重试
+		
+	eclipse中也可以安装相应的反编译插件
+	dubbo的服务提供者有不同的调用策略，轮询等，类似nginx的负载均衡
+	性能调优：
+		1、linux用户线程数限制导致内存溢出
+		2、尽量不要使用root用户来部署应用程序，避免资源耗尽后无法登陆操作系统
+		3、普通用户的线程数限制值要看物理内存容量来配置
+		
+		
+	第一本笔记本的相关内容：
+		1、 request.getQueryString() 获取get请求，？后面的内容字符串
+		2、window.onload=function()
+		3、char长度固定，varchar长度可变
+		4、sql中的concat时字符串的拼接
+		5、<input type="button" value="" onclick="a()"/> 按钮点击js
+			<input type="submit" value="" />
+		6、父pom工程中一般定义jar的版本信息和maven插件的版本
+		如果dependencies里的dependency自己没有声明version元素，那么maven就
+		会倒dependencyManagement里面去找有没有对该artifactId和groupId进行过版本声明，如果有，就继承它，如果
+		没有就会报错，告诉你必须为dependency声明一个version
+		如果dependencies中的dependency声明了version，那么无论dependencyManagement中有无对该jar的version声明，都以dependency里的version为准。
+		//只是对版本进行管理，不会实际引入jar  
+		<dependencyManagement>  可以看到dependecies元素下的dependency里并没有声明版本，这是因为在manager中已经将版本管理起来了
+		
+		消费端，在dubbo配置reference时候，指定接口url="dubbo：//localhost：20818" 绕过zookeeper直连提供者（开发测试用）
+		只订阅：register="false"     只注册：subscribe="false"
+
+
+
+GRANT ALL PRIVILEGES ON *.* TO kaifa@"%" IDENTIFIED BY '123123'; 后面的数据库是要加密后存进mysql的
+
+跳过权限登录linux的mysql
+# mysqld_safe --user=mysql --skip-grant-tables --skip-networking &
+# mysql -u root mysql
+mysql> UPDATE user SET Password=PASSWORD('newpassword') where USER='root';
+mysql> FLUSH PRIVILEGES;
+mysql> quit
+
+
+
+消息队列：
+mq选型重点：存储 通讯
+	mq：消息中间件 异步通讯
+	rocketmq 分布式的消息队列
+三个点：生产者:
+		消费者： 
+		消息存储与转发  broker :
+		
+		分布式系统:
+			通讯协议: tcp/ip、http、
+			数据传输: 序列化，
+			分布式事务：
+		
+		2、通讯层的设计：rpc 自定义的协议请求头
+		3、存储层设计：数据文件+索引文件
+		刷盘方式  同步/异步刷盘
+		pagecache  内存页  通过异步线程回写磁盘		
+			三种发送消息的机制：1、同步发送 	返回消息发送成功
+								2、异步发送 	有消息丢失的可能		
+								3、oneway		kafak日志收集 肯定丢失
+		
+		broker设计，横向扩容两个，支持大数据量：
+			topic 主题
+			queue 队列
+			topic中存在多个消息队列，有下标
+
+生产者发送msg发送给namesrv（路由管理），namesrv通过broker存储转发消息到consumer集群，再消费给consumer	
+重复消费可以在消费端控制
+
+
+ln -s 源文件 目标文件。  linux中的软链接
+mkdir -p	参数P代表parents，表示递归创建目录。
+
+consumer需要配合listener订阅主题
+
+业界比较广泛的分布式事务处理是两阶段提交   jta  xa  
+网络传输问题  网络应答
+
+ajax表单提价除了基础的js，还要引入form.js
+$(...).ajaxsubmit() is not function，<script src="../jquery-easyui-1.3.1/jquery.form.js" type="text/javascript">
+   
+大事务=小事务+异步   可通过mq处理 
+
+幂等性 去重处理即可，一般建议业务去重
+
+mq的部署问题：
+	1、4.2.0需要jdk8，需要设置rocketmq_home 启动.cmd格式的就ok
+	2、项目中netty-tcnative jar找不到，需要将maven的中无关修饰去掉
+	3、启动broker   mqbroker -n localhost:9876 制定nameserver地址即可
+
+mq视频教程：
+	1、放弃zookeeper，使用namerserver实现服务发现和路由
+	2、pushconsumer是通过监听器获取消息，属于长连接
+	   pullconsumer是主动去获取信息，属于短连接
+	3、广播消费：发送给组中的每一个consumer，即发送给订阅topic中的组的每个消费者
+	   集群消费：订阅topic中的其中一个consumer组中的成员均分消息，自带多层次（组和组成员）负载均衡，一个topic/queue可以被多个组消费，组之间也是均分的，  
+	4、2m模式，其中一台宕机，消费可能延迟。起不来就消费补了上次的信息，重点不是双m获得同样的信息，是分配的，
+	   多m/s，异步复制 ，主从数据同步的方式：异步复制  m刷盘（未刷盘或尚未同步，m挂了，信息丢失），返回ack给客户端，同时异步复制到s上
+	   多m/s，同步双写，写完m，刷盘，同步s成功后返回ack，数据不丢失，性能低，安全高
+	5、默认一个topic下带4个队列，
+	每个broker\consumer与nameserver集群中的每个节点建立长连接，定期从nameserver取topic路由信息，并向broker建立长连接，发送心跳
+	6、默认的rocketmq的启动内存是4g，哈哈，在runserver和runbroker中修改参数，brokerid为0表示主节点
+	7、mq核心的存储概念
+		commitlog：消息体存放
+		consumequeue：记录消息的位置
+	8、输盘方式：同步异刷盘
+	
+	
 	

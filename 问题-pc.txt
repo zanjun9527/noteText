@@ -113,3 +113,31 @@ maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 maven的几个常用plugin
 
 使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
+
+tomcat的内存性能调优
+
+数据库建表的字段讲究  数据库中的索引类型
+
+netty的基本了解
+
+双master的消息写入策略，是分别写还是写入同样的
+
+部署项目到tomcat下，注意的问题是 要加入maven依赖，相关contextloader错误时
+
+
+
+//	 @RequestMapping(params="send")
+由某个路径引发的静态资源无法访问，坑
+
+DEBUG [http-bio-8080-exec-4] - DispatcherServlet with name 'SpringMVC' processing GET request for [/taocicheng/statics/images/1.jpg]
+DEBUG [http-bio-8080-exec-4] - Looking up handler method for path /statics/images/1.jpg
+DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
+DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
+DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
+DEBUG [http-bio-8080-exec-4] - Null ModelAndView returned to DispatcherServlet with name 'SpringMVC': assuming HandlerAdapter completed request handling
+DEBUG [http-bio-8080-exec-4] - Successfully completed request
+DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlSessionFactory'
+
+
+
+rocketmq的生产者在控制台中找不到

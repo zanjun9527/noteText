@@ -1,0 +1,14 @@
+psvm		快捷键main函数
+		右击generate自动生成getset方法
+
+maven    	help中调出货findaction 搜maven project
+		Ctrl+Alt+L 格式化代码
+		alt+enter 单项导入
+		在general中的auto import 设置自动导入的优化功能
+
+
+
+
+
+问题：
+ComponentScan 和dao的扫描问题
