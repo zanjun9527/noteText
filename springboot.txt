@@ -1,4 +1,4 @@
-springboot-52
+springboot-171 开始boot 的web开发
 
 
 1、springboot的中的配置文件：目前看 @Configuration 和 @bean是搭配使用的
@@ -22,3 +22,91 @@ springboot-52
 7、springboot中可以导入xml文件，也可以注入属性文件 @propertySource  但是还要配置个propertySourceplaceholder的bean
 
 8、ApplicationContextAware，使bean可以获得spring容器中的服务
+
+9、@conditional标签，根据特定的条件控制bean的创建
+
+10、springboot想要使用自己的前端控制器，可以自己定义，一般默认使用的即可
+    @Bean  
+    public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {  
+        ServletRegistrationBean reg = new ServletRegistrationBean(dispatcherServlet);  
+        reg.getUrlMappings().clear();  
+        reg.addUrlMappings("*.html");  
+        reg.addUrlMappings("*.do");  
+        return reg;  
+    }  
+
+11、@responsebody共jason和xml格式的返回，具体的需要在@requestmapping produces属性中指定 
+
+12、springboot中开启spring mvc的使用
+	1、继承webmvcconfigureradapter，重写相关的配置方法，
+	2、必须使用@enablewebmvc开启springmvc的支持，
+	3、添加拦截器 WebMvcConfigurationSupport或上面的webmvcconfigureradapter，重写addInterceptors方法添加自定义的拦截器
+	4、项目中需要很多地方使用仅页面转向功能，直接使用addviewcontrollers添加即可
+
+	
+
+13、	1.http://start.spring.io/  快速创建工程   官网的模板下载
+	2.自定义banner的地址：http://patorjk.com/software/taag
+	3.使用Spring Tools Suite，其中使用spring stater project创建工程boot工程
+	4.单纯的简历maven工程，添加boot的parent依赖，添加相关的简化配置
+
+14、	springboot启动类中的核心注解@springbootapplication,开启自动配置，是一个组合注解，boot会扫描该注解所在类的同级包和下级包下的bean，建议放在pom中的groupid+artifactid下的包下
+    	Application启动类放的位置不对，要将Application放在最外层，也就是要包含所有子包。
+
+ 	
+
+
+
+
+
+
+
+15、application.properties中的关键属性配置：
+	server.port=8080
+	server.contextPath=/haha
+
+16、虽然boot提倡零配置，但是某情况下需要使用到xml文件，@ImportResource({"classpath:spring-dubbo.xml"，"classpath:spring.xml"})
+
+17、	boot中也可以使用@configurationproperties，指定前缀prefix（必须指定到根节点,server.tomcat.uriEncoding,前节点实际是静态的内部类）和location（1.4版本后取消了，默认原始的applications），将属性文件和bean的属性关联起来，在将该对象注入容器使用即可，避免@value多次，但目前看不怎么实用
+
+18、	boot的多环境	application-dev.properties   在application.properties中指定spring.profile.active=dev具体的属性文件
+
+19、	@EnableAutoConfiguration  启动自动配置 在autoconfigure包下  原理就是 其中使用了多个类似@conditonal的注解，满足条件自动配置，可以自己建立自动配置实现的，	********暂不研究，后续有需要再看*******
+
+20、	实现mvc的相关配置,	WebMvcConfigurationSupport 与WebMvcConfigurerAdapter 都可以配置MVC,WebMvcConfigurationSupport 支持的自定义的配置更多更全，WebMvcConfigurerAdapter有的WebMvcConfigurationSupport 都有
+
+21、	属性文件中的属性在自动配置的包下是有规定的，以规范的前缀为约定
+
+22、	spring提供的事务机制提供了一个platformtransactionmanager，不同数据访问实现不同的接口即可
+	使用@EnableTransactionManagement开启@transactional注解标签，可以同时在类或者方法上实现，针对public方法开启
+	
+23、	springboot 注册 servlet、filter、listener
+	1、@configuration配合@bean标签，通过ServletRegistrationBean、 FilterRegistrationBean 和 ServletListenerRegistrationBean 获得控制。
+	2、在 SpringBootApplication 上使用@ServletComponentScan 注解后，Servlet、Filter、Listener 可以直接通过 @WebServlet(urlPatterns = "/test/*")、@WebFilter、@WebListener 注解自动注册,这些注解都是JDK的，无需其他代码。
+	
+
+	interceptor：实现WebMvcConfigurerAdapter，或者WebMvcConfigurationSupport可以注册interceptor，
+	静态资源映射：同上
+
+24、	mybais的配置还是建议使用代码配置，数据源 jndi和jdbc的配置可以参考小秘书的配置
+
+
+
+24、	@Component可配合CommandLineRunner使用，在程序启动后执行一些基础任务。程序初始化相关
+
+
+25、	springboot建议是用freemaker，jsp不推荐（页面可以编写java代码，前后端分离不推荐），不需要加载成class文件，技术更新
+
+
+26、	redis目前建议使用，bean启动的加载方式，不使用默认的配置方式
+	@ComponentScan 如果不设置basePackage的话 默认会扫描包的所有类
+
+27、	boot是可以整合swagger的，但是代码侵入，不建议
+
+28、	继承SpringBootServletInitializer，实现war包部署tomcat
+
+
+29、	@EnableScheduling开启boot的定时任务
+
+
+

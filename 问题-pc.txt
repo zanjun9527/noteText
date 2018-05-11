@@ -59,3 +59,15 @@ DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlS
 rocketmq的生产者在控制台中找不到
 =======
 >>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
+
+
+
+
+服务端的推送技术  	 websocket
+
+使用thymeleaf框架
+
+springboot中注册servlet，filter等
+
+
+springboot的动态数据源问题    目前看再与怎么讲两个datasource注入到容器中
