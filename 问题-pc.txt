@@ -71,3 +71,6 @@ springboot中注册servlet，filter等
 
 
 springboot的动态数据源问题    目前看再与怎么讲两个datasource注入到容器中
+
+
+JeeSite项目可以看看
