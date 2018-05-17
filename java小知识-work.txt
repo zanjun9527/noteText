@@ -2520,7 +2520,15 @@ public class InvocationHandlerTest implements InvocationHandler {
 	但是服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。;
 	但是也可以引用org.apache.catalina.filters.CorsFilter现成的jar，web.xml中做相关的配置即可，解决了上诉问题
 	
-	服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 。
+	服务器端 Access-Control-Allow-Credentials = true时，参数Access-Control-Allow-Origin 的值不能为 '*' 、
+
+
+
+	后端处理：一般是放在filter中处理的
+	    response.setHeader("Access-Control-Allow-Origin", "*");  
+            response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");  
+            response.setHeader("Access-Control-Max-Age", "3600");  
+            response.setHeader("Access-Control-Allow-Headers", "x-requested-with");  	
 
 
 
