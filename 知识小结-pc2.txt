@@ -178,9 +178,12 @@ mq的部署问题：
 	3、启动broker   mqbroker -n localhost:9876 制定nameserver地址即可
 
 mq视频教程：
+
+好的讲解博客  https://www.jianshu.com/p/453c6e7ff81c
+
 	1、放弃zookeeper，使用namerserver实现服务发现和路由
-	2、pushconsumer是通过监听器获取消息，属于长连接
-	   pullconsumer是主动去获取信息，属于短连接
+	2、pushconsumer是通过监听器获取消息，属于长连接，实时被动接受消息
+	   pullconsumer是主动去获取信息，属于短连接，主动拉取消息
 	3、广播消费：发送给组中的每一个consumer，即发送给订阅topic中的组的每个消费者
 	   集群消费：订阅topic中的其中一个consumer组中的成员均分消息，自带多层次（组和组成员）负载均衡，一个topic/queue可以被多个组消费，组之间也是均分的，  
 	4、2m模式，其中一台宕机，消费可能延迟。起不来就消费补了上次的信息，重点不是双m获得同样的信息，是分配的，
@@ -193,6 +196,43 @@ mq视频教程：
 		commitlog：消息体存放
 		consumequeue：记录消息的位置
 	8、输盘方式：同步异刷盘
+	9、rockeqmq的producer三种方式：
+		1、normalProducer
+		2、orderProducer 搭配consumer的实现order监听，一般一轮顺序消费指定一个队列，同一消息下的指定队列
+		3、transactionProducer（两阶段提交）
+			第一阶段：将消息传递给mq，但是消费端不可见，但是数据已经发送到broker
+			第二阶段是本地回调处理，成功返回commit_message，则再broker上对消费者可见，失败为rollback_message，消费端不可见
+			
+			producer端的关键配置： 	1、重试次数，生产端消息是不能少，
+									2、也可以设置消息的maxsize 
+									3、timeout
+	10、顺序消费：针对同一队列中的顺序
+		生产端是messagequeueselector，同时指定队列，消费端是注册监听，实现的接口是messagelilstenerorderly
+		 
+	注意思想，生产者的可靠性投递和消费者的幂等性去重
+	11、事务消息机制，生产者发送消息到broker，暂不可见，本地事务ok后发送ack到broker，消息对消费者可见。发送ack失败，broker也有定时的回调检查。*******之后研究分布式事务再仔细看*******
+	12、consumer		push模式建议单条消费    pull目前用的不多
+	13、消息重试机制：
+			生产者：消息重投重试，保证数据可靠
+			***自定义属性，msg.putUserProperty("a","1")单独设置属性，传递后面是map形式,msg.getUserProperty("a")***
 	
-	
-	
+			
+			消费者：消息异常处理，失败返回重试标记consumer_later，1s,5s,10s执行重试的策略
+					同一个组中两个consumer，其中一个终端，没有返回ack和status，则重试另一个consumer，msg.getconsumertimes，获取重试次数，也可以获取上次的originid（第一次是null）
+	14、*******消息幂等性处理*******：
+			去重原则：1、幂等性 2业务去重
+			去重策略：去重表机制（key去重，主键比如msgid），业务拼接去重策略（比如指纹码、唯一流水号等，联合索引）
+			高并发下去重：redis去重（key天然支持原子性且要求不可重复），但是由于不在一个事务内，所以需要适当的补偿策略
+							1、利用redis的事务、主键（我们必须把全量的操作数据，都存放到redis，然后定时和db同步）
+							2、利用redis和关系型数据库  一起做去重机制
+			不允许补偿（大额转账）
+			
+	15、消息模式：
+	创建consumer的时候，指定同一groupname，即在同一组中
+			集群模式：消息均摊，天然的负载均衡
+			广播模式：全接收
+			
+	16、消息过滤：暂时了解
+			1、简单是订阅使用tags过滤即可
+			2、在broker端的机器，开启mqfiltersrv，自定义filter的java文件实现msssagefilter,实现match方法，mixall.file2String(),subscribe(a，b，c)即可，filter不允许有中文
+			
