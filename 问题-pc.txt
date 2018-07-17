@@ -27,7 +27,6 @@ maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 
 copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建
 
-<<<<<<< HEAD
 使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
 
 tomcat的内存性能调优
@@ -57,8 +56,8 @@ DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlS
 
 
 rocketmq的生产者在控制台中找不到
-=======
->>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
+
+
 
 
 VisualSVN  搭建svn服务器

@@ -86,11 +86,7 @@ Sam_7_19_透彻理解HashMap底层设计精髓及手写分析
 小马哥_0827_深入浅出 Spring Boot 日志
 链接：http://pan.baidu.com/s/1miJZUsw 
 
- 
-
 密码：fo02
-
-
 ********************
 亲！您的购买的订单编号：65917553372151788
 
@@ -100,7 +96,6 @@ Sam_7_19_透彻理解HashMap底层设计精髓及手写分析
 ********************
 
 
-<<<<<<< HEAD
 http://www.ybjk.com/kms/     驾照考试
 
 
@@ -108,10 +103,7 @@ stackoverflow 	常用的技术问答网址
 
 vm12 5A02H-AU243-TZJ49-GTC7K-3C61N
 
-
-
 http://www.itsource.com.cn/   zanjun9527 3-4  
-=======
 http://www.ybjk.com/kms/     驾照考试
 
 http://gold.cnfol.com/jinshizhibo/20171214/25765304.shtml
@@ -148,14 +140,7 @@ https://gitee.com/gvp  码云最有价值的开源项目分享
 看准网  查看企业相关的评价
 
 JeeSite
-
-
 http://www.java1234.com/ 	java资源共享
->>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
-
 https://www.ckook.com/    	编程资源共享网
-
-
 http://www.smallseashell.com/   小贝壳模板共享
-
 https://github.com/liangjixunz/imgupload  liang github
