@@ -195,5 +195,139 @@ mq视频教程：
 		consumequeue：记录消息的位置
 	8、输盘方式：同步异刷盘
 	
+关于复杂对象的相等和排序问题
+	总结，自定义类要重写equals方法来进行等值比较，自定义类要重写compareTo方法来进行不同对象大小的比较，重写hashcode方法为了将数据存入HashSet/HashMap/Hashtable类时进行比较
+	以维护 hashCode 方法的常规协定，该协定声明相等对象必须具有相等的哈希码。如下：
+	(1)当obj1.equals(obj2)为true时，obj1.hashCode() == obj2.hashCode()必须为true 
+	(2)当obj1.hashCode() == obj2.hashCode()为false时，obj1.equals(obj2)必须为false
+	如果不重写equals，那么比较的将是对象的引用是否指向同一块内存地址，重写之后目的是为了比较两个对象的value值是否相等
+	hashcode是用于散列数据的快速存取，如利用HashSet/HashMap/Hashtable类来存储数据时，都是根据存储对象的hashcode值来进行判断是否相同的。
+	当原对象.equals（新对象）等于true时，两者的hashcode却是不一样的，由此将产生了理解的不一致，如在存储散列集合时（如Set类），将会存储了两个值一样的对象，
+	导致混淆，因此，就也需要重写hashcode()
+	即hashCode() 和equals()比较的是两个不同的内容
 	
+	总的来说，Java中的集合（Collection）有两类，一类是List，再有一类是Set。前者集合内的元素是有序的，元素可以重复；后者元素无序，但元素不可重复。那么这里就有一个比较严重的问题了：要想保证元素不重复，可两个元素是否重复应该依据什么来判断呢？
+	这就是 Object.equals方法了。但是，如果每增加一个元素就检查一次，那么当元素很多时，后添加到集合中的元素比较的次数就非常多了。
+	也就是说，如果集合中现在已经有1000个元素，那么第1001个元素加入集合时，它就要调用1000次equals方法。这显然会大大降低效率。
+	于是，Java采用了哈希表的原理。哈希算法也称为散列算法，是将数据依特定算法直接指定到一个地址上。
+	关于哈希算法，这里就不详细介绍。可以这样简单理解，hashCode方法实际上返回的就是对象存储位置的映像。
+	这样一来，当集合要添加新的元素时，先调用这个元素的hashCode方法，就能定位到它应该放置的存储位置。如果这个位置上没有元素，它就可以直接存储在这个位置上，不用再进行任何比较了；
+	如果这个位置上已经有元素了，就调用它的equals方法与新元素进行比较，相同的话就不存了，不相同就表示发生冲突了，散列表对于冲突有具体的解决办法，但最终还会将新元素保存在适当的位置。
+	这样一来，实际调用equals方法的次数就大大降低了，几乎只需要一两次。
+	
+	为什么必须要重写hashcode方法，其实简单的说就是为了保证同一个对象，保证在equals相同的情况下hashcode值必定相同，
+	如果重写了equals而未重写hashcode方法，可能就会出现两个没有关系的对象equals相同的（因为equal都是根据对象的特征进行重写的），但hashcode确实不相同的。
+	
+	HashMap对象的key、value值均可为null。
+    HahTable对象的key、value值均不可为null。
+	
+	
+	
+timestamp和datetime：
+只能表示从1970年到2038年的时间，而datetime不受此限制。
+结论：永远使用datetime来表示时间，决不使用timestamp，除非每次更新都要更新的时间，才考虑使用timestamp
+
+
+获取客户端的IP地址：
+	代理服务器在转发请求的HTTP头信息中，增加了X-FORWARDED-FOR信息。用以跟踪原有的客户端 IP地址和原来客户端请求的服务器地址。
+			String ip = request.getHeader("x-forwarded-for");
+			if (StringUtils.isEmpty(ip) || IP_UNKNOWN.equalsIgnoreCase(ip))
+			{
+				ip = request.getHeader("Proxy-Client-IP");
+			}
+			if (StringUtils.isEmpty(ip) || IP_UNKNOWN.equalsIgnoreCase(ip))
+			{
+				ip = request.getHeader("WL-Proxy-Client-IP");
+			}
+			if (StringUtils.isEmpty(ip) || IP_UNKNOWN.equalsIgnoreCase(ip))
+			{
+				ip = request.getRemoteAddr();
+			}
+			return ip;
+			
+指定参数加上系统的key生成md5码，用户两个系统之间的校验
+	
+SpringMVC BindingResult验证框架Validation，一个paramdmo后面更一个BindingResult。aop相关
+
+xml的解析文件，dom解析，也行吧
+String.equalsIgnoreCase() 字符串忽略大小写的比较
+
+BigDecimal.setScale()方法用于格式化小数点
+log.info("add Backlog -> employeeId={}, backlogHead={}, scheduledDate={}", new Object[]{a, b, c});
+
+
+Collections.sort 排序的使用    类的内部实现compare接口，或者外部使用比较器
+List<String> keys = new ArrayList<String>(payParams.keySet());
+Collections.sort(keys);//基本类型的直接排就行
+
+
+在Linux下查看所有java进程命令：ps -ef | grep java
+停止所有java进程命令：pkill - 9 java
+停止特定java进程命令：kill -9 java进程序号
+
+
+hashcode和equals方法的相关：
+	equals 方法  原本是 == 比较两个对象的地址是否相等(即，是否是同一个对象)
+	散列表，Java集合中本质是散列表的类，如HashMap，Hashtable，HashSet。
+	hashCode() 在散列表中才有用，在其它情况下没用。在散列表中hashCode() 的作用是获取对象的散列码，进而确定该对象在散列表中的位置。
+	由此可知，若两个元素相等，它们的散列码一定相等；但反过来确不一定。在散列表中，
+	1、如果两个对象相等，那么它们的hashCode()值一定要相同；
+	2、如果两个对象hashCode()相等，它们并不一定相等。
+
+	在散列表中，重写equals方法，一定要重写hashcode方法
+	hashmap的原理
+	//判断当前确定的索引位置是否存在相同hashcode和相同key的元素，如果存在相同的hashcode和相同的key的元素，那么新值覆盖原来的旧值，并返回旧值。  
+	//如果存在相同的hashcode，那么他们确定的索引位置就相同，这时判断他们的key是否相同，如果不相同，这时就是产生了hash冲突。  
+	//Hash冲突后，那么HashMap的单个bucket里存储的不是一个 Entry，而是一个 Entry 链。  
+	//系统只能必须按顺序遍历每个 Entry，直到找到想搜索的 Entry 为止——如果恰好要搜索的 Entry 位于该 Entry 链的最末端（该 Entry 是最早放入该 bucket 中），  
+	//那系统必须循环到最后才能找到该元素。
+
+	总结就是更具key的hash值确定tables中的存储位置，一般是单槽存放entry，hash冲突时，就是一个entry链，key相同覆盖，不同链表。取的时候遍历获取
+	hashset中的必须满足hashcode和equals方法一样，才算重复
+	hashmap的底层结构:Entry数组 + 链表
+	
+mysql:统计查询出现次数大于2的记录
+	查询某字段大于2的记录统计
+	   SELECT COUNT(ue.User_Id) AS 抬头数量 ,ue.user_id,ub.user_name AS 实名 
+		FROM user_enter_vali_log ue ,user_base_info ub  
+		WHERE ue.Delete_Mark = 0
+		AND ue.User_Id = ub.id
+		AND ub.Individual_Type='2'
+		GROUP BY ue.User_Id HAVING COUNT(ue.User_Id)>1
+	
+	外部键约束，再删除外键相关记录时，主表如果有相关的引用，是会报错，即操作的数据，如果作为外键被其他表引用，是可能错误的。一般不用，烦不烦，约束来约束去的
+	
+	InstantiationException，实例化异常，缺少无参构造，
+	一般场景newInstance()方法创建某个类的实例，而该类是一个抽象类或接口时，抛出该异常，或者在orm框架中实现对象的映射，缺少无参构造也会异常
+
+	因为iBATIS在对象建立中，会使用不带参数的构造函数来建立对象，
+	在Hibernate中就有明确的要求：每一个持久化类都必须带一个不带参数的构造方法
+	
+	查询自增的返回SELECT table_name,AUTO_INCREMENT FROM information_schema.tables WHERE table_schema="db_xiaoyuer"  
+	
+	重要提示信息// TODO info 标注起来,也算小技巧吧
+	EXPLAIN sql
+	D:\alibaba-rocketmq-3.2.6\alibaba-rocketmq\bin\mqbroker.exe -n 192.168.6.222:9876  直接编程bat的文件内容
+	
+	String getServerName()：获取服务器名，localhost；
+	String getServerPort()：获取服务器端口号，8080；
+	String getContextPath()：获取项目名，/Example；
+	String getServletPath()：获取Servlet路径，/AServlet；
+	String getQueryString()：获取参数部分，即问号后面的部分：username=zhangsan
+	String getRequestURI()：获取请求URI，等于项目名+Servlet路径：/Example/AServlet
+	String getRequestURL()：获取请求URL，等于不包含参数的整个请求路径：http://localhost:8080/Example/AServlet 。
+	
+	springboot会自动加载启动类所在包,及其同级包及其子包下的所有组件。
+	
+	tomcat 和nginx的ssl相同吗，不一样，nginx使用的是，wohaha.crt，nihaha.key;使用openssl创建吧应该，
+	tomcat中的使用jdk自带的keystool工具生成
+	
+	在filter中，response.getWriter().print()后,chain.do()到controller后，继续，
+	也可以继续response.getWriter().print()，但是不能通过view层直接返回字符串信息
+	
+	关键点就是用jar包起就可以实现优雅停机，前提是不用内嵌tomcat起
+	kill -9 就是直接终止
+	kill pid就是优雅停机
+	
+	cherry pick 的挑选分支commit，需要同源挑选，不然会出现冲突
 	

@@ -49,6 +49,7 @@ springboot-171 开始boot 的web开发
 	2.自定义banner的地址：http://patorjk.com/software/taag
 	3.使用Spring Tools Suite，其中使用spring stater project创建工程boot工程
 	4.单纯的简历maven工程，添加boot的parent依赖，添加相关的简化配置
+	5.使用idea创建boot工程
 
 14、	springboot启动类中的核心注解@springbootapplication,开启自动配置，是一个组合注解，boot会扫描该注解所在类的同级包和下级包下的bean，建议放在pom中的groupid+artifactid下的包下
     	Application启动类放的位置不对，要将Application放在最外层，也就是要包含所有子包。
@@ -103,8 +104,16 @@ springboot-171 开始boot 的web开发
 
 27、	boot是可以整合swagger的，但是代码侵入，不建议
 
-28、	继承SpringBootServletInitializer，实现war包部署tomcat
+28、	类继承SpringBootServletInitializer，实现war包部署tomcat
 
+	public class ServletInitializer extends SpringBootServletInitializer {
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(XyeManagerApplication.class);
+	}
+
+	}
 
 29、	@EnableScheduling开启boot的定时任务
 
@@ -128,3 +137,36 @@ springboot-171 开始boot 的web开发
 	这就完成了SpringBoot的HTTPS协议配置，重新启
 
 
+----------springboot实战----------
+
+设计特点
+	1、自动配置
+	2、起步依赖，比如只需要引入如web的一个依赖即可，直接关联相互兼容的版本jar，方便，一般只需要指定顶级的parent版本，其他的不care，
+		起步依赖具有传递依赖的特性，无需指定版本，boot已经进行了相关的优化
+
+
+社区版idea安装spring assistant，才能创建boot项目
+
+
+@SpringBootApplication开启了组建扫描和自动配置，是一个组合注解包括下面的信息
+
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
+
+
+boot推荐基于java配置优于xml
+
+maven总是会用最近的依赖，也就是谁，你在项目中的构建说明文件增加该依赖，会覆盖传递依赖引入另一个依赖，比如引入了两个不同版本的jar，优先近的依赖
+ springboot中的logback日志需要默认文件的名称是logback.xml
+记载的优先顺序是logback.xml--->properties--->logback-spring.xml，一般用后者，不行用前者，区别在于是否使用属性值
+
+
+使用Thymeleaf实现mvc，遵循默认的原则
+Thymeleaf
+根据默认原则，静态资源应放置在src/main/resources/static下
+根据默认原则，页面应放置在src/main/resources/templates下
+
+
+
+boot默认是不推荐jsp的，集成jsp需要引入相关的maven依赖，需要创建webapp的文件夹，打成war后在外置的tomcat容器运行
