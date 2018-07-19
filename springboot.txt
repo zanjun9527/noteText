@@ -1,4 +1,4 @@
-springboot-52
+springboot-171 开始boot 的web开发
 
 
 1、springboot的中的配置文件：目前看 @Configuration 和 @bean是搭配使用的
@@ -23,9 +23,9 @@ springboot-52
 
 8、ApplicationContextAware，使bean可以获得spring容器中的服务
 
-9、boot创建jsp文件的时候把后缀加上
+	boot创建jsp文件的时候把后缀加上
 
-10、boot中使用jsp
+	boot中使用jsp
 	1、启动类继承SpringBootServletInitializer
 	2、相关的maven依赖，关键<artifactId>tomcat-embed-jasper</artifactId><scope>provided</scope>，使用外部的tomcat实现
 		<artifactId>spring-boot-starter-tomcat</artifactId> <scope>provided</scope>
@@ -39,3 +39,145 @@ springboot-52
 	System.out.println(String.format("我的名字叫%s", "小明")); // 打印:我的名字叫小明  
 	
 	可以自动一xml文件的模板
+
+9、@conditional标签，根据特定的条件控制bean的创建
+
+10、springboot想要使用自己的前端控制器，可以自己定义，一般默认使用的即可
+    @Bean  
+    public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {  
+        ServletRegistrationBean reg = new ServletRegistrationBean(dispatcherServlet);  
+        reg.getUrlMappings().clear();  
+        reg.addUrlMappings("*.html");  
+        reg.addUrlMappings("*.do");  
+        return reg;  
+    }  
+
+11、@responsebody共jason和xml格式的返回，具体的需要在@requestmapping produces属性中指定 
+
+12、springboot中开启spring mvc的使用
+	1、继承webmvcconfigureradapter，重写相关的配置方法，
+	2、必须使用@enablewebmvc开启springmvc的支持，
+	3、添加拦截器 WebMvcConfigurationSupport或上面的webmvcconfigureradapter，重写addInterceptors方法添加自定义的拦截器
+	4、项目中需要很多地方使用仅页面转向功能，直接使用addviewcontrollers添加即可
+
+	
+
+13、	1.http://start.spring.io/  快速创建工程   官网的模板下载
+	2.自定义banner的地址：http://patorjk.com/software/taag
+	3.使用Spring Tools Suite，其中使用spring stater project创建工程boot工程
+	4.单纯的简历maven工程，添加boot的parent依赖，添加相关的简化配置
+	5.使用idea创建boot工程
+
+14、	springboot启动类中的核心注解@springbootapplication,开启自动配置，是一个组合注解，boot会扫描该注解所在类的同级包和下级包下的bean，建议放在pom中的groupid+artifactid下的包下
+    	Application启动类放的位置不对，要将Application放在最外层，也就是要包含所有子包。
+
+
+15、application.properties中的关键属性配置：
+	server.port=8080
+	server.contextPath=/haha
+
+16、虽然boot提倡零配置，但是某情况下需要使用到xml文件，@ImportResource({"classpath:spring-dubbo.xml"，"classpath:spring.xml"})
+
+17、	boot中也可以使用@configurationproperties，指定前缀prefix（必须指定到根节点,server.tomcat.uriEncoding,前节点实际是静态的内部类）和location（1.4版本后取消了，默认原始的applications），将属性文件和bean的属性关联起来，在将该对象注入容器使用即可，避免@value多次，但目前看不怎么实用
+
+18、	boot的多环境	application-dev.properties   在application.properties中指定spring.profile.active=dev具体的属性文件
+
+19、	@EnableAutoConfiguration  启动自动配置 在autoconfigure包下  原理就是 其中使用了多个类似@conditonal的注解，满足条件自动配置，可以自己建立自动配置实现的，	********暂不研究，后续有需要再看*******
+
+20、	实现mvc的相关配置,	WebMvcConfigurationSupport 与WebMvcConfigurerAdapter 都可以配置MVC,WebMvcConfigurationSupport 支持的自定义的配置更多更全，WebMvcConfigurerAdapter有的WebMvcConfigurationSupport 都有
+
+21、	属性文件中的属性在自动配置的包下是有规定的，以规范的前缀为约定
+
+22、	spring提供的事务机制提供了一个platformtransactionmanager，不同数据访问实现不同的接口即可
+	使用@EnableTransactionManagement开启@transactional注解标签，可以同时在类或者方法上实现，针对public方法开启
+	
+23、	springboot 注册 servlet、filter、listener
+	1、@configuration配合@bean标签，通过ServletRegistrationBean、 FilterRegistrationBean 和 ServletListenerRegistrationBean 获得控制。
+	2、在 SpringBootApplication 上使用@ServletComponentScan 注解后，Servlet、Filter、Listener 可以直接通过 @WebServlet(urlPatterns = "/test/*")、@WebFilter、@WebListener 注解自动注册,这些注解都是JDK的，无需其他代码。
+	
+
+	interceptor：实现WebMvcConfigurerAdapter，或者WebMvcConfigurationSupport可以注册interceptor，
+	静态资源映射：同上
+
+24、	mybais的配置还是建议使用代码配置，数据源 jndi和jdbc的配置可以参考小秘书的配置
+
+
+
+24、	@Component可配合CommandLineRunner使用，在程序启动后执行一些基础任务。程序初始化相关
+
+
+25、	springboot建议是用freemaker，jsp不推荐（页面可以编写java代码，前后端分离不推荐），不需要加载成class文件，技术更新
+
+
+26、	redis目前建议使用，bean启动的加载方式，不使用默认的配置方式
+	@ComponentScan 如果不设置basePackage的话 默认会扫描包的所有类
+
+27、	boot是可以整合swagger的，但是代码侵入，不建议
+
+28、	类继承SpringBootServletInitializer，实现war包部署tomcat
+
+	public class ServletInitializer extends SpringBootServletInitializer {
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(XyeManagerApplication.class);
+	}
+
+	}
+
+29、	@EnableScheduling开启boot的定时任务
+
+
+30、	使用junit测试文件类
+	@RunWith(SpringJUnit4ClassRunner.class)
+	@SpringApplicationConfiguration(classes = SpringBootSampleApplication.class)
+	@WebAppConfiguration
+
+31、	使用https配置
+	1、需要一个证书，可以自己生成或者购买。下面是我们通过keytool自己生成。 生成一个PKCS12格式的叫做keystore.p12的证书
+	生成命令： keytool -genkey -alias tomcat -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
+
+	2、在application.properties中配置HTTPS
+
+	server.port:8443
+	server.ssl.key-store: classpath:keystore.p12
+	server.ssl.key-store-password: aqjcpt
+	server.ssl.keyStoreType: PKCS12
+	server.ssl.keyAlias: tomcat
+	这就完成了SpringBoot的HTTPS协议配置，重新启
+
+
+----------springboot实战----------
+
+设计特点
+	1、自动配置
+	2、起步依赖，比如只需要引入如web的一个依赖即可，直接关联相互兼容的版本jar，方便，一般只需要指定顶级的parent版本，其他的不care，
+		起步依赖具有传递依赖的特性，无需指定版本，boot已经进行了相关的优化
+
+
+社区版idea安装spring assistant，才能创建boot项目
+
+
+@SpringBootApplication开启了组建扫描和自动配置，是一个组合注解包括下面的信息
+
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
+
+
+boot推荐基于java配置优于xml
+
+maven总是会用最近的依赖，也就是谁，你在项目中的构建说明文件增加该依赖，会覆盖传递依赖引入另一个依赖，比如引入了两个不同版本的jar，优先近的依赖
+ springboot中的logback日志需要默认文件的名称是logback.xml
+记载的优先顺序是logback.xml--->properties--->logback-spring.xml，一般用后者，不行用前者，区别在于是否使用属性值
+
+
+使用Thymeleaf实现mvc，遵循默认的原则
+Thymeleaf
+根据默认原则，静态资源应放置在src/main/resources/static下
+根据默认原则，页面应放置在src/main/resources/templates下
+
+
+
+boot默认是不推荐jsp的，集成jsp需要引入相关的maven依赖，需要创建webapp的文件夹，打成war后在外置的tomcat容器运行
+>>>>>>> .theirs

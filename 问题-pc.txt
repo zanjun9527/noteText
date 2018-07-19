@@ -27,7 +27,6 @@ maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 
 copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建
 
-<<<<<<< HEAD
 使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
 
 tomcat的内存性能调优
@@ -57,14 +56,30 @@ DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlS
 
 
 rocketmq的生产者在控制台中找不到
-=======
->>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
 
 idea多个模块之间的问题，多个项目
-
 
 
 synchronized和lock的区别
 
 多线程的对象的公用和私有
 set 中的hash冲突
+
+
+VisualSVN  搭建svn服务器
+
+服务端的推送技术  	 websocket
+
+使用thymeleaf框架
+
+springboot中注册servlet，filter等
+
+
+springboot的动态数据源问题    目前看再与怎么讲两个datasource注入到容器中
+
+
+JeeSite项目可以看看
+
+idea 中的show dependency 问题看看呢
+
+URLEncoder.encode(str, "UTF-8");  转码的暂时不看

@@ -96,3 +96,10 @@ Eclipse和Intellij IDEA中常用快捷键差异总结。
 3、找到相应的maven的插件，自动生
 4、或者自己添加run的maven命令执行
 
+问题：
+ComponentScan 和dao的扫描问题
+
+在general中取消参数的提示提示显示，包括方法和参数的提示
+
+alt+enter 单独导入和抛出异常  或者       光标移到该代码行，或者选中该行代码，Ctrl+Alt+T
+

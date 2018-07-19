@@ -8,99 +8,6 @@ http://search.maven.org
 
 
 
-这是我们免费的直播课程 
-https://ke.qq.com/course/185189?_bid=167&_wv=3&from=iosapp 
-
-James_0808_源码学以致用之手写MyBatis
-链接：http://pan.baidu.com/s/1i4BHgGX 
-
- 
-
- 密码：vaoq
-
-sam_8_04_深入理解运用你心中的Aop反编译思想
-链接：http://pan.baidu.com/s/1eR4v3mq 
-
- 
-
- 密码：6628
-
-James_0803_Mysql索引底层数据结构剖析
-链接：http://pan.baidu.com/s/1eSiWULs 
-
- 
-
- 密码：d2cg
-
-老司机必备技能之NIO通信架构原理详解
-链接：http://pan.baidu.com/s/1min440S 
-
- 
-
- 密码：fceq
-
-系统设计方法论初探之如何设计一个监控系统
-链接：http://pan.baidu.com/s/1o80XsiY 
-
- 
-
- 密码：irm6
-
-分布式锁的前世今生
-链接：http://pan.baidu.com/s/1miuVEKo 
-
- 
-
- 密码：4p1c
-
-
-James_0727_深入浅出Java虚拟机
-链接：http://pan.baidu.com/s/1hsOkcmg 
-
- 
-
- 密码：r5b5
-
-James_07_20_如何临摹源码之手写MyBatis
-链接：http://pan.baidu.com/s/1b5jojc 
-
- 
-
- 密码：o6cc
-
-Sam_7_19_透彻理解HashMap底层设计精髓及手写分析
-链接：http://pan.baidu.com/s/1gfj9SuJ 
-
- 
-
- 密码：8p9l
-
- JavaVIP 分布式开班 第一节课
-链接：http://pan.baidu.com/s/1eSmtNP4 
-
- 
-
- 
-   密码：o6ag
-
-小马哥_0827_深入浅出 Spring Boot 日志
-链接：http://pan.baidu.com/s/1miJZUsw 
-
- 
-
-密码：fo02
-
-
-********************
-亲！您的购买的订单编号：65917553372151788
-
-赠送的资料：
-链接：https://pan.baidu.com/s/1boNYZGb 密码: qy7d
-感谢您的惠顾，欢迎下次光临！
-********************
-
-
-<<<<<<< HEAD
 http://www.ybjk.com/kms/     驾照考试
 
 
@@ -108,14 +15,10 @@ stackoverflow 	常用的技术问答网址
 
 vm12 5A02H-AU243-TZJ49-GTC7K-3C61N
 
-
-
 http://www.itsource.com.cn/   zanjun9527 3-4  
-=======
 http://www.ybjk.com/kms/     驾照考试
 
 http://gold.cnfol.com/jinshizhibo/20171214/25765304.shtml
-
 
 
 《2017阿里技术年度精选集上》下载链接：
@@ -125,34 +28,24 @@ http://techforum-img.cn-hangzhou.oss-pub.aliyun-inc.com/2017alitech_01.pdf
 《2017阿里技术年度精选集下》下载链接：
 http://techforum-img.cn-hangzhou.oss-pub.aliyun-inc.com/2017alitech_02.pdf 
 
-
-温馨提醒：
-
-1、本书支持目录跳转。上册内容为架构、数据库、中间件、运维、开源、技术人生等；下册内容为算法、机器学习、大数据等。
-
-2、每册各有300多页，约20M，需要一定下载时间，请耐心等待哦。
-
-3、流量不足的童鞋，建议将地址复制到PC端浏览器后打开下载。
-
-
 慕课网
-
-企查查			http://www.qichacha.com/
-专注java和安卓分享	http://www.importnew.com/
+企查查
+中国工程信息网  建筑相关的信息
+看准网  查看企业相关的评价			http://www.qichacha.com/
+专注java和安卓分享			http://www.importnew.com/
 
 
 https://gitee.com/gvp  码云最有价值的开源项目分享
 
-
-中国工程信息网  建筑相关的信息
-看准网  查看企业相关的评价
-
 JeeSite
 
-
 http://www.java1234.com/ java资源共享
->>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
-
 
 
 链接: https://pan.baidu.com/s/1qZIvIgs 密码: s4aa   bat面试资料
+
+http://www.java1234.com/ 	java资源共享
+https://www.ckook.com/    	编程资源共享网
+http://www.smallseashell.com/   小贝壳模板共享
+https://github.com/liangjixunz/imgupload  liang github
+>>>>>>> 709957080f5d045dba046b580f9a1ad79113c7cb
