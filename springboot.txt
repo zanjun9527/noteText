@@ -22,3 +22,20 @@ springboot-52
 7、springboot中可以导入xml文件，也可以注入属性文件 @propertySource  但是还要配置个propertySourceplaceholder的bean
 
 8、ApplicationContextAware，使bean可以获得spring容器中的服务
+
+9、boot创建jsp文件的时候把后缀加上
+
+10、boot中使用jsp
+	1、启动类继承SpringBootServletInitializer
+	2、相关的maven依赖，关键<artifactId>tomcat-embed-jasper</artifactId><scope>provided</scope>，使用外部的tomcat实现
+		<artifactId>spring-boot-starter-tomcat</artifactId> <scope>provided</scope>
+	3、需要新建webapp文件夹，然后再添加web-inf/jsp文件夹，打war，部署tomcat访问
+	
+	
+	jsp不能用Application.java的main方法启动，只能用Tomcat启动，并且要打war包，所以修改打包方式为war：<packaging>war</packaging>
+	在src/main/下创建webapp文件夹，在webapp文件夹下创建WEB-INF文件夹，如图：
+	
+	日志中可以使用的字符串的拼接方法
+	System.out.println(String.format("我的名字叫%s", "小明")); // 打印:我的名字叫小明  
+	
+	可以自动一xml文件的模板

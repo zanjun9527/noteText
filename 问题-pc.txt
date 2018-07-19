@@ -59,3 +59,12 @@ DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlS
 rocketmq的生产者在控制台中找不到
 =======
 >>>>>>> bbc462e48e2b1a25661451cf1b021d42fbd3841c
+
+idea多个模块之间的问题，多个项目
+
+
+
+synchronized和lock的区别
+
+多线程的对象的公用和私有
+set 中的hash冲突

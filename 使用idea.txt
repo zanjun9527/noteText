@@ -7,8 +7,92 @@ maven    	help中调出货findaction 搜maven project
 		在general中的auto import 设置自动导入的优化功能
 
 
-
-
-
 问题：
 ComponentScan 和dao的扫描问题
+
+
+调节默认的提示快捷键：alt+/->keymap->code->completion-basic
+忽略大小写：editor-general-code completion-case sensitive completion
+
+使用eclipse模式   使用ctrl+alt+shift+j  缩写提示 设置完背景色也差不多
+
+项目移到同一个文件下，然后打开添加pom文件
+将project当作workspace使用
+
+选中右击generate方法  getset方法
+java 创建需要标记未sourceroot后才能创建package
+alt+enter 多方案导包
+
+
+Eclipse和Intellij IDEA中常用快捷键差异总结。
+
+1. main函数
+  Eclipse:  输入main再按快捷键Alt + /
+ Idea: 输入psvm，（是public static void main() 首字母）
+
+
+2.For循环
+  Eclipse:  输入for, 再按快捷键Alt + /
+ Idea: 输入fori, 出现提示。
+
+3. 输出语句System.out.println().
+    Eclipse:   输入sysout, 再按快捷键Alt + /
+    Idea： 输入sout，出现提示
+
+4. try/catch语块
+    Eclipse: 输入try,再按快捷键Alt + /
+    Idea:  选择代码块，按快捷键Ctrl+Alt+T (默认，可修改) 注1.
+
+注1： 修改快捷键是在设置里的Keymap,如下图是显示代码块的快捷键(Surround With...)
+
+破解版：
+1、下载专业版
+2、下载破解包		http://idea.lanyus.com/
+3、改bin下的两个文件vmoption文件，增加破解包，-javaagent:D:\IDEA\bin\JetbrainsCrack-2.6.2.jar
+4、重启导入
+		ThisCrackLicenseId-{    
+		"licenseId":"ThisCrackLicenseId",    
+		"licenseeName":"idea",    
+		"assigneeName":"",    
+		"assigneeEmail":"idea@163.com",    
+		"licenseRestriction":"For This Crack, Only Test! Please support genuine!!!",    
+		"checkConcurrentUse":false,    
+		"products":[    
+		{"code":"II","paidUpTo":"2099-12-31"},    
+		{"code":"DM","paidUpTo":"2099-12-31"},    
+		{"code":"AC","paidUpTo":"2099-12-31"},    
+		{"code":"RS0","paidUpTo":"2099-12-31"},    
+		{"code":"WS","paidUpTo":"2099-12-31"},    
+		{"code":"DPN","paidUpTo":"2099-12-31"},    
+		{"code":"RC","paidUpTo":"2099-12-31"},    
+		{"code":"PS","paidUpTo":"2099-12-31"},    
+		{"code":"DC","paidUpTo":"2099-12-31"},    
+		{"code":"RM","paidUpTo":"2099-12-31"},    
+		{"code":"CL","paidUpTo":"2099-12-31"},    
+		{"code":"PC","paidUpTo":"2099-12-31"}    
+		],    
+		"hash":"2911276/0",    
+		"gracePeriodDays":7,    
+		"autoProlongated":false}
+		配置即可   
+
+继承mybatis自动生成插件：
+1、
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.3.7</version>
+                <configuration>
+                    <verbose>true</verbose>
+                    <overwrite>true</overwrite>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+2、resources下添加config.xml
+3、找到相应的maven的插件，自动生
+4、或者自己添加run的maven命令执行
+

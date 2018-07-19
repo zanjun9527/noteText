@@ -1,0 +1,158 @@
+1、static静态变量为共有的，可悲其他修改，存在方法区
+2、默认的无参构造，会将所有的实例域设为默认值，如果定义了指定的构造函数，那么无参构造就没了
+3、定义类就是在定义类中的成员，，包括成员变量（属性）和成员函数（行为）
+	成员变量属于类，在堆中
+	局部变量属于方法，在栈中
+	new 一个对象的过程：
+		Java中所有对象的存储空间都是在堆中分配的，但是这个对象的引用却是在堆栈中分配,也就是说在建立一个对象时从两个地方都分配内存，
+		在堆中分配的内存实际建立这个对象，而在栈中分配的内存只是一个指向这个堆对象的指针(引用变量)而已。 
+		在堆中分配的内存，由Java虚拟机的自动垃圾回收器来管理。 
+		
+4、在类的继承链中，向下强转，向上兼容
+5、抽象类不能实例化，只能引用一个非抽子类
+6、main函数是静态的，只能调用静态方法，只能new对象调用非静态方法
+7、静态代码块，用于类进行初始化，只执行一次
+8、内部类的两种创建方式：
+	1、outer.inner p=new outer().new inner（）；
+	2、outer.inner p=new outer.inner();    //静态内部类
+	3、Outter outter = new Outter();
+       Outter.Inner inner = outter.new Inner();  //必须通过Outter对象来创建
+	   
+	   详见https://www.cnblogs.com/latter/p/5665015.html
+	4、局部内部类访问局部变量注意事项：
+		局部内部类访问局部变量必须用final修饰，因为局部变量是栈中随方法的，调用玩就消失，而堆中难过的不会立刻消失
+
+9、关于，创建对象的堆，栈和常量池
+	String str = "abc"创建对象的过程
+		1 首先在常量池中查找是否存在内容为"abc"字符串对象
+		2 如果不存在则在常量池中创建"abc"，并让str引用该对象
+		3 如果存在则直接让str引用该对象
+		
+	String str = new String("abc")创建实例的过程
+		1 首先在堆中（不是常量池）创建一个指定的对象"abc"，并让str引用指向该对象
+		2 在字符串常量池中查看，是否存在内容为"abc"字符串对象
+		3 若存在，则将new出来的字符串对象与字符串常量池中的对象联系起来
+		4 若不存在，则在字符串常量池中创建一个内容为"abc"的字符串对象，并将堆中的对象与之联系起来
+		
+		String str1 = "abc"; String str2 = "ab" + "c"; str1==str2是ture
+		String str1 = "abc"; String str2 = "ab"; String str3 = str2 + "c"; str1==str3是false
+		
+		小结：字符串若变量相加，是先开空间，再拼接；若常量相加，是先加，然后再常量池中找，存在返回，不存在创建
+		
+10、jvm启动包括主线程main 和 gc线程等
+	线程相关其他笔记已经整理，跳过
+	synchronized和lock的区别，另行整理
+	新建-就绪-运行-结束，运行中有sleep等阻塞和同步阻塞，run结束或者中断
+	线程的三种启动方法，推荐使用线程池。
+	两种匿名内部类创建方式：
+	  new Thread() {
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("aaaaaaaaa");
+                }
+            }
+        }.start();//开启线程
+
+        new Thread(new Runnable() {
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("bbbbbbbbb");
+                }
+            }
+        }).start();//开启线程
+
+11、数组和集合，长度和元素类型，集合只能是引用类型
+
+	Collection下有List（ArrayList，LinkedList，Vector）和Set（HashSet，TreeSet）
+
+	------------| Collection 单例集合的根接口
+	----------------| List  如果是实现了List接口的集合类，具备的特点： 有序，可重复。 
+	-------------------| ArrayList  ArrayList 底层是维护了一个Object数组实现的。 特点： 查询速度快，增删慢。
+	-------------------| LinkedList LinkedList 底层是使用了链表数据结构实现的， 特点： 查询速度慢，增删快。
+	-------------------| Vector(了解即可)  底层也是维护了一个Object的数组实现的，实现与ArrayList是一样的，但是Vector是线程安全的，操作效率低。
+
+	----------------| Set  如果是实现了Set接口的集合类，具备的特点： 无序，不可重复。
+	-------------------| HashSet  底层是使用了哈希表来支持的，特点： 存取速度快. 
+	-------------------| TreeSet   如果元素具备自然顺序 的特性，那么就按照元素自然顺序的特性进行排序存储。也可以比较器排序
+	
+	集合类型的并发修改异常，知道有这么回事即可
+	
+12、泛型的通配符 ？
+	java的可变参数
+		public void print(String... args) {
+			for (int i = 0; i < args.length; i++) {
+				out.println(args[i]);
+			}
+		}
+		
+	Random rand = newRandom();：
+	rand.nextInt(100);
+
+	这行代码将生成范围[0, 100) 之间的随机数。
+	
+13、final修饰：
+		类：阻止继承
+		方法：不可重写
+		域：初始化后无法修改，常与static组合创建常量
+		
+14、JSP中提供了四种属性范围，四种属性范围分别指以下四种：
+
+	page：一个属性只能在一个页面中取得，跳转到其他页面无法取得
+	request：一个页面中设置的属性，只要经过了服务器跳转，则跳转之后的页面可以继续取得。
+	session：一个用户设置的内容，只要是与此用户相关的页面都可以访问（一个会话表示一个人，这个人设置的东西只要这个人不走，就依然有效）
+	application：在整个服务器上设置的属性，所有人都可以访问
+	
+	使用的pagecontext对象，是前端页面的属性对象
+	
+15、mvc中的m，model代表模型，简单的说就是业务模型或者数据模型，简单理解就是service和dao，通过c联系v
+
+16、spring的ioc中的依赖注入
+		设值注入：通过无参构造创建bean，然后set方法
+		构造注入：有参构造直接创建bean
+		
+17、BeanFactroy和ApplicationContext
+	目前看来，可以通过传入不同的参数，获得不同的bean实例，相当于封装了一些列同类的bean
+	1).BeanFactroy采用的是延迟加载形式来注入Bean的，即只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化，这样，我们就不能发现一些存在的spring的配置问题。而ApplicationContext则相反，它是在容器启动时，一次性创建了所有的Bean。这样，在容器启动时，我们就可以发现Spring中存在的配置错误。 
+	2).BeanFactory和ApplicationContext都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：BeanFactory需要手动注册，而ApplicationContext则是自动注册
+	3).    ApplicationContext使用ClassPathXmlApplicationContext和FileSystemXMLApplicationContext，前者默认从类路径下加载配置文件，后者默认从文件系统中装载配置文件。在获取ApplicationContext实例后，就可以像BeanFactory一样调用getBean(beanName)返回Bean了。BeanFactory在初始化容器时，并未实例化Bean，直到第一次访问某个Bean时才实例目标Bean；而ApplicationContext则在初始化应用上下文时就实例化所以单实例的Bean。
+	
+18、spring中的单例和多例
+		在Spring中，bean可以被定义为两种模式：prototype（多例）和singleton（单例）
+		singleton（单例）：只有一个共享的实例存在，所有对这个bean的请求都会返回这个唯一的实例。
+		prototype（多例）：对这个bean的每次请求都会创建一个新的bean实例，类似于new。
+		Spring bean 默认是单例模式。
+		
+17、spring中的嵌套bean：
+		<bean id="Student" class="com.abc.Student">
+			<property name="name" value="张三" />
+			<!-- 下面的属性是一个嵌套的Bean，对于和Student平级的Bean来说，这个Bean是不可见的，Spring容器也无法访问 -->
+			<bean class="com.abc.School" />
+		</bean>
+		采用上面的配置形式可以保证嵌套Bean不能被容器访问，因此不用担心其他程序修改嵌套Bean。外部Bean的用法和使用结果和以前没有区别。
+		嵌套Bean提高了Bean的内聚性，但是降低了程序的灵活性。只有在确定无需通过Spring容器访问某个Bean实例时，才考虑使用嵌套Bean来定义。
+		
+	组合注入，暂不考虑
+	<bean id="a" class="app.service.AClass">
+	   <property name="foo.bar.x.y" value="xxx"/>
+	</bean>
+
+	上面组合属性注入相当于让SPring执行如下代码：
+	a.getFoo().getBar().getX().setY("xxx");
+	
+18、spring中bean的创建执行过程:
+		1、创建applicationcontext实例
+		2、调用默认或指定的构造器创建实例
+		3、依赖注入
+		4、返回bean实例
+	
+	Spring支持如下三种方式创建Bean
+		1：调用构造器创建Bean
+		2：调用静态工厂方法创建Bean
+		3：调用实例工厂方法创建Bean
+		
+19、可以的sql：
+		select address,count(id) from student 
+		where 1=1
+		group by address
+		having count(*)>2
+		order by count(*) desc 
