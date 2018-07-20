@@ -47,9 +47,9 @@ springboot-171 开始boot 的web开发
 
 13、	1.http://start.spring.io/  快速创建工程   官网的模板下载
 	2.自定义banner的地址：http://patorjk.com/software/taag
-	3.使用Spring Tools Suite，其中使用spring stater project创建工程boot工程
+	3.使用Spring Tools Suite，其中使用spring stater project创建工程boot工程，是属于eclipse的一个插件
 	4.单纯的简历maven工程，添加boot的parent依赖，添加相关的简化配置
-	5.使用idea创建boot工程
+	5.使用idea创建boot工程，使用spring initializr
 
 14、	springboot启动类中的核心注解@springbootapplication,开启自动配置，是一个组合注解，boot会扫描该注解所在类的同级包和下级包下的bean，建议放在pom中的groupid+artifactid下的包下
     	Application启动类放的位置不对，要将Application放在最外层，也就是要包含所有子包。
@@ -85,22 +85,25 @@ springboot-171 开始boot 的web开发
 	1、@configuration配合@bean标签，通过ServletRegistrationBean、 FilterRegistrationBean 和 ServletListenerRegistrationBean 获得控制。
 	2、在 SpringBootApplication 上使用@ServletComponentScan 注解后，Servlet、Filter、Listener 可以直接通过 @WebServlet(urlPatterns = "/test/*")、@WebFilter、@WebListener 注解自动注册,这些注解都是JDK的，无需其他代码。
 	
+	方法二： 
+	1）写一个WebMvcConfig类继承WebMvcConfigurerAdapter 
+	2）使用@EnableWebMvc，@Configuration注解 
+	3）写一个filter的初始化方法，用@Bean注解 
+	4）写一个FilterRegistrationBean的初始化方法，用@Bean注解，在初始化方法中配置之前的filter。 
+	代码见后文。
 
 	interceptor：实现WebMvcConfigurerAdapter，或者WebMvcConfigurationSupport可以注册interceptor，
 	静态资源映射：同上
 
 24、	mybais的配置还是建议使用代码配置，数据源 jndi和jdbc的配置可以参考小秘书的配置
 
-
-
 24、	@Component可配合CommandLineRunner使用，在程序启动后执行一些基础任务。程序初始化相关
-
 
 25、	springboot建议是用freemaker，jsp不推荐（页面可以编写java代码，前后端分离不推荐），不需要加载成class文件，技术更新
 
 
 26、	redis目前建议使用，bean启动的加载方式，不使用默认的配置方式
-	@ComponentScan 如果不设置basePackage的话 默认会扫描包的所有类
+		@ComponentScan 如果不设置basePackage的话 默认会扫描包的所有类
 
 27、	boot是可以整合swagger的，但是代码侵入，不建议
 
@@ -135,6 +138,9 @@ springboot-171 开始boot 的web开发
 	server.ssl.keyStoreType: PKCS12
 	server.ssl.keyAlias: tomcat
 	这就完成了SpringBoot的HTTPS协议配置，重新启
+	
+
+32、spring-boot-maven-plugin 插件可将工程打成一个fat jar，直接java -jar 执行即可，和普通的maven打包相比，除了classes下内容，还包含lib，和boot的一些jar启动的类
 
 
 ----------springboot实战----------
@@ -142,7 +148,10 @@ springboot-171 开始boot 的web开发
 设计特点
 	1、自动配置
 	2、起步依赖，比如只需要引入如web的一个依赖即可，直接关联相互兼容的版本jar，方便，一般只需要指定顶级的parent版本，其他的不care，
-		起步依赖具有传递依赖的特性，无需指定版本，boot已经进行了相关的优化
+		起步依赖具有传递依赖的特性，无需指定版本，boot已经进行了相关的优化，各版本之间是相互兼容的，版本由boot的版本决定，同时决定了后续依赖的版本
+	
+	
+	maven总是会用最近的依赖，那么重新depend后就可覆盖传递依赖的版本
 
 
 社区版idea安装spring assistant，才能创建boot项目
@@ -153,6 +162,11 @@ springboot-171 开始boot 的web开发
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan
+
+关于自动配置：boot在启动时，都要做类似，thymeleaf在不在classpath下，在就配置一个模板解析器，视图解析器，模板引擎，类似的判断
+在springboot中的spring-boot-autoconfigure包是boot的自动配置包，默认读取class下的资源配置
+自动配置的重点，classpath下有，就自动配置，一般通过起步依赖加当class下
+
 
 
 boot推荐基于java配置优于xml
@@ -167,6 +181,12 @@ Thymeleaf
 根据默认原则，静态资源应放置在src/main/resources/static下
 根据默认原则，页面应放置在src/main/resources/templates下
 
-
-
 boot默认是不推荐jsp的，集成jsp需要引入相关的maven依赖，需要创建webapp的文件夹，打成war后在外置的tomcat容器运行
+
+@Conditional意思是只有满足一些列条件之后创建一个bean。  条件注解
+
+springboot中的自定义配置：
+	，影响自动配置的：1、显式覆盖 2使用属性进行精细化配置
+
+
+
