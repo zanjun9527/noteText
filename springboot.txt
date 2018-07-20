@@ -23,6 +23,23 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 8¡¢ApplicationContextAware£¬Ê¹bean¿ÉÒÔ»ñµÃspringÈİÆ÷ÖĞµÄ·şÎñ
 
+	boot´´½¨jspÎÄ¼şµÄÊ±ºò°Ñºó×º¼ÓÉÏ
+
+	bootÖĞÊ¹ÓÃjsp
+	1¡¢Æô¶¯Àà¼Ì³ĞSpringBootServletInitializer
+	2¡¢Ïà¹ØµÄmavenÒÀÀµ£¬¹Ø¼ü<artifactId>tomcat-embed-jasper</artifactId><scope>provided</scope>£¬Ê¹ÓÃÍâ²¿µÄtomcatÊµÏÖ
+		<artifactId>spring-boot-starter-tomcat</artifactId> <scope>provided</scope>
+	3¡¢ĞèÒªĞÂ½¨webappÎÄ¼ş¼Ğ£¬È»ºóÔÙÌí¼Óweb-inf/jspÎÄ¼ş¼Ğ£¬´òwar£¬²¿Êğtomcat·ÃÎÊ
+	
+	
+	jsp²»ÄÜÓÃApplication.javaµÄmain·½·¨Æô¶¯£¬Ö»ÄÜÓÃTomcatÆô¶¯£¬²¢ÇÒÒª´òwar°ü£¬ËùÒÔĞŞ¸Ä´ò°ü·½Ê½Îªwar£º<packaging>war</packaging>
+	ÔÚsrc/main/ÏÂ´´½¨webappÎÄ¼ş¼Ğ£¬ÔÚwebappÎÄ¼ş¼ĞÏÂ´´½¨WEB-INFÎÄ¼ş¼Ğ£¬ÈçÍ¼£º
+	
+	ÈÕÖ¾ÖĞ¿ÉÒÔÊ¹ÓÃµÄ×Ö·û´®µÄÆ´½Ó·½·¨
+	System.out.println(String.format("ÎÒµÄÃû×Ö½Ğ%s", "Ğ¡Ã÷")); // ´òÓ¡:ÎÒµÄÃû×Ö½ĞĞ¡Ã÷  
+	
+	¿ÉÒÔ×Ô¶¯Ò»xmlÎÄ¼şµÄÄ£°å
+
 9¡¢@conditional±êÇ©£¬¸ù¾İÌØ¶¨µÄÌõ¼ş¿ØÖÆbeanµÄ´´½¨
 
 10¡¢springbootÏëÒªÊ¹ÓÃ×Ô¼ºµÄÇ°¶Ë¿ØÖÆÆ÷£¬¿ÉÒÔ×Ô¼º¶¨Òå£¬Ò»°ãÄ¬ÈÏÊ¹ÓÃµÄ¼´¿É
@@ -53,13 +70,6 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 14¡¢	springbootÆô¶¯ÀàÖĞµÄºËĞÄ×¢½â@springbootapplication,¿ªÆô×Ô¶¯ÅäÖÃ£¬ÊÇÒ»¸ö×éºÏ×¢½â£¬boot»áÉ¨Ãè¸Ã×¢½âËùÔÚÀàµÄÍ¬¼¶°üºÍÏÂ¼¶°üÏÂµÄbean£¬½¨Òé·ÅÔÚpomÖĞµÄgroupid+artifactidÏÂµÄ°üÏÂ
     	ApplicationÆô¶¯Àà·ÅµÄÎ»ÖÃ²»¶Ô£¬Òª½«Application·ÅÔÚ×îÍâ²ã£¬Ò²¾ÍÊÇÒª°üº¬ËùÓĞ×Ó°ü¡£
-
- 	
-
-
-
-
-
 
 
 15¡¢application.propertiesÖĞµÄ¹Ø¼üÊôĞÔÅäÖÃ£º
@@ -187,6 +197,4 @@ bootÄ¬ÈÏÊÇ²»ÍÆ¼öjspµÄ£¬¼¯³ÉjspĞèÒªÒıÈëÏà¹ØµÄmavenÒÀÀµ£¬ĞèÒª´´½¨webappµÄÎÄ¼ş¼Ğ£¬´
 
 springbootÖĞµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôĞÔ½øĞĞ¾«Ï¸»¯ÅäÖÃ
-
-
 
