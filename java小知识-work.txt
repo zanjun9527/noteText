@@ -1679,7 +1679,7 @@
 	在sprinboot中：
 		@RunWith(SpringJUnit4ClassRunner.class) // SpringJUnit支持，由此引入Spring-Test框架支持！ 
 		@SpringBootTest(classes = XyeServiceCoreApplication.class) // 指定我们SpringBoot工程的Application启动类
-		@WebAppConfiguration 
+		@WebAppConfiguration      //调用javaWEB的组件，比如自动注入ServletContext Bean等，指定加载 ApplicationContext是一个WebApplicationContext
 		public class TalentsSearchServiceImplTest {
 			@Autowired
 			ITalentsSearchService  talentsSearchService;

@@ -432,7 +432,7 @@ mysql:统计查询出现次数大于2的记录
 	tomcat中的使用jdk自带的keystool工具生成
 	
 	在filter中，response.getWriter().print()后,chain.do()到controller后，继续，
-	也可以继续response.getWriter().print()，但是不能通过view层直接返回字符串信息
+	也可以继续response.getWriter().print()，但是不能通过view层直接返回字符串信息，也不能返回页面
 	
 	关键点就是用jar包起就可以实现优雅停机，前提是不用内嵌tomcat起
 	kill -9 就是直接终止

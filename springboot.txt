@@ -64,9 +64,9 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 13¡¢	1.http://start.spring.io/  ¿ìËÙ´´½¨¹¤³Ì   ¹ÙÍøµÄÄ£°åÏÂÔØ
 	2.×Ô¶¨ÒåbannerµÄµØÖ·£ºhttp://patorjk.com/software/taag
-	3.Ê¹ÓÃSpring Tools Suite£¬ÆäÖĞÊ¹ÓÃspring stater project´´½¨¹¤³Ìboot¹¤³Ì
+	3.Ê¹ÓÃSpring Tools Suite£¬ÆäÖĞÊ¹ÓÃspring stater project´´½¨¹¤³Ìboot¹¤³Ì£¬ÊÇÊôÓÚeclipseµÄÒ»¸ö²å¼ş
 	4.µ¥´¿µÄ¼òÀúmaven¹¤³Ì£¬Ìí¼ÓbootµÄparentÒÀÀµ£¬Ìí¼ÓÏà¹ØµÄ¼ò»¯ÅäÖÃ
-	5.Ê¹ÓÃidea´´½¨boot¹¤³Ì
+	5.Ê¹ÓÃidea´´½¨boot¹¤³Ì£¬Ê¹ÓÃspring initializr
 
 14¡¢	springbootÆô¶¯ÀàÖĞµÄºËĞÄ×¢½â@springbootapplication,¿ªÆô×Ô¶¯ÅäÖÃ£¬ÊÇÒ»¸ö×éºÏ×¢½â£¬boot»áÉ¨Ãè¸Ã×¢½âËùÔÚÀàµÄÍ¬¼¶°üºÍÏÂ¼¶°üÏÂµÄbean£¬½¨Òé·ÅÔÚpomÖĞµÄgroupid+artifactidÏÂµÄ°üÏÂ
     	ApplicationÆô¶¯Àà·ÅµÄÎ»ÖÃ²»¶Ô£¬Òª½«Application·ÅÔÚ×îÍâ²ã£¬Ò²¾ÍÊÇÒª°üº¬ËùÓĞ×Ó°ü¡£
@@ -95,6 +95,12 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	1¡¢@configurationÅäºÏ@bean±êÇ©£¬Í¨¹ıServletRegistrationBean¡¢ FilterRegistrationBean ºÍ ServletListenerRegistrationBean »ñµÃ¿ØÖÆ¡£
 	2¡¢ÔÚ SpringBootApplication ÉÏÊ¹ÓÃ@ServletComponentScan ×¢½âºó£¬Servlet¡¢Filter¡¢Listener ¿ÉÒÔÖ±½ÓÍ¨¹ı @WebServlet(urlPatterns = "/test/*")¡¢@WebFilter¡¢@WebListener ×¢½â×Ô¶¯×¢²á,ÕâĞ©×¢½â¶¼ÊÇJDKµÄ£¬ÎŞĞèÆäËû´úÂë¡£
 	
+	·½·¨¶ş£º 
+	1£©Ğ´Ò»¸öWebMvcConfigÀà¼Ì³ĞWebMvcConfigurerAdapter 
+	2£©Ê¹ÓÃ@EnableWebMvc£¬@Configuration×¢½â 
+	3£©Ğ´Ò»¸öfilterµÄ³õÊ¼»¯·½·¨£¬ÓÃ@Bean×¢½â 
+	4£©Ğ´Ò»¸öFilterRegistrationBeanµÄ³õÊ¼»¯·½·¨£¬ÓÃ@Bean×¢½â£¬ÔÚ³õÊ¼»¯·½·¨ÖĞÅäÖÃÖ®Ç°µÄfilter¡£ 
+	´úÂë¼ûºóÎÄ¡£
 
 	interceptor£ºÊµÏÖWebMvcConfigurerAdapter£¬»òÕßWebMvcConfigurationSupport¿ÉÒÔ×¢²áinterceptor£¬
 				ĞÂ°æ±¾ÊµÏÖWebMvcConfigurer£¬addInterceptors·½·¨Ìí¼Ó×Ô¶¨ÒåµÄÀ¹½ØÆ÷¼´¿É
@@ -113,10 +119,7 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 24¡¢	mybaisµÄÅäÖÃ»¹ÊÇ½¨ÒéÊ¹ÓÃ´úÂëÅäÖÃ£¬Êı¾İÔ´ jndiºÍjdbcµÄÅäÖÃ¿ÉÒÔ²Î¿¼Ğ¡ÃØÊéµÄÅäÖÃ
 
-
-
 24¡¢	@Component¿ÉÅäºÏCommandLineRunnerÊ¹ÓÃ£¬ÔÚ³ÌĞòÆô¶¯ºóÖ´ĞĞÒ»Ğ©»ù´¡ÈÎÎñ¡£³ÌĞò³õÊ¼»¯Ïà¹Ø
-
 
 25¡¢	springboot½¨ÒéÊÇÓÃfreemaker£¬jsp²»ÍÆ¼ö£¨Ò³Ãæ¿ÉÒÔ±àĞ´java´úÂë£¬Ç°ºó¶Ë·ÖÀë²»ÍÆ¼ö£©£¬²»ĞèÒª¼ÓÔØ³ÉclassÎÄ¼ş£¬¼¼Êõ¸üĞÂ
 		
@@ -124,7 +127,7 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 
 26¡¢	redisÄ¿Ç°½¨ÒéÊ¹ÓÃ£¬beanÆô¶¯µÄ¼ÓÔØ·½Ê½£¬²»Ê¹ÓÃÄ¬ÈÏµÄÅäÖÃ·½Ê½
-	@ComponentScan Èç¹û²»ÉèÖÃbasePackageµÄ»° Ä¬ÈÏ»áÉ¨Ãè°üµÄËùÓĞÀà
+		@ComponentScan Èç¹û²»ÉèÖÃbasePackageµÄ»° Ä¬ÈÏ»áÉ¨Ãè°üµÄËùÓĞÀà
 
 27¡¢	bootÊÇ¿ÉÒÔÕûºÏswaggerµÄ£¬µ«ÊÇ´úÂëÇÖÈë£¬²»½¨Òé
 
@@ -159,6 +162,9 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	server.ssl.keyStoreType: PKCS12
 	server.ssl.keyAlias: tomcat
 	Õâ¾ÍÍê³ÉÁËSpringBootµÄHTTPSĞ­ÒéÅäÖÃ£¬ÖØĞÂÆô
+	
+
+32¡¢spring-boot-maven-plugin ²å¼ş¿É½«¹¤³Ì´ò³ÉÒ»¸öfat jar£¬Ö±½Ójava -jar Ö´ĞĞ¼´¿É£¬ºÍÆÕÍ¨µÄmaven´ò°üÏà±È£¬³ıÁËclassesÏÂÄÚÈİ£¬»¹°üº¬lib£¬ºÍbootµÄÒ»Ğ©jarÆô¶¯µÄÀà
 
 
 ----------springbootÊµÕ½----------
@@ -166,7 +172,10 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 Éè¼ÆÌØµã
 	1¡¢×Ô¶¯ÅäÖÃ
 	2¡¢Æğ²½ÒÀÀµ£¬±ÈÈçÖ»ĞèÒªÒıÈëÈçwebµÄÒ»¸öÒÀÀµ¼´¿É£¬Ö±½Ó¹ØÁªÏà»¥¼æÈİµÄ°æ±¾jar£¬·½±ã£¬Ò»°ãÖ»ĞèÒªÖ¸¶¨¶¥¼¶µÄparent°æ±¾£¬ÆäËûµÄ²»care£¬
-		Æğ²½ÒÀÀµ¾ßÓĞ´«µİÒÀÀµµÄÌØĞÔ£¬ÎŞĞèÖ¸¶¨°æ±¾£¬bootÒÑ¾­½øĞĞÁËÏà¹ØµÄÓÅ»¯
+		Æğ²½ÒÀÀµ¾ßÓĞ´«µİÒÀÀµµÄÌØĞÔ£¬ÎŞĞèÖ¸¶¨°æ±¾£¬bootÒÑ¾­½øĞĞÁËÏà¹ØµÄÓÅ»¯£¬¸÷°æ±¾Ö®¼äÊÇÏà»¥¼æÈİµÄ£¬°æ±¾ÓÉbootµÄ°æ±¾¾ö¶¨£¬Í¬Ê±¾ö¶¨ÁËºóĞøÒÀÀµµÄ°æ±¾
+	
+	
+	maven×ÜÊÇ»áÓÃ×î½üµÄÒÀÀµ£¬ÄÇÃ´ÖØĞÂdependºó¾Í¿É¸²¸Ç´«µİÒÀÀµµÄ°æ±¾
 
 
 ÉçÇø°æidea°²×°spring assistant£¬²ÅÄÜ´´½¨bootÏîÄ¿
@@ -177,6 +186,11 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 @SpringBootConfiguration
 @EnableAutoConfiguration		¸ù¾İÏîÄ¿ÖĞÒÀÀµµÄjar£¬¿ªÆô×Ô¶¯ÅäÖÃ
 @ComponentScan
+
+¹ØÓÚ×Ô¶¯ÅäÖÃ£ºbootÔÚÆô¶¯Ê±£¬¶¼Òª×öÀàËÆ£¬thymeleafÔÚ²»ÔÚclasspathÏÂ£¬ÔÚ¾ÍÅäÖÃÒ»¸öÄ£°å½âÎöÆ÷£¬ÊÓÍ¼½âÎöÆ÷£¬Ä£°åÒıÇæ£¬ÀàËÆµÄÅĞ¶Ï
+ÔÚspringbootÖĞµÄspring-boot-autoconfigure°üÊÇbootµÄ×Ô¶¯ÅäÖÃ°ü£¬Ä¬ÈÏ¶ÁÈ¡classÏÂµÄ×ÊÔ´ÅäÖÃ
+×Ô¶¯ÅäÖÃµÄÖØµã£¬classpathÏÂÓĞ£¬¾Í×Ô¶¯ÅäÖÃ£¬Ò»°ãÍ¨¹ıÆğ²½ÒÀÀµ¼Óµ±classÏÂ
+
 
 
 bootÍÆ¼ö»ùÓÚjavaÅäÖÃÓÅÓÚxml
@@ -191,10 +205,14 @@ Thymeleaf
 ¸ù¾İÄ¬ÈÏÔ­Ôò£¬¾²Ì¬×ÊÔ´Ó¦·ÅÖÃÔÚsrc/main/resources/staticÏÂ
 ¸ù¾İÄ¬ÈÏÔ­Ôò£¬Ò³ÃæÓ¦·ÅÖÃÔÚsrc/main/resources/templatesÏÂ
 
+
 bootÄ¬ÈÏÊÇ²»ÍÆ¼öjspµÄ£¬ÄÚÇ¶µÄtomcat²»Ö§³Öjsp,¼¯³ÉjspĞèÒªÒıÈëÏà¹ØµÄmavenÒÀÀµ£¬ĞèÒª´´½¨webappµÄÎÄ¼ş¼Ğ£¬´ò³ÉwarºóÔÚÍâÖÃµÄtomcatÈİÆ÷ÔËĞĞ
 ÔÙideaÖĞ£¬mavenÒÀÀµ½øÀ´ÁË£¬µ«ÊÇÒı²»ÁËÏà¹ØÀà£¬½øÈëÄ£¿éprojectstructureÖĞ·¢ÏÖjar has broken path  µã»÷½øÈëÊôĞÔÒÆ³ıºóÖØĞÂ¸üĞÂ¼´¿É
 
+
 dubboµÄxmlÎÄ¼ş»¹ÊÇ@importresourceµ¼Èë
+
+@ConditionalÒâË¼ÊÇÖ»ÓĞÂú×ãÒ»Ğ©ÁĞÌõ¼şÖ®ºó´´½¨Ò»¸öbean¡£  Ìõ¼ş×¢½â
 
 new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ½×¢ÈëµÄ¶ÔÏó¡£±ÈÈçÔÚÀ¹½ØÆ÷ÖĞ×¢ÈëµÄservice¶ÔÏó£¬ÕâÊ±Ö»ÄÜ½«À¹½ØÆ÷¼ÓÈëÈİÆ÷£¬´ÓÈİÆ÷ÖĞ»ñÈ¡
 
@@ -218,3 +236,27 @@ new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ
 	
 	
 	Êµ¼Ê²¿Êğ£¬½«warÍÏµ½webappsÏÂ£¬Ö»±£ÁôÒ»¸örootµÄ¿ÕÄ¿Â¼£¬½âÑ¹µ½rootÏÂ£¬É¾³ıwar¼´¿É
+
+springbootÖĞµÄ×Ô¶¨ÒåÅäÖÃ£º
+	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôĞÔ½øĞĞ¾«Ï¸»¯ÅäÖÃ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> .theirs
