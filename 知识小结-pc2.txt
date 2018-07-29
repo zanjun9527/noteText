@@ -440,3 +440,137 @@ mysql:统计查询出现次数大于2的记录
 	
 	cherry pick 的挑选分支commit，需要同源挑选，不然会出现冲突
 
+springboot相关：
+	spring2建议应用基本配置用xml，业务开发用注解；
+	spring3以后，建议使用java配置方式，不用xml
+	java 配置方式：取代xml
+		使用@configuretion 和@bean  前者用在类上，相当于xml，后者作用方法上，相当于bean,默认将方法名作为bean的id，可以指定@Bean(name = "dataSource")
+		使用AnnotationConfigApplicationContext可以实现基于Java的配置类加载Spring的应用上下文。避免使用application.xml进行配置。相比XML配置，更加便捷。
+	
+	@PropertySource可以读取指定的配置文件，@value获取，需要搭配@configuretion，等同于在xml中配置properties文件
+		@PropertySource(value={"a.properties" , "b.properties"},ignoreresoureNotFound=true)
+		
+		
+		
+		
+		
+		之前spring.xml中<context:property-placeholder location="classpath:db.properties"/>
+	相对c3p0等连接池，目前最稳定好用的是阿里的druid连接池
+	
+	整合mybatis
+	配置mybatis-spring-boot-starter是需要指定版本号的，不属于起步依赖的范围，因为不是一个groupid下的东西
+	@AutoConfigureAfter(MybatisConfig.class)   mapperscan需要sqlSessionfactory配置后才生效
+	
+	一般spingboot整合mybatis：1.dataSource 2.sqlSessionfactory  3.mapperscan   思路时由mapper映射xml查询数据库，mapperscan-sqlfactory-datasource
+	配置的时候除了先idea的坑，需要再pom中<build>属性中<resource>相关mapper.xml到classpath下，springboot再javapackage中自己是不会编译xml的，只会编译java类文件，resource只会编译资源文件
+	再spingboot的tomcat部署，会默认java 和resources 打到classpath下，直接可用，但是一旦使用了resource，就必须指定资源文件了，默认tomcat配置将失效，但是maven编译则需要再build中添加进来
+	总结就两点 source root下不会编译xml文件，使用<resource>后，覆盖默认，需要指定所有资源文件
+	
+事务管理：
+	原先时使用<tx:advice>定义事务策略，使用<aop:config>定义切点，并融合策略。
+	boot中推荐使用@transactional 实现申明事务，需要jdbc起步依赖，自动创建事务管理器，需要 @EnableTransactionManagement 开启事务，相当于<tx:annotation-driven />
+
+	@Bean
+    public Object testBean(PlatformTransactionManager platformTransactionManager){
+        System.out.println(">>>>>>>>>>" + platformTransactionManager.getClass().getName());
+        return new Object();
+    }
+	这里的测试bean，测试用，有个小细节就是框架会自动为我们注入有参参数，容器默认的bean。
+	
+	@Bean
+    public PlatformTransactionManager txManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+	这里也可以指定事务管理器哦
+	
+	实现接口 TransactionManagementConfigurer 方法，用来多事务管理器下，指定默认管理器，@transactional不指定value会使用默认的事务管理器，可能有问题，异常抛出最好，所以一般不推荐使用这个接口。
+	@EnableTransactionManagement // 开启注解事务管理，等同于xml配置文件中的 <tx:annotation-driven />
+	@SpringBootApplication
+	public class ProfiledemoApplication implements TransactionManagementConfigurer {
+
+		@Resource(name="txManager2")
+		private PlatformTransactionManager txManager2;
+
+		// 创建事务管理器1
+		@Bean(name = "txManager1")
+		public PlatformTransactionManager txManager(DataSource dataSource) {
+			return new DataSourceTransactionManager(dataSource);
+		}
+
+		// 创建事务管理器2
+		@Bean(name = "txManager2")
+		public PlatformTransactionManager txManager2(EntityManagerFactory factory) {
+			return new JpaTransactionManager(factory);
+		}
+
+		// 实现接口 TransactionManagementConfigurer 方法，其返回值代表在拥有多个事务管理器的情况下默认使用的事务管理器
+		@Override
+		public PlatformTransactionManager annotationDrivenTransactionManager() {
+			return txManager2;
+		}
+
+		public static void main(String[] args) {
+			SpringApplication.run(ProfiledemoApplication.class, args);
+		}
+
+	}
+	
+	
+	
+	
+	搞懂了classpath指向的classes里放的东西，我们再来看看classpath: 和classpath*:的区别。
+		1.classpath：只会到你的classes路径中查找找文件。
+		2.classpath*：不仅会到classes路径，还包括jar文件中(classes路径)进行查找。所以即使直接的class下没有路径也不会启动报错，但是使用上面的会启动报错
+	
+	@MapperScan("com.xye.boot.mapper")也可以用，但是只能扫描到带@mapper注解的接口
+	
+	SpringBoot在写启动类的时候如果不使用@ComponentScan指明对象扫描范围，默认指扫描当前启动类所在的包里的对象，如果当前启动类没有包，则在启动时会报错：Your ApplicationContext is unlikely to start due to a @ComponentScan of the default package错误。
+	因为启动类不能直接放在main/java文件夹下，必须要建一个包把它放进去或者使用@ComponentScan指明要扫描的包。
+	默认扫描@SpringBootApplication所在类的目录包以及其子包
+
+	spingboot-autoconfigure，自动配置包的核心
+	@SpringBootApplication(exclude={a.class})排除自动配置的类，排除的类在spingboot-autoconfigure包中有
+	
+	在idea中 private final Logger logger =LoggerFactory.getLogger(UserInfoServiceImpl.class)，一定要先补全前面的，后面的参能类.方法，或者在方法内直接用也行
+
+	@importresoutce,可以加载xml配置，但是boot中不推荐，推荐使用java配置 
+	
+	
+	boot的自动配置原理：
+		boot在进行springapplication对象实列化时会加载META-INF/spring，factories文件，将改配置文件中的配置加入到spring的容器中，这些bean也是jar引入进来的，各个bean，根据属性读取自动配置
+		@conditonalonclass 和 @conditionalonmissingbean  类似的属于条件注解
+		@configurationProperties(prefix="spring.redis")读取属性文件的值
+		
+		# ConfigurationProperties 学习，见 spring boot 文档第 24.7小节
+			foo.enabled=false
+			foo.security.username=user
+			foo.security.password=pwd
+			@ConfigurationProperties(prefix = "foo")
+			其中security是内部静态类，具有相关的属性
+			
+		@ConfigurationProperties注解主要用来把properties配置文件转化为bean来使用的，
+		而@EnableConfigurationProperties注解的作用是@ConfigurationProperties注解生效。
+		如果只配置@ConfigurationProperties注解，在IOC容器中是获取不到properties配置文件转化的bean的
+
+	dispatcher进入规则是*.xxx，或者不指定静态文件路径时，可通过地址访问webapp下的
+	默认静态资源时在resource下
+	用@EnableConfigurationProperties注解使@ConfigurationProperties注解生效
+	@Component
+	@ConfigurationProperties(prefix = "foo")
+	可以将属性bean注入容器
+	
+	
+	这个可以有啊，可以用作初始化啊 	大兄弟
+	    private static RequestConfig requestConfig = null;
+        static
+        {
+            // 设置请求和传输超时时间
+            requestConfig = RequestConfig.custom().setSocketTimeout(2000).setConnectTimeout(2000).build();
+        }
+		
+		jdk8新特性，interface中的default方法
+		在java8以后，接口中可以添加使用default或者static修饰的方法，在这里我们只讨论default方法，
+		default修饰方法只能在接口中使用，在接口种被default标记的方法为普通方法，可以直接写方法体。
+		实现类会继承接口中的default方法
+		如果子类继承父类，父类中有b方法，该子类同时实现的接口中也有b方法（被default修饰），那么子类会继承父类的b方法而不是继承接口中的b方法
+		
