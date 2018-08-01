@@ -197,4 +197,6 @@ bootÄ¬ÈÏÊÇ²»ÍÆ¼öjspµÄ£¬¼¯³ÉjspÐèÒªÒýÈëÏà¹ØµÄmavenÒÀÀµ£¬ÐèÒª´´½¨webappµÄÎÄ¼þ¼Ð£¬´
 
 springbootÖÐµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôÐÔ½øÐÐ¾«Ï¸»¯ÅäÖÃ
+	  @ConditionalOnMissingBean£¬ÊÇ¸²¸Ç×Ô¶¯ÅäÖÃµÄ¹Ø¼ü£¬´æÔÚÏàÓ¦µÄ¾Í»á½µµÍ×Ô¶¯ÅäÖÃµÄÓÅÏÈ¼¶¡£
+	  springbootµÄÉè¼ÆÊÇ£º¼ÓÔØÓ¦ÓÃ¼¶ÅäÖÃ£¬ËæºóÔÙ¿¼ÂÇ×Ô¶¯ÅäÖÃÀà
 
