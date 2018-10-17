@@ -26,4 +26,20 @@ JeeSite项目可以看看
 
 多个微服务的dubbo的架构问题，
 
+@EnableConfigurationProperties 再看看
+httpclient 的请求和接收
+idea target地下不自动更新
+自定义相同的拦截路径，后面就不进mvc了，配置成/**进拦截器，但是controller没走print方法，对于mv没有返回的会执行三次拦截器，return  就好了
+@WebServlet(
+        name="myServlet",
+        urlPatterns="/login/*",
+        loadOnStartup=1 )
 
+
+   private FilterConfig config;
+
+    @Override
+    public void init(FilterConfig config) throws ServletException {
+        this.config = config;
+    }
+  filter的启动初始化参数
