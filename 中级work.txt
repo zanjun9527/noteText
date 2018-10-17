@@ -1,0 +1,404 @@
+
+XA协议采用两阶段提交方式来管理分布式事务
+
+2PC需要对整个资源加锁，因此不适用于高并发的分布式场景；而tcc只对需要的资源进行加锁，加锁的粒度小，且try commit Cancel都是本地短事务，因此能在保证强一致性的同时最大化提高系统可用性
+2PC是有数据库来保证回滚，而TCC是应用层实现回滚：为每一个try操作提供一个对应的cancel操作
+
+
+
+CAP定理
+WEB服务无法同时满足一下3个属性：
+一致性(Consistency) ： 客户端知道一系列的操作都会同时发生(生效)
+可用性(Availability) ： 每个操作都必须以可预期的响应结束
+分区容错性(Partition tolerance) ： 即使出现单个组件无法可用,操作依然可以完成
+具体地讲在分布式系统中，在任何数据库设计中，一个Web应用至多只能同时支持上面的两个属性。显然，任何横向扩展策略都要依赖于数据分区。因此，设计人员必须在一致性与可用性之间做出选择。
+
+
+BASE理论
+在分布式系统中，我们往往追求的是可用性，它的重要程序比一致性要高，BASE理论，它是用来对CAP定理进行进一步扩充的。BASE理论指的是：
+Basically Available（基本可用）
+Soft state（软状态）
+Eventually consistent（最终一致性）
+BASE理论是对CAP中的一致性和可用性进行一个权衡的结果，理论的核心思想就是：我们无法做到强一致，但每个应用都可以根据自身的业务特点，采用适当的方式来使系统达到最终一致性（Eventual consistency）。
+
+
+最经典的分布式事务解决方法就是“两段式提交(two-phase commit)”。XA/JTA方案
+	在两段式提交过程中，涉及两类角色，协调者(Coordinator)和参与者(Participants)。
+	第一个阶段：预提交阶段，也可以称之为投票阶段，一票否决性
+	第二个阶段：提交决定阶段。协调者根据上一个阶段的投票结果决定是Commit还是Abort，这个决定是全局性的，会通知到所有的参与者执行最终的决定，并回传一个ack确认信息。
+	强一致性的目的，长生命周期的分布式事务就不适合两段式提交。比如旅游订票的过程，中间应该增加重试的机制。
+	整个完成才释放资源，锁力度大，性能差
+	
+	
+TCC
+TCC包含了三个阶段：Try，Confirm，Cancel，因此而得名「TCC」。一种柔性事务解决方案
+	Try: 尝试执行业务
+		 完成所有业务检查(一致性)
+		 预留必须业务资源(准隔离性)          
+	Confirm:确认执行业务
+		 真正执行业务
+		 不作任何业务检查
+		 只使用Try阶段预留的业务资源 
+		 Confirm操作要满足幂等性
+	Cancel: 取消执行业务
+		 释放Try阶段预留的业务资源 
+		 Cancel操作要满足幂等性
+
+TCC 其实就是采用的补偿机制，其核心思想是：针对每个操作，都要注册一个与其对应的确认和补偿（撤销）操作，TCC的Try、Confirm和Cancel操作功能需业务提供，开发成本高。
+TCC	数据库层的二阶段提交上提到了应用层来实现，对于数据库来说是一阶段提交，规避了数据库层的2PC性能低下问题
+
+TCC与2PC协议比较：
+	 位于业务服务层而非资源层
+	 没有单独的准备(Prepare)阶段， Try操作兼备资源操作与准备能力 
+	 Try操作可以灵活选择业务资源的锁定粒度(以业务定粒度) 
+	 较高开发成本
+
+
+2PC的强一致性依赖于数据库，而TCC的强一致性依赖于应用层的Commit与cancel
+
+
+
+
+SQL Server 数据库是由两个文件组成的，一个数据库文件和一个日志文件，每次先记录操作日志，再写数据库。
+
+
+
+jvm的相关：
+	1、程序计数器：可以看做是当前线程执行的字节码行号指示器
+		jvm的多线程是通过线程轮流切换并分配处理器执行时间的的方式实现的，任何时刻，一个处理器只会执行一条线程指令。为了切换后恢复正确的执行位置，每条线程需要独立的程序计数器。
+		这类内存区域称为“线程私有”的内存
+		
+	2、	java虚拟机栈：是线程私有的，生命周期与线程相同
+		是虚拟机中局部变量的表部分，所需的内存空间在编译时期完成分配，方法运行时期不会改变大小，存放了编译器可知的各种基本数据类型，对象引用和returnadress类型（指向了一条字节码指令的地址）
+		这个区域的两种异常情况：
+			1.当线程请求的栈深度大于jvm允许的深度，抛出stackoverflowError
+			2.如果jvm动态扩展时无法申请到足够的内存时会抛出outOfMemoryError
+		使用-Xss配置栈内存容量，可以减少栈内存容量
+		定义大量的本地变量，可增加次方法帧中本地变量表的长度
+		
+		在单个线程下，无论是由于栈帧太大，还是虚拟机栈容量太小，当内存无法分配的时候，虚拟机抛出的都是stackOverflowError
+			
+	
+	3、本地方法栈(stack)：
+		虚拟机栈为虚拟机执行java方法（也就是字节码）服务
+		本地方法栈为虚拟机使用到的native方法服务
+		
+	4、java堆(heap)：
+		是jvm中所管理内存中最大的一块，是所有线程共享的内存区域，jvm启动时创建。用来存放对象实例。
+		所有对象的实例都要在堆上分配
+		java堆是垃圾收集器管理的主要区域，因此也被称为gc堆。现在的收集器基本采用的是分代手机算法（根据对象存活周期的不同，将内存划分成为几个区域），所有java堆中还可以细分为：新生代（MinorGC）和老年代（MajorGC）
+		目前主流的虚拟机都是按照可扩展来实现的（通过-Xmx 和-Xms控制），如果堆中没有内存完成实例分配，并且堆也无法再扩展时，将抛出OutOfMemoryError异常
+		将堆的最小值-Xms参数和最大值-Xmx参数设置一样可避免堆自动扩展，增加无效的fullgc，浪费时间，即不可扩展
+		
+		堆中有eden，survivor，和old三个区域，非堆中有code cache和 perm gen
+		
+		
+	5、方法区：
+		存放class相关信息，如类名、访问修饰符、常量池、字段描述、方法描述
+		各线程共享的内存区域，用于存放已被jvm加载的类信息、常量、静态变量、即是编译器编译后的代码等数据。别名Non-Heap(非堆)。
+		可选择固定大小或可扩展，该区域内存回收目标主要是针对常量池的回收和对类型的卸载，
+		当方法区无法满足内存分配需求时，将抛出outOfMemoryError
+		MaxPermSize，最大方法区容量
+		
+		-XX:permSize 和 -XX:MaxPermSize 配置大小
+	
+	6、运行时常量池
+		属于方法区的一部分
+		
+	7、直接内存 	direct memory  
+		分配不会受到java堆大小的限制，配置内存容易忽略这块，导致超过物理内存限制，从而导致动态扩展时出现OutOfMemoryError异常
+		比如大量的nio操作
+		
+	jvm重要的三个内存区域：
+		java栈，java堆，方法区
+		
+		
+	reference类型通过1.句柄    2直接指针（这种情况直接存储的就是对象地址）     定位java堆中的具体位置
+
+	
+	java堆的溢出
+		内存映像分析工具分析
+		1、内存泄漏			泄漏对象垃圾收集器无法自动回收，
+		2、内存溢出			内存中对象必须存活，调节虚拟机的堆参数的配置
+	
+		内存溢出就是你要求分配的内存超出了系统能给你的，系统不能满足需求，于是产生溢出。
+
+		Java内存泄漏就是没有及时清理内存垃圾，导致系统无法再给你提供内存资源（内存资源耗尽）。
+
+		1.Java内存泄露是说程序逻辑问题,造成申请的内存无法释放.这样的话无论多少内存,早晚都会被占用光的. 最简单的例子就是死循环了.
+
+		2.Java内存泄漏是指在堆上分配的内存没有被释放，从而失去对其控制。这样会造成程序能使用的内存越来越少。
+
+	
+	
+	栈内存溢出：jvm-37
+		每个线程分配到的栈容量越大，可以建立的线程数量自然越少，建立线程时就越容易吧剩下的内存耗尽，
+		如果是建立过多线程导致的内存溢出，在不能减少线程数量情况下，只能通过减少最大堆和减少栈容量来换取更多的线程。
+	
+	
+
+	对类进行增强时，都会使用cglib这类的字节码，增强的类越多，越需要大的方法区来保证动态生成的class可以加载入内存
+	
+	栈随线程生灭，方法或者线程结束，其内存自然就回收了，但是java堆和方法区不一样。
+	堆中存放的是java中的对象实例，已经dead(属于对象是否存活)的对象需要被回收
+	
+	jvm判断对象是否存活，并不是使用的是1、引用计数算法（相互引用，不成立）
+	使用的是2、根搜索算法，基本思路是通过一系列名为gc roots 的对象作为起始点，从该节点向下搜索，走过的路径成为引用链，当一个对象到gc roots没有任何引用链相连（即从gc roots到这个对象不可达），则对象不可用将被判定为可回收对象
+	
+	java中，可作为gc roots对象包括：
+		1、虚拟机栈（栈帧中的本地变量表）中的引用对象
+		2、方法区中的类静态属性引用对象
+		3、方法区中的常量引用对象
+		4、本地方法栈中的native方法的引用的对象
+		
+	finalize()：	
+	对象进行根搜索就发现没有与gc roots相连接的引用链，需要看对象是否覆盖finalize(),没有覆盖或者该方法已经被jvm调用过，则对象没必要执行finalize()。
+	对象死亡需要经过两次至少两次的标记，一次就是gc roots的不相连接，执行finalize()会对f-queue中的对象第二次标记，只要重新与引用链上的任何一个对象建立关联，那么将移除即将回收的集合，即执行finalize()，是对象的自我拯救方法，对象依然可以存活，在被gc时自我拯救，且对象只能执行一次该方法。
+		
+		
+	在堆中，尤其在新生代中，垃圾回收的效率很高，但是在永久代中（只要是废弃常量和无用的类），效率很低，
+	
+	新生代中：主要是用来存放新生的对象。一般占据堆的1/3空间。由于频繁创建对象，所以新生代会频繁触发MinorGC进行垃圾回收。
+		对象优先在Eden区分配
+		Eden区：Java新对象的出生地(如果新创建的对象占用内存很大，则直接分配到老年代)。
+		ServivorTo：保留了一次MinorGC过程中的幸存者。
+		ServivorFrom：上一次GC的幸存者，作为这一次GC的被扫描者。
+		默认Eden与Survivor默认比例是8:1
+		
+	老年代的对象比较稳定，所以MajorGC不会频繁执行。
+
+	在进行MajorGC前一般都先进行了一次MinorGC，使得有新生代的对象晋身入老年代，导致空间不够用时才触发。当无法找到足够大的连续空间分配给新创建的较大对象时也会提前触发一次MajorGC进行垃圾回收腾出空间。
+	
+	内存分配与回收策略
+		对象内存分配，往大方向上讲，就是在堆上分配，对象主要分配在新生代的eden区上
+		1、对象优先在eden分配
+			当Eden区内存不够的时候就会触发MinorGC，对新生代区进行一次垃圾回收。
+		2、大对象直接进入老年代
+			指的是需要大量连续内存空间的java对象，典型的是很长的字符串和数组，比如byte[]，
+		3、长期存活的对象将进入老年代
+			默认gc后年龄计数器+1，达到15进入老年代，参数可配置
+		4、动态对象年龄判断
+			当年大于survivor空间的一半，大于等于该年龄的直接进入老年代
+		5、空间分配担保
+			发生minor GC,jvm会检测室之前晋升到老年代的平均值大小，再根据老年代的剩余空间大小，够就开启担保（避免频繁full gc），允许就执行minor gc，不允许就full gc，不够直接full gc，如果担保失败，也进行full gc。
+			
+			
+	虽然java的垃圾回收机制仅是回收堆区的资源，而对于非堆区无效，这种只能凭借开发人员自身的约束来解决。（堆区有java回收机制、非堆区开发人员能够很好的解决），
+	配置堆区：-Xms 、-Xmx、-XX:newSize、-XX:MaxnewSize、-Xmn
+	配置非堆区：-XX:PermSize、-XX:MaxPermSize
+	
+内存溢出：	
+	第一种OutOfMemoryError： PermGen space   永久区内存溢出 修改PermSize  MaxPermSize，又叫非堆内存溢出，永久保存区域是存放class信息和meta信息，分配了后，jvm是不会去回收的
+	发生这种问题的原意是程序中使用了大量的jar或class，使java虚拟机装载类的空间不够，与Permanent Generation space有关。解决这类问题有以下两种办法：
+	1. 增加java虚拟机中的XX:PermSize和XX:MaxPermSize参数的大小，其中XX:PermSize是初始永久保存区域大小，XX:MaxPermSize是最大永久保存区域大小。
+	如针对tomcat6.0，在catalina.sh 或catalina.bat文件中一系列环境变量名说明结束处（大约在70行左右） 增加一行：JAVA_OPTS=" -XX:PermSize=64M -XX:MaxPermSize=128m"
+	如果是windows服务器还可以在系统环境变量中设置。感觉用tomcat发布sprint+struts+hibernate架构的程序时很容易发生这种内存溢出错误。使用上述方法，我成功解决了部署ssh项目的tomcat服务器经常宕机的问题。
+	2. 清理应用程序中web-inf/lib下的jar，如果tomcat部署了多个应用，很多应用都使用了相同的jar，可以将共同的jar移到tomcat共同的lib下，减少类的重复加载。
+
+	第二种OutOfMemoryError：  Java heap space 堆内存溢出 Xms 和Xmx
+	发生这种问题的原因是java虚拟机创建的对象太多，在进行垃圾回收之间，虚拟机分配的到堆内存空间已经用满了，与Heap space有关。解决这类问题有两种思路：
+		1. 检查程序，看是否有死循环或不必要地重复创建大量对象。找到原因后，修改程序和算法。
+		2. 增加Java虚拟机中Xms（初始堆大小）和Xmx（最大堆大小）参数的大小。如：set JAVA_OPTS= -Xms256m -Xmx1024m
+		
+	定位永久区的内存溢出，jstat -gcpermcapacity pid  ,数据都是以kb为单位的
+	内存配置默认是物理内存的1/64;JVM最大分配的内存由-Xmx指定，默认是物理内存的1/4。
+	默认空余堆内存小于40%时，JVM就会增大堆直到-Xmx的最大限制;空余堆内存大于70%时，JVM会减少堆直到-Xms的最小限制。因此服务器一般设置-Xms、-Xmx相等以避免在每次GC 后调整堆的大小
+		
+		
+jvm的性能监控域处理工具   jconsole 和jvisualVM 可视化监控工具
+	jps：显示指定系统所有的hotspot jvm进程 常用的是使用-l查看完整的类路径和jar包的位置
+	jstat：手机hotspot jvm各方面（类装载，内存，垃圾收集）的运行数据				运行期定位jvm性能首选
+	jinfo： 显示虚拟机的配置信息
+	jmap：生成jvm的内存转储快照（heapdump文件），java内存映像工具
+	jhat：分析heapdump文件，会建立一个http/htm服务器，让用户可在浏览器上查看分析结果
+	jstack：显示jvm的线程快照  可定位线程长时间未响应的原因
+	
+	后续也可以使用VisualVM和Jconsole可视化监视工具监控系统的内存
+	new byte[64*1024],创建一个64kb大小的字节数组
+	处于作用域中的gc是无效的，比如gc在测试主函数内
+	
+	JConsole远程连接配置 	https://blog.csdn.net/dumbant/article/details/80392506
+	
+	eclipse的启动优化，中使用-Xverify:none，禁止掉启动过程的字节码验证,
+	在eclipse.in 中
+		-Xverify:none			禁止掉启动过程的字节码验证,//属于通联钱包的需求,直接提现相关金额
+	                		UserResult userResult = userInfoService.getUserInfoByUserCode(null, request.getToAcctNo());
+	                		//1、校验用户资金平衡		2、金额校验、提现校验  3、认证校验
+//	                		Result vResult = userManagerService.userAccountValidate(request.getToAcctNo());//放过,log_user_trade无法校验，
+	                		Result vResult = new Result();
+	                		vResult.setSuccess(true);
+	                		String withDrawMoney=String.valueOf(OrderCodeUtil.fengToYuan(request.getTranAmt()));
+	                		Result valiResult = withdrawService.validateAmount(withDrawMoney, userResult.getBalance(), userResult,"0");
+	                		
+	                		if(vResult.isSuccess() && StringConstants.ONE.equals(userResult.getAuthFlagDto()) && valiResult.isSuccess()){
+	                    		userResult.setCardNo("0123456789");//默认卡号123
+	                    		// 提现,默认pc端的余额提现
+	                    		Result submitResult = withdrawService.submit(userResult, withDrawMoney, "11",null,"0");
+	                    		if (!submitResult.isSuccess()) {
+	                    			//短信通知
+	                    			String handleMsg=String.format("账户：%s提现处理错误,错误信息:%s,单号:%s",request.getToAcctNo(),submitResult.getMessage(),xyeOrderExtSnStr);
+	                    			LOGGER.info("通联钱包验收提现处理错误:"+handleMsg);
+	                    			ExceptionSmsUtil.send("通联钱包验收提现处理错误---","handleExceptionMsg:"+submitResult.getMessage(), xyeOrderExtSnStr,request.getToAcctNo(),null,request.getTranAmt());
+	                    		}
+		-XX:+DisableExplicitGC  取消显示的system.gc
+	实际测试效果不是很明显
+
+class加载的问题
+	编译器将java代码编译成存储字节码的class文件（对应的结构，顺序和长度都是固定的），就可以在jvm中运行
+	
+jvm的类加载机制：jvm把描述类的数据从class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可被jvm直接使用的java类型，	
+	对于静态字段，只有直接定义这个字段的类才会初始化，因此通过其子类来引用父类中的定义的静态字段，只会触发父类的初始化而不会触发子类的初始化
+	静态代码块static{}用来初始化信息
+	加载的几个阶段：加载，验证，准备，解析，初始化，使用，卸载，前5个就是类的加载过程，2-4属于连接
+	加载：获取类的二进制字节流，将其代表的静态存储结构转化为方法区的运行时数据结构，在堆中生成代表该类的class对象，作为方法区这些数据的访问入口。
+	验证：确保class文件的字节流中包含的信息符合当前虚拟机的要求，并不会危害jvm自身安全
+	准备：在方法区中，为类变量分配内存并设置类变量的初始值
+	解析：jvm将常量池内存内的符号引用替换为直接引用的过程
+	初始化：
+	
+	
+	
+	对于任意一个类，都需要有加载它的类加载器和这个类本省一同确立其在jvm中的唯一性。
+	
+	在jvm的角度将，只存在两种不同的类加载器，一种是启动类加载器，另一种是所有其他的类加载器（独立于虚拟机外部，全部继承自抽象类java.lang.classLoader），
+	
+	代码编译的结果从本地机器码转变为字节码，是存储格式发展的一小步，确实编程语言发展的一大步
+	
+	
+	volatile保证了多线程操作时变量的可见性，而普通变量则不能保证这一点
+	线程是cpu调度的最基本单位
+	
+	
+	final这类的不可变对象一定是线程安全的。典型的String类就是
+	
+	线程安全的实现方法
+		1互斥同步 主要的问题就是进行线程阻塞和唤醒带来的性能问题，也称为阻塞同步
+			典型的是synchronized
+			
+	一个thread对象中都有一个threadlocalmap的对象，该对象存储了一组以threadlocal.threadlocalhashcode为键，以本地线程变量为值的k-v值对，这样就保证了线程变量的唯一性
+	Thread.ThreadLocalMap<ThreadLocal, Object>;
+	
+	
+	
+分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。
+
+满足的条件
+	系统是一个分布式系统（关键是分布式，单机的可以使用ReentrantLock或者synchronized代码块来实现）
+	共享资源（各个系统访问同一个资源，资源的载体可能是传统关系型数据库或者NoSQL）
+	同步访问（即有很多个进程同事访问同一个共享资源。没有同步访问，谁管你资源竞争不竞争）
+	
+
+	
+	
+	
+aop事务的动态代理实现：
+
+/**
+ * @ClassName: TransactionHandler
+ * @Description: 动态代理封装事务
+ * @author: 十期-牛迁迁
+ * @date: 2015-10-11 下午2:59:15
+ */
+public class TransactionHandler implements InvocationHandler
+{
+    private Object targetObject;
+
+    public Object newProxyInstance(Object targetObject)
+    {
+        this.targetObject = targetObject;
+        //使用Proxy类，通过反射得到一个动态的代理对象
+        return Proxy.newProxyInstance(targetObject.getClass().getClassLoader(),
+                targetObject.getClass().getInterfaces(), this);
+    }
+
+     //在invoke方法中做一些其他操作
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable
+    {
+        Connection conn = null;
+        Object ret = null;
+        try
+        {
+            // 从ThreadLocal中取得Connection
+            conn = ConnectionManager.getConnection();
+            if (method.getName().startsWith("add")
+                    || method.getName().startsWith("del")
+                    || method.getName().startsWith("modify"))
+            {
+                // 手动控制事务提交
+                ConnectionManager.beginTransaction(conn);
+            }
+            // 调用目标对象的业务逻辑方法
+            ret = method.invoke(targetObject, args);
+            if (!conn.getAutoCommit())
+            {
+                // 提交事务
+                ConnectionManager.commitTransaction(conn);
+            }
+        }
+        catch (ApplicationException e)
+        {
+            // 回滚事务
+            ConnectionManager.rollbackTransaction(conn);
+            throw e;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            if (e instanceof InvocationTargetException)
+            {
+                InvocationTargetException ete = (InvocationTargetException) e;
+                throw ete.getTargetException();
+            }
+            // 回滚事务
+            ConnectionManager.rollbackTransaction(conn);
+            throw new ApplicationException("操作失败！");
+        }
+        finally
+        {
+            ConnectionManager.closeConnection();
+        }
+        return ret;
+    }
+	
+	
+网关路由的mvc中requestmapping具体实现，
+	Spring是怎样检测并处理我们@RequestMapping注解的：?
+	扫描所有注册的Bean?遍历这些Bean，依次判断是否是处理器，并检测其HandlerMethod?遍历Handler中的所有方法，
+	找出其中被@RequestMapping注解标记的方法。?获取方法method上的@RequestMapping实例。?
+	检查方法所属的类有没有@RequestMapping注解??将类层次的RequestMapping和方法级别的RequestMapping结合? (createRequestMappingInfo)?当请求到达时，
+	去urlMap中需找匹配的url，以及获取对应mapping实例，然后去handlerMethods中获取匹配HandlerMethod实例。?将RequestMappingInfo实例以及处理器方法注册到缓存中。
+
+	
+	
+	使用@Aspect的aop代理中，暂时默认@before和@after是无法终止原来的方法的，只有@around可以终止原来的方法，截到具体的方法后，直接return 对象即可终止方法，
+
+	
+	
+	dubbo的负载均衡：
+		
+		4种策略
+			1、随机
+			2、轮询
+			3、按照活跃数少的优先调用，最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差。使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
+			3、hash一致：一致性hash，默认对第一个参数hash，相同参数请求发送统一提供者
+		
+		
+		
+		
+		3、权重，可以在dubbo中配置，也可以在dubbo后台管理中配置权重
+	
+
+	
+根据基本的线程知识，可以不加思索的想到下面的一些方法： 
+	1、秒杀在技术层面的抽象应该就是一个方法，在这个方法里可能的操作是将商品库存-1，将商品加入用户的购物车等等，在不考虑缓存的情况下应该是要操作数据库的。那么最简单直接的实现就是在这个方法上加上synchronized关键字，通俗的讲就是锁住整个方法； 
+	2、锁住整个方法这个策略简单方便，但是似乎有点粗暴。可以稍微优化一下，只锁住秒杀的代码块，比如写数据库的部分； 
+	3、既然有并发问题，那我就让他“不并发”，将所有的线程用一个队列管理起来，使之变成串行操作，自然不会有并发问题。
+	
+	
+分布式锁的必要性：
+	如果不同的系统或是同一个系统的不同主机之间共享了一个或一组资源，那么访问这些资源的时候，往往需要互斥来防止彼此干扰来保证一致性，在这种情况下，便需要使用到分布式锁。
+	
+	对接接口的安全性，1、使用同一的token校验，2、增加ip白名单过滤，3、获取动态口令，优先时间60秒
+

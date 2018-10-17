@@ -48,3 +48,7 @@ http://www.java1234.com/ 	java资源共享
 https://www.ckook.com/    	编程资源共享网
 http://www.smallseashell.com/   小贝壳模板共享
 https://github.com/liangjixunz/imgupload  liang github
+
+
+
+http://www.ftchinese.com/  ft中文网

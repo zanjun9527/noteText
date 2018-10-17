@@ -103,3 +103,12 @@ ComponentScan 和dao的扫描问题
 
 alt+enter 单独导入和抛出异常  或者       光标移到该代码行，或者选中该行代码，Ctrl+Alt+T
 
+
+全局搜索		Ctrl+Shift+R就是全局搜索文件
+查看最近文件	Ctrl+E
+
+
+
+打开maven的依赖树，然后Ctrl+O，打开图中的搜索功能，可以定位到具体的依赖位置
+
+

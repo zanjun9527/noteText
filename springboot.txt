@@ -133,7 +133,7 @@ springboot-171 开始boot 的web开发
 
 30、	使用junit测试文件类
 	@RunWith(SpringJUnit4ClassRunner.class)
-	@SpringApplicationConfiguration(classes = SpringBootSampleApplication.class)
+	@SpringApplicationConfiguration(classes = SpringBootSampleApplication.class)，新版的用@SpringBootTest代替
 	@WebAppConfiguration
 
 31、	使用https配置
@@ -182,7 +182,7 @@ springboot-171 开始boot 的web开发
 boot推荐基于java配置优于xml
 
 maven总是会用最近的依赖，也就是谁，你在项目中的构建说明文件增加该依赖，会覆盖传递依赖引入另一个依赖，比如引入了两个不同版本的jar，优先近的依赖
- springboot中的logback日志需要默认文件的名称是logback.xml
+ springboot中的logback日志需要默认文件的名称是logback.xml，也可以通过logging.config指定具体的名称
 记载的优先顺序是logback.xml--->properties--->logback-spring.xml，一般用后者，不行用前者，区别在于是否使用属性值
 
 
@@ -199,4 +199,27 @@ springboot中的自定义配置：
 	，影响自动配置的：1、显式覆盖 2使用属性进行精细化配置
 	  @ConditionalOnMissingBean，是覆盖自动配置的关键，存在相应的就会降低自动配置的优先级。
 	  springboot的设计是：加载应用级配置，随后再考虑自动配置类
+	  
+	  
+	  
+	  @ConfigurationProperties一般需要@EnableConfigurationProperties开启支持，但是后面boot的自动配置已经加上了，所以一般也可以不显示开启
 
+boot中的多环境配置
+	application.properties
+	application-{profile}.properties
+	spring.profiles.active=dev 开启默认的profile属性
+	
+	目前看还是maven的多环境比较合适，不会存在多个问题
+	
+	也可以自定义error页面放在templates下，
+	
+	自定义了log配置以后，简单的配置也需要<appender name="STDOUT">,否则控制台不会打印日志
+
+	
+	spring的mockMvc测试框架，可以不需要容器运行就测试mvc，仅此而已，知道即可。
+	
+	
+	
+<property name="logbackpath" value="../logs/"></property> springboot的jar启动，当前的位置就是jar的位置
+	
+	
