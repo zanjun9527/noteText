@@ -1828,7 +1828,18 @@
 276、	EOLINKER接口文档，soso-api接口文档
 
 277、	<context:component-scan> ，属性base-package去扫描指定包下的class和jar文件，扫描到有@Component @Controller@Service等这些注解的类，并注册为Bean类放到Bean工厂
-
+		包含了@Controller ，不需要用<mvc:annotation-driven/>了
+		
+		1><mvc:annotation-driven/>会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean
+			DefaultAnnotationHandlerMapping ：负责扫描带有@Controller注解的类，给此类设置对应的@RequestMapping
+			AnnotationMethodHandlerAdapter ：负责扫描Controller类中的方法，给方法设置对应的@RequestMapping
+		2><context:component-scan base-package=""></context:component-scan>
+			扫描器会扫描带有@Component@Service@Controller@Component等注解，并实现相应的操作，
+			因为这四个注解包含了@Controller，
+			所以会将Controller类和方法进行映射,不需要用<mvc:annotation-driven/>了
+		
+		
+		
 
 278、	<Host appBase="webapps" autoDeploy="true" name="localhost" unpackWARs="true">
 
@@ -4322,3 +4333,147 @@ sql的字符串截取
 	存储时，如果出现hash值相同的key，此时有两种情况。(1)如果key相同，则覆盖原始值；(2)如果key不同（出现冲突），则将当前的key-value放入链表中
 	获取时，直接找到hash值对应的下标，在进一步判断key是否相同，从而找到对应值。
 核心就是使用了数组的存储方式，然后将冲突的key的对象放入链表中，一旦发现冲突就在链表中做进一步的对比。
+
+
+522、Spring MVC 的Servlet，它将加载WEB-INF/springDispatcherServlet-servlet.xml  servlet名-servlet.xml
+
+523、	非null的，size为0的list，遍历直接跳过
+
+524、	opnotice可以记录远程调用的结果，进表后，不成功的后面的job再轮询调用
+
+525、	@ResponseBody直接用，response.getwriter忽略
+
+526、	下划线转驼峰，user_info   userInfo
+
+527、	@Autowired是根据类型自动装配的，加上@Qualifier则可以根据byName的方式自动装配，其中@Qualifier不能单独使用。
+		
+		@Resource  
+		如有指定的name属性，先按该属性进行byName方式查找装配；其次再进行默认的byName方式进行装配；如果以上都不成功，则按byType的方式自动装配。都不成功，则报异常。
+
+528、	dev 开启属性过滤后，才加入容器的，application中的需要单独加入才行
+		allin.pay.card.merId=$[allin.pay.card.merId]
+		
+		
+529、		-- 使用相对的路径读取文件
+			String privateKeyFile ="filters/xye-ac.properties";
+			InputStream resourceAsStream = RequireOrderAllinpayServiceImpl.class.getClassLoader().getResourceAsStream(privateKeyFile);  
+			路径不加classpath					
+
+
+			-- 使用文件路径读取
+			String configFile ="tlqb/private.key";
+			URL classPath = Thread.currentThread().getContextClassLoader().getResource("");
+			String proFilePath = classPath.toString();
+								
+			//移除开通的file:/六个字符
+			proFilePath = proFilePath.substring(6); 
+								
+			//如果为window系统下,则把路径中的路径分隔符替换为window系统的文件路径分隔符
+			proFilePath = proFilePath.replace("/", java.io.File.separator);
+								
+			//兼容处理最后一个字符是否为 window系统的文件路径分隔符,同时建立 properties 文件路径
+			//例如返回: D:\workspace\myproject01\WEB-INF\classes\config.properties
+			if(!proFilePath.endsWith(java.io.File.separator)){
+				proFilePath = proFilePath + java.io.File.separator + configFile;
+				} else {
+				proFilePath = proFilePath + configFile;
+			}
+			FileInputStream publicKeyStream = new FileInputStream(proFilePath );
+			PublicKey publickey = SecurityUtils.loadPublicKey(publicKeyStream);
+
+			
+530、	在tomcat中配置jvm的内存变量
+		set "JAVA_OPTS=-Xms512m -Xmx512m -XX:ParallelGCThreads=8 -XX:PermSize=128m -XX:MaxPermSize=256m"
+		
+531、	Union：对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序；
+		Union All：对两个结果集进行并集操作，包括重复行，不进行排序；
+		
+		
+532、	当表被TRUNCATE 后，这个表和索引所占用的空间会恢复到初始大小，
+		DELETE操作不会减少表或索引所占用的空间。
+		drop语句将表所占用的空间全释放掉。
+		(5)TRUNCATE 和DELETE只删除数据， DROP则删除整个表（结构和数据）。
+		(7)delete语句为DML（data maintain Language),这个操作会被放到 rollback segment中,事务提交后才生效。如果有相应的 tigger,执行的时候将被触发。
+		(8)truncate、drop是DLL（data define language),操作立即生效，原数据不放到 rollback segment中，不能回滚
+
+		
+533、	将directory目录下的全目录内容打包到classes下
+		在elclise中直接启动时编译是以本地代码为准的，dev其他路径的环境参数只针对maven 打包后的有效
+			<resource>
+				<directory>src/main/resources/${env}</directory>
+				<includes>
+					<include>application.properties</include>
+					<include>tlqb/*</include>
+				</includes>
+			</resource>
+			
+			<env></env> 空,打出来的就是空的/路径
+			<resource>
+				<directory>../vars/${pay_env}/tlqb</directory>
+				<!-- 目标路径 -->
+				<targetPath>WEB-INF/classes/tlqb</targetPath>
+			</resource>
+			
+		-- 对应jenkins发布的版本号	
+		> /usr/bin/git checkout -f 658390e95d5da0389444221d8960b0d0d252c25c
+		Commit message: "钱包需求变更"
+		
+				
+		dev 和其他环境的打包问题，默认的是使用本地的代码，只有maven打包的时候才会选择相应的环境
+		
+			
+534、	linux
+		ps -ef | grep nginx
+		ps -ef |grep tomcat		一样的查询功能
+		lsof -i:80
+		whereis nginx
+		/usr/nginx/sbin/nginx -t
+		
+		rocketmq的启动和停止
+		1、rocketmq的启动 
+			进入rocketMQ解压目录下的bin文件夹 
+			启动namesrv服务：nohup sh bin/mqnamesrv & 
+			日志目录：{rocketMQ解压目录}/logs/rocketmqlogs/namesrv.log
+
+			启动broker服务：nohup sh bin/mqbroker & 
+			日志目录：{rocketMQ解压目录}/logs/rocketmqlogs/broker.log 
+			以上的启动日志可以在启动目录下的nohub.out中看到 
+
+		2、rocketmq服务关闭
+		关闭namesrv服务：sh bin/mqshutdown namesrv
+		关闭broker服务 ：sh bin/mqshutdown broker
+
+		 
+		 	
+535、	分的保留0位  和元的保留2位是一样的，精确到分位
+		tax =Arith.format(Double.valueOf(price)/100D * Double.valueOf(ddr),0).longValue();
+		tax =Arith.format(price/100 * Double.valueOf(ddr),0).longValue();
+		
+536、	一个 HTTP 请求报文由请求行（request line）、请求头部（header）、空行和请求数据 4 个部分组成，
+		通过读取请求报文头中 Cookie 属性的JSESSIONID 的值，在服务端的一个会话 Map 中，根据这个 JSESSIONID 获取对应的HttpSession 的对象。
+
+		HTTP 请求报文由 3 部分组成（ 请求行+请求头+请求体 ）
+		HTTP 的响应报文也由三部分组成（ 响应行+响应头+响应体 ）
+
+		GET 将提交到服务器的数据添加到 URL 中了，可见；虽然POST 的数据，你肉眼看不到，你抓个包看看，在 HTTP 包的包体中
+
+		幂等的意味着对同一 URL 的多个请求应该返回同样的结果。
+
+		session 机制是一种服务器端的机制，服务器使用一种类似于散列表的结构（也可能就是使用散列表）来保存信息
+
+		般用来实现 Session 的方法有两种：
+		（1）URL 重写。
+		Web Server 在返回 Response 的时候，检查页面中所有的 URL，包括所有的连接，和
+		HTML Form 的 Action 属性，在这些 URL 后面加上“;jsessionid=XXX”。
+		下一次，用户访问这个页面中的 URL。jsessionid 就会传回到 Web Server。
+		（2）Cookie
+
+		forward:一般用于用户登陆的时候,根据角色转发到相应的模块.
+		redirect:一般用于用户注销登陆时返回主页面和跳转到其它的网站等
+		
+		页面请求就会页面，服务端请求就回服务端，浏览器请求页面，页面中js再加载回调的地址
+		通联的支付页面，页面倒计时，reload我们的路径地址，服务器的redirect应该也是可以的
+		
+	
+		
+		
