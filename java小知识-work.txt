@@ -1828,7 +1828,18 @@
 276、	EOLINKER接口文档，soso-api接口文档
 
 277、	<context:component-scan> ，属性base-package去扫描指定包下的class和jar文件，扫描到有@Component @Controller@Service等这些注解的类，并注册为Bean类放到Bean工厂
-
+		包含了@Controller ，不需要用<mvc:annotation-driven/>了
+		
+		1><mvc:annotation-driven/>会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean
+			DefaultAnnotationHandlerMapping ：负责扫描带有@Controller注解的类，给此类设置对应的@RequestMapping
+			AnnotationMethodHandlerAdapter ：负责扫描Controller类中的方法，给方法设置对应的@RequestMapping
+		2><context:component-scan base-package=""></context:component-scan>
+			扫描器会扫描带有@Component@Service@Controller@Component等注解，并实现相应的操作，
+			因为这四个注解包含了@Controller，
+			所以会将Controller类和方法进行映射,不需要用<mvc:annotation-driven/>了
+		
+		
+		
 
 278、	<Host appBase="webapps" autoDeploy="true" name="localhost" unpackWARs="true">
 
@@ -3869,5 +3880,600 @@ public class TokenFilter implements ContainerRequestFilter {
 
 
 
+494、java String的split方法容易犯的错误
+		今天用split方法分割一个类似"9580|9570|9571"的字符串,用Arrays.asList将String[]转成List,结果却是这样
+		[9,5,8,0,|,9,5,7,0,|,9,5,7,1]
+		列出几个要点
+		首先java doc里已经说明, split的参数是reg, 即正则表达式, 如果用"|"分割, 则需使用"\\|"
+		用* 分隔字符串运行将抛出java.util.regex.PatternSyntaxException异常，用加号 + 也是如此, 因此也应加入"\\"
+		如果字符串中包含"\",首先这个字符串中的"\"需要转义, 即为"\\", 用split时需要写成split("\\\\"), 例子如下System.out.println(Arrays.asList("aaa\\bbb\\bccc".split("\\\\")));
+		可以这样思考, 要写成用"\"分割,则首先需要转义"\\", 同时要让"\\"在正则表达式中有意义, 还需在第一个"\"和第二个"\"前面再加一个"\", 就变成了四个"\".
+
+495、	for (NetPayRefund netPayRefund : refundWxScan) 多个遍历的使用相同的单一变量名ok
+
+496、	linux上的tomcat启动使用的是sit_yunwei的权限操作的，那么运行的java代码也只有运维的权限，不能在/usr/local下创建目录
+
+497、	日志分类，主要关注运行catalina.out,和启动的localhost.log
+		catalina.out即标准输出和标准出错，所有输出到这两个位置的都会进入catalina.out，这里包含tomcat运行自己输出的日志以及应用里向console输出的日志。
+		catalina.{yyyy-MM-dd}.log是tomcat自己运行的一些日志，这些日志还会输出到catalina.out，但是应用向console输出的日志不会输出到catalina.{yyyy-MM-dd}.log。
+		localhost.{yyyy-MM-dd}.log主要是应用初始化(listener, filter, servlet)未处理的异常最后被tomcat捕获而输出的日志，而这些未处理异常最终会导致应用无法启动。
+		
+498、	在a merge b    b->a,本源合并  
+
+499、	编码转换
+			utf-8系统接收中兴的gbk编码问题，直接在文件流中转即可，看了半天
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+								urlCon.getInputStream(),"GBK"));
+						StringBuffer strBuff = new StringBuffer();
+						String line;
+						while ((line = in.readLine()) != null) {
+							strBuff.append(line);
+						}
+						return strBuff.toString();
 
 
+			DS205[平台商户未签约支付渠道1004]  gbk的流使用utf8解码，自然是乱码的字符串，然后再用乱码字符串进行utf8编码，本来就不识别的码的字符串，自然转不成正确的字符串
+
+
+			String.getBytes("encoding")的意思:
+			odd=new String(odd.getBytes(),"GBK"); 使用utf8编码在用gbk解码肯定乱码
+			把JVM内存中unicode形式的String按encoding制定的编码，
+			JVM内部的String，Char都是用unicode存储(没有任何编码)
+
+			26 	12个字+4数字
+			42	15个字+4数字
+			字符串：平台商户未签约支付渠道1004    gbk 26个字节
+			GBK转成utf8后乱码，gbk字节使用utf8解码：?????δ?? ???????1004
+			再将乱码使用utf8编码 得到42 个字节，得到的不是原来的字节了
+			所以对传输的东西，使用相应的编码解码
+			
+500、	小秘书的数据源选择
+		根据环境选择数据源   使用jndi-JndiObjectFactoryBean，使用配置的数据源-DataSourceBuilder
+
+		@Bean(destroyMethod="")
+			public DataSource jndiDataSource() throws IllegalArgumentException, NamingException {
+				Properties pro = new Properties();
+				InputStream input =Application.class.getClassLoader().getResourceAsStream("application.properties");
+				try {
+					pro.load(input);
+				} catch (Exception e) {
+					logger.error("STARTUP ERROR WHEN LOADING application.properties", e);
+				}
+				
+				String debug = String.valueOf(pro.get("dev.debug"));
+				if("0".equals(debug)){
+					JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
+					bean.setJndiName("java:comp/env/jdbc/xye-manager");
+					bean.setProxyInterface(DataSource.class);
+					bean.setLookupOnStartup(false);
+					bean.afterPropertiesSet();
+					dataSource=(DataSource)bean.getObject();
+				}else{
+					driverName = String.valueOf(pro.get("spring.datasource.driver-class-name"));
+					url = String.valueOf(pro.get("spring.datasource.url"));
+					userName = String.valueOf(pro.get("spring.datasource.username"));
+					password = String.valueOf(pro.get("spring.datasource.password"));
+					DataSourceBuilder factory = DataSourceBuilder  
+						.create(Application.class.getClassLoader())  
+						.driverClassName(driverName)  
+						.url(url).username(userName)  
+						.password(password);  
+				dataSource= factory.build();
+				}
+
+501、dubbo在springboot中，不使用内嵌的tomcat启动
+		SpringApplication.run(XyeServiceCoreApplication.class, args);	//静态的run方法，使用内嵌的tomcat启动，至于能不能用在无tomcat的jar启动，暂不测试
+		new springapplicationbuilder(a.class).web(false).run(args)，jar启动其中中不使用tomcat，启动springboot工程，搭配下面的使用
+		com.alibaba.dubbo.container.Main.main(args);//dubbo的推荐的main函数启动
+
+		springapplicationbuilder.sources()在原本的流程中是用来指定外置tomcat的入口，war启动指定入口，main是java启动入口
+		@Override
+		protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+			return application.sources(XyeServiceCoreApplication.class);
+		}
+		
+		相对于上面的非web启动方式，这个方法也行哦
+		SpringApplication springApplication = new SpringApplication(XyeServiceCoreApplication.class);
+		springApplication.setWebEnvironment(false);
+		springApplication.run(args);
+		com.alibaba.dubbo.container.Main.main(args);
+		
+	
+		springboot启动不错吧
+		@SpringBootApplication  
+		public class Application {  
+		  public static void main(String[] args) {  
+				// SpringApplication.run(Application.class, args);  //方法1静态的run方法，容器tomcat启动
+				// SpringApplication application = new SpringApplication(Application.class);  //方法2启动
+				// application.setShowBanner(false);  
+				// application.run(args);  
+					new SpringApplicationBuilder().showBanner(true).sources(Application.class).run(args);  //方法3启动
+			}  
+		}  
+	
+		
+		首先在classpath下创建dubbo.properties
+		写入dubbo.service.shutdown.wait = 毫秒数
+		然后再pom文件里的打包标签里把dubbo.properties加进去
+		打jar包测试，结果OK
+		优雅停机，先consumer请求，再执行kill 命令，停止provider端的机器，结果就是55秒后才停机，不能kill -9，
+		
+502、	使用https,可以使用jdk自带的keystool工具生成
+
+
+503、	quartz的实现方式：
+			1、本地的job，基本上是xml中配置为主
+				<bean id="statDayJob" class="com.xiaoyuer.scheduledtimer.StatDayScheduledTimer"/>
+				<bean id="statDayJobTrigger" 
+						class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+					<property name="jobDetail" ref="statDayJobDetail"/>
+					<property name="cronExpression" value="0 20 06 * * ?"/>
+				</bean>
+				<bean id="statDayJobDetail"
+						class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+					<property name="targetObject" ref="statDayJob" />
+					<property name="targetMethod" value="excute" />
+					<property name="concurrent" value="false" />
+				</bean>
+				
+
+				
+				<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+					<property name="triggers">
+						<list>
+							<ref bean="userGoalJobTrigger" />
+							<ref bean="statDayJobTrigger"/>
+						</list>
+					</property>
+					<property name="autoStartup" value="true" />
+				</bean>
+		
+		2、这里配置了主要的bean之后，手工代码添加，可以控制job的触发，缺点是需要建表，管理job任务
+			<bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+			<property name="dataSource" ref ="dataSource" />       
+			<property name="applicationContextSchedulerContextKey" value="applicationContextKey"/>
+			<property name="configLocation" value="classpath:quartz.properties"/>			
+			</bean>
+    
+			这里讲job的任务信息，持久化到了数据库中
+			
+			<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean" >
+				<property name="jobClass">
+					<value>com.xiaoyuer.pay.quartz.service.MyQuartzJobBean</value>        //继承QuartzJobBean
+				</property>
+			   <property name="durability" value="true" />	
+			</bean>
+			配置两个job用的bean，用来添加jobdetail，添加关联的tragger
+			
+			
+			创建CronTrigger和JobDetail，二者为包含关系：
+			方式一：CronTrigger包含JobDetail，JobDetail用MethodInvokingJobDetailFactoryBean工厂Bean包装普通的Java对象或bean；
+			
+			方式二：CronTrigger包含JobDetail，JobDetail用JobDetailFactoryBean包装QuartzJobBean的继承子类（即Job类）的实例；
+				
+			 
+			创建调度工厂，根据数据存储方式，分为两种：
+			方式一：内存RAMJobStore：把job的相关信息存储在内存里，如果用spring配置quartz的job信息的话，所有信息是配置在xml里，当spirng context启动的时候就把xml里的job信息装入内存。
+			<bean name="startQuertz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+				  <property name="triggers">
+					   <list>
+							<ref bean="job01Trigger" />
+					   </list>
+				  </property>
+			 </bean>
+			方式二：数据库：读取配置在数据库里的job初始化信息，并且把job通过java序列化到数据库里，这样就使得每个job信息得到了持久化，即使在jvm或者容器挂掉的情况下，也能通过数据库感知到其他job的状态和信息；quartz集群各节点之间是通过同一个数据库实例(准确的说是同一个数据库实例的同一套表)来感知彼此的。 
+			<bean id="quartzScheduler" lazy-init="false" class="org.springframework.scheduling.quartz.SchedulerFactoryBean"> 
+				  <property name="dataSource" ref="dataSource" />
+				  <property name="autoStartup" value="true" />
+				  <property name="applicationContextSchedulerContextKey"  value="applicationContextKey" />
+				   <property name="configLocation" value="classpath:quartz.properties"/>
+				  <property name="triggers">
+					   <list>
+							<ref bean="job02Trigger" />
+					   </list>
+				  </property>
+			 </bean>
+			 
+			 quartz job的内容https://www.cnblogs.com/xuxueli/p/4866449.html  观望给了相应的数据库的sql
+			 quartz官网直接获得相关的代码sql
+			 
+			CronTriggerImpl trigger = new CronTriggerImpl();
+            trigger.setCronExpression(cronExpression);
+            TriggerKey triggerKey = new TriggerKey(name, group);
+            trigger.setJobName(jobDetail.getKey().getName());
+            trigger.setKey(triggerKey);
+            scheduler.addJob(jobDetail, true);// 加入一个任务到Quartz框架中, 等待后面再绑定Trigger
+            scheduler.scheduleJob(trigger);
+			
+			SimpleTriggerImpl 和上面一致，只是添加不同的tragger
+			
+			(ApplicationContext)jobexecutioncontext.getScheduler().getContext().get("applicationContextKey");获得上下文
+			在simpleService.judgeMethod(triggerName, group);方法向远程调用方法，通过httpclient发送请求到远程
+			
+			
+			
+			
+	每个任务JobDetail可以绑定多个Trigger，但一个Trigger只能绑定一个任务，这种绑定关系由四种接口来执行： 
+
+	Scheduler#scheduleJob(JobDetail, Trigger)  
+		该接口的作用是在将任务加入Quartz的同时绑定一个Trigger，Quartz会在加入该任务后自动设置Trigger的JobName与JobGroup为该JobDetail的name与group； 
+
+	Scheduler#scheduleJob(Trigger)  
+		该接口的作用是将该Trigger绑定到其JobName与JobGroup指向的任务JobDetail。这时的name与group需要在Trigger绑定前由Quartz的使用者来设置与调用 
+
+	Scheduler#rescheduleJob(String, String, Trigger)  
+		替换一个指定的Trigger, 即解除指定Trigger与任务的绑定，并将新的Trigger与任务绑定，Quartz会自动调整新Trigger的JobName与JobGroup，而旧的Trigger将被移除 
+
+	Scheduler#triggerJob(String, String)  
+		创建一个立即触发的Trigger，并将其与name与group指定的任务绑定 
+		
+    JobDetail有个属性叫durable，表明该任务没有任何trigger绑定时仍保存在Quartz的JobStore中，默认为false。 
+    若JobDetail的durable属性为false，则任务将会从Quartz移除。 
+				
+	下面这个接口其实可以理解为先addJob(JobDetail, false),再调用scheduleJob(Trigger),此时Quartz会自动校正与设置trigger3的JobName与JobGroup属性  
+	scheduler.scheduleJob(jobDetail, trigger3);  
+	// 因为任务已在上一条语句中已加入, 所以不能再使用scheduleJob(JobDetail, Trigger)
+			
+			
+503.加上static限定的字段，是所谓的类字段，也就是说这个字段的拥有者不是对象而是类。无论创建多少对象，static数据都只有一份，这里用了初始化的功能	
+			
+			
+504、一个类中可以有多个静态代码块
+	  public static Map<String, String> ppCodeMap = new HashMap<String, String>(3);
+		static
+		{
+			ppCodeMap.put(PP_CODE_ONE, "现金支出"); // 现金支出
+			ppCodeMap.put(PP_CODE_THREE, "委托代扣"); // 委托代扣
+		}
+			
+505、optimize table 优化mysql表的空间，可重置自增值，缺点是会锁表
+	 UNION ALL 的语句后面不能加;。
+	 
+506、开启vpn会使rocketmq的broker的ip地址发生变化
+		异步调用的会有线程等待和socket连接
+		
+507、request.getSession().setAttribute("accountNo", accountNo); 中的值相比在modelmap中优先返回
+
+508、sql相关
+		
+		SELECT `AUTO_INCREMENT`,t.TABLE_NAME FROM  INFORMATION_SCHEMA.TABLES t  WHERE TABLE_SCHEMA = 'db_xiaoyuer' AND t.AUTO_INCREMENT=0 AND t.AUTO_INCREMENT IS NOT NULL;
+
+		--  取消主键自增
+		SELECT
+		 CONCAT(
+				'ALTER TABLE ',
+			b.table_name,
+				' CHANGE ',
+				d.column_name,
+				' ',
+				d.column_name,
+				' ',
+				d.COLUMN_TYPE,
+				' NOT NULL',
+				';'
+			)
+		FROM
+			information_schema.TABLES b
+			
+			LEFT JOIN (SELECT * FROM INFORMATION_SCHEMA.Columns c WHERE   c.table_schema='db_xiaoyuer' AND c.column_key='PRI')d ON b.table_name= d.table_name
+		WHERE
+			b.table_name IN (SELECT t.TABLE_NAME  FROM  INFORMATION_SCHEMA.TABLES t  WHERE t.TABLE_SCHEMA = 'db_xiaoyuer' AND t.AUTO_INCREMENT=0 AND t.AUTO_INCREMENT IS NOT NULL) AND b.table_schema='db_xiaoyuer';
+			
+		-- 增加主键自增
+		SELECT
+		 CONCAT(
+				'ALTER TABLE ',
+			b.table_name,
+				' CHANGE ',
+				d.column_name,
+				' ',
+				d.column_name,
+				' ',
+				d.COLUMN_TYPE,
+				' NOT NULL',
+				' AUTO_INCREMENT'
+				';'
+			)
+		FROM
+			information_schema.TABLES b
+			
+			LEFT JOIN (SELECT * FROM INFORMATION_SCHEMA.Columns c WHERE   c.table_schema='db_xiaoyuer' AND c.column_key='PRI')d ON b.table_name= d.table_name
+		WHERE
+			b.AUTO_INCREMENT IS NULL AND b.table_schema='db_xiaoyuer' AND b.table_name NOT IN （）
+			
+			
+	SELECT * FROM pp_trade_ass_confirm_paid pcp LEFT JOIN log_user_trade lt ON pcp.order_no = lt.serial_number 关联的字段需要加索引
+
+	200 != NULL 中这条记录不参与比较
+	
+	insert into table (字段...)select ... 可以的，查询的列要对应上
+	
+	REPLACE替换函数，sql字符串的截取
+	SELECT SUBSTRING('订单：XQDD-520141119091355验收成功',4)
+	SELECT SUBSTRING_INDEX(SUBSTRING('订单：XQDD-520141119091355验收成功',4),'验',1)
+	
+	组合索引，优先全匹配，然后是第一位匹配，加上索引的数据都是计算哈希值存入表中，查询，直接根据数据hash值找，提高查询效率
+
+
+
+sql的字符串截取
+	
+
+509、在spring容器中所有实现了FactoryBean<T>的工厂接口的，都是通过getObject方法返回相应的bean的，也是实现bean注册进入容器的
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void afterPropertiesSet() {
+		if (this.name == null) {
+			this.name = this.beanName;
+		}
+		if (this.group == null) {
+			this.group = Scheduler.DEFAULT_GROUP;
+		}
+		if (this.applicationContextJobDataKey != null) {
+			if (this.applicationContext == null) {
+				throw new IllegalStateException(
+					"JobDetailBean needs to be set up in an ApplicationContext " +
+					"to be able to handle an 'applicationContextJobDataKey'");
+			}
+			getJobDataMap().put(this.applicationContextJobDataKey, this.applicationContext);
+		}
+
+		JobDetailImpl jdi = new JobDetailImpl();
+		jdi.setName(this.name);
+		jdi.setGroup(this.group);
+		jdi.setJobClass((Class) this.jobClass);
+		jdi.setJobDataMap(this.jobDataMap);
+		jdi.setDurability(this.durability);
+		jdi.setRequestsRecovery(this.requestsRecovery);
+		jdi.setDescription(this.description);
+		this.jobDetail = jdi;
+	}
+
+	@Override
+	public JobDetail getObject() {
+		return this.jobDetail;
+	}
+	
+	
+510、通联钱包，用户确认验收，随后服务者提现，session丢失   open走了一次hessian接口 request中的cookie丢失
+
+511、BeanNameAware bean中指定的id使用该方法，完成beanName的注入
+
+512、BeanNameAware		作用：让Bean获取自己在BeanFactory配置中的名字（根据情况是id或者name）。 
+	 BeanFactoryAware：	作用：让Bean获取配置他们的BeanFactory的引用。
+	 
+	 subList是返回一个镜像而不是新示例,得保证原来的list不能更改。
+	在使用时，如果更改了原来的list,sublist的任何操作都会报错
+
+					
+	
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>  
+
+	配置根路径的请求欢迎页 不进mvc的
+
+513、
+	this.pageContext.setAttribute("ninini", userInfo);//这里是用在jsp的标签tag中
+	和request.getSession().getAttribute(），优先pagecontext，如果pagecontext为null，则取后者
+	
+	在主站登录的问题中，http中的session是invalidate，但是https中的session是不同步的，所以没有注销
+	
+	
+514、按照字节截取字符串
+		/**
+		 * 	src：byte源数组
+			srcPos：截取源byte数组起始位置（0位置有效）
+			dest,：byte目的数组（截取后存放的数组）
+			destPos：截取后存放的数组起始位置（0位置有效）
+			length：截取的数据长度
+		 * @param a
+		 * @param b 起始长度
+		 * @param c	字节长度
+		 * @return
+		 * @throws UnsupportedEncodingException
+		 */
+		public static String getByteString(String a,int b,int c) throws UnsupportedEncodingException{
+			byte[] bytes = a.getBytes("GBK");
+			byte aaa[]=new byte[1024];
+			System.arraycopy(bytes, b, aaa, 0, c);
+			String string = new String(aaa, "GBK").trim();
+			return string;
+		}
+		
+515、	对request进行包装，使用Wrapper包装类，灵活改动原来的类的方法
+		RequestWrapper requestWrapper = new RequestWrapper(request);
+        chain.doFilter(requestWrapper, resp);
+
+516、	nginx是按照最全的路径匹配的,如果没有匹配到，则优先按照从左往右，最全域名先匹配
+		if ($http_host ~* "^(.*?)\.yu\.com$") {
+			set $domain $1;
+	    }
+		  location / {
+		 	if ($domain ~* "www") {
+        	 	proxy_pass https://192.168.6.222:9443;
+			  }
+			 if ($domain ~* "m") {
+        	 	proxy_pass https://192.168.6.222:9443;
+			 }
+        }  
+		
+		#location /ids {
+            #proxy_pass http://192.168.6.251:8150/ids;
+        #}
+		 #location /login {
+           #proxy_pass http://192.168.6.251:8150/ids/login;
+        #}
+		
+		location /ids {
+            proxy_pass https://192.168.6.222:9446/ids;
+
+        }
+		location /ids/login {
+           proxy_pass https://192.168.6.222:9446/ids/login;
+		}
+
+517、sso单点登录流程，这个是主要思想
+	1.项目启动，AuthenticationFilter中初始化Configuration和AuthInterceptor(鉴权事宜)，并且存入servletContext中
+	2.初次登录，直接redirect跳转ids_server端，判断cookie中没有登录相关name的cookie value，直接跳转登录页面，登录后，相同的https://www.yu.com/ids/login路径还是跳转登录页面				
+	3.点击登录，常规的登录次数和密码校验后，一般获取的域名是.yu.com,获取tockenFlag对应的cookie，存在，删除对应的redis值，开始单点登录	
+	4.生成一个随机数ticketId返回，并且在redis中设置对应的限时值(vId + "%_%" + userInfo.getUserCode())，并将返回的url统一设置成auth认证url，然后在.yu.com下写上tockenFlag对应的cookie值，在session中添加userinfo的信息，
+	5.认证返回后直接到AuthenticationServlet(只做登录和退出用)，调用之前的Configuration和AuthInterceptor，开始鉴权，见得到的ticket发送到server端验证，验证成功，返回对应的usercode,然后按需，存放相应的redis和cookies值，这里是xyeAuthId，认证后的标记，这样登录就成功了
+	6.后面的htm请求会经过filter，根据url对应使用三种权限校验，redis中存放的vid相关的信息，每次请求redis没有则清空cookie，存在就刷新redis的缓存时间,
+			
+518、dubbo的时间有超时限制，可以调节
+
+519、	maven相关的打包命令	使用 mvn clean install -Dmaven.test.skip=true pom工程 
+
+520、	set 中的hash冲突，先通过hashcode定位存放的位置，在根据equals判断是否相等，相同的话就不存了，不相同就散列其它的地址
+
+521、hashmap的原理	
+	利用key的hashCode重新hash计算出当前对象的元素在数组中的下标
+	存储时，如果出现hash值相同的key，此时有两种情况。(1)如果key相同，则覆盖原始值；(2)如果key不同（出现冲突），则将当前的key-value放入链表中
+	获取时，直接找到hash值对应的下标，在进一步判断key是否相同，从而找到对应值。
+核心就是使用了数组的存储方式，然后将冲突的key的对象放入链表中，一旦发现冲突就在链表中做进一步的对比。
+
+
+522、Spring MVC 的Servlet，它将加载WEB-INF/springDispatcherServlet-servlet.xml  servlet名-servlet.xml
+
+523、	非null的，size为0的list，遍历直接跳过
+
+524、	opnotice可以记录远程调用的结果，进表后，不成功的后面的job再轮询调用
+
+525、	@ResponseBody直接用，response.getwriter忽略
+
+526、	下划线转驼峰，user_info   userInfo
+
+527、	@Autowired是根据类型自动装配的，加上@Qualifier则可以根据byName的方式自动装配，其中@Qualifier不能单独使用。
+		
+		@Resource  
+		如有指定的name属性，先按该属性进行byName方式查找装配；其次再进行默认的byName方式进行装配；如果以上都不成功，则按byType的方式自动装配。都不成功，则报异常。
+
+528、	dev 开启属性过滤后，才加入容器的，application中的需要单独加入才行
+		allin.pay.card.merId=$[allin.pay.card.merId]
+		
+		
+529、		-- 使用相对的路径读取文件
+			String privateKeyFile ="filters/xye-ac.properties";
+			InputStream resourceAsStream = RequireOrderAllinpayServiceImpl.class.getClassLoader().getResourceAsStream(privateKeyFile);  
+			路径不加classpath					
+
+
+			-- 使用文件路径读取
+			String configFile ="tlqb/private.key";
+			URL classPath = Thread.currentThread().getContextClassLoader().getResource("");
+			String proFilePath = classPath.toString();
+								
+			//移除开通的file:/六个字符
+			proFilePath = proFilePath.substring(6); 
+								
+			//如果为window系统下,则把路径中的路径分隔符替换为window系统的文件路径分隔符
+			proFilePath = proFilePath.replace("/", java.io.File.separator);
+								
+			//兼容处理最后一个字符是否为 window系统的文件路径分隔符,同时建立 properties 文件路径
+			//例如返回: D:\workspace\myproject01\WEB-INF\classes\config.properties
+			if(!proFilePath.endsWith(java.io.File.separator)){
+				proFilePath = proFilePath + java.io.File.separator + configFile;
+				} else {
+				proFilePath = proFilePath + configFile;
+			}
+			FileInputStream publicKeyStream = new FileInputStream(proFilePath );
+			PublicKey publickey = SecurityUtils.loadPublicKey(publicKeyStream);
+
+			
+530、	在tomcat中配置jvm的内存变量
+		set "JAVA_OPTS=-Xms512m -Xmx512m -XX:ParallelGCThreads=8 -XX:PermSize=128m -XX:MaxPermSize=256m"
+		
+531、	Union：对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序；
+		Union All：对两个结果集进行并集操作，包括重复行，不进行排序；
+		
+		
+532、	当表被TRUNCATE 后，这个表和索引所占用的空间会恢复到初始大小，
+		DELETE操作不会减少表或索引所占用的空间。
+		drop语句将表所占用的空间全释放掉。
+		(5)TRUNCATE 和DELETE只删除数据， DROP则删除整个表（结构和数据）。
+		(7)delete语句为DML（data maintain Language),这个操作会被放到 rollback segment中,事务提交后才生效。如果有相应的 tigger,执行的时候将被触发。
+		(8)truncate、drop是DLL（data define language),操作立即生效，原数据不放到 rollback segment中，不能回滚
+
+		
+533、	将directory目录下的全目录内容打包到classes下
+		在elclise中直接启动时编译是以本地代码为准的，dev其他路径的环境参数只针对maven 打包后的有效
+			<resource>
+				<directory>src/main/resources/${env}</directory>
+				<includes>
+					<include>application.properties</include>
+					<include>tlqb/*</include>
+				</includes>
+			</resource>
+			
+			<env></env> 空,打出来的就是空的/路径
+			<resource>
+				<directory>../vars/${pay_env}/tlqb</directory>
+				<!-- 目标路径 -->
+				<targetPath>WEB-INF/classes/tlqb</targetPath>
+			</resource>
+			
+		-- 对应jenkins发布的版本号	
+		> /usr/bin/git checkout -f 658390e95d5da0389444221d8960b0d0d252c25c
+		Commit message: "钱包需求变更"
+		
+				
+		dev 和其他环境的打包问题，默认的是使用本地的代码，只有maven打包的时候才会选择相应的环境
+		
+			
+534、	linux
+		ps -ef | grep nginx
+		ps -ef |grep tomcat		一样的查询功能
+		lsof -i:80
+		whereis nginx
+		/usr/nginx/sbin/nginx -t
+		
+		rocketmq的启动和停止
+		1、rocketmq的启动 
+			进入rocketMQ解压目录下的bin文件夹 
+			启动namesrv服务：nohup sh bin/mqnamesrv & 
+			日志目录：{rocketMQ解压目录}/logs/rocketmqlogs/namesrv.log
+
+			启动broker服务：nohup sh bin/mqbroker & 
+			日志目录：{rocketMQ解压目录}/logs/rocketmqlogs/broker.log 
+			以上的启动日志可以在启动目录下的nohub.out中看到 
+
+		2、rocketmq服务关闭
+		关闭namesrv服务：sh bin/mqshutdown namesrv
+		关闭broker服务 ：sh bin/mqshutdown broker
+
+		 
+		 	
+535、	分的保留0位  和元的保留2位是一样的，精确到分位
+		tax =Arith.format(Double.valueOf(price)/100D * Double.valueOf(ddr),0).longValue();
+		tax =Arith.format(price/100 * Double.valueOf(ddr),0).longValue();
+		
+536、	一个 HTTP 请求报文由请求行（request line）、请求头部（header）、空行和请求数据 4 个部分组成，
+		通过读取请求报文头中 Cookie 属性的JSESSIONID 的值，在服务端的一个会话 Map 中，根据这个 JSESSIONID 获取对应的HttpSession 的对象。
+
+		HTTP 请求报文由 3 部分组成（ 请求行+请求头+请求体 ）
+		HTTP 的响应报文也由三部分组成（ 响应行+响应头+响应体 ）
+
+		GET 将提交到服务器的数据添加到 URL 中了，可见；虽然POST 的数据，你肉眼看不到，你抓个包看看，在 HTTP 包的包体中
+
+		幂等的意味着对同一 URL 的多个请求应该返回同样的结果。
+
+		session 机制是一种服务器端的机制，服务器使用一种类似于散列表的结构（也可能就是使用散列表）来保存信息
+
+		般用来实现 Session 的方法有两种：
+		（1）URL 重写。
+		Web Server 在返回 Response 的时候，检查页面中所有的 URL，包括所有的连接，和
+		HTML Form 的 Action 属性，在这些 URL 后面加上“;jsessionid=XXX”。
+		下一次，用户访问这个页面中的 URL。jsessionid 就会传回到 Web Server。
+		（2）Cookie
+
+		forward:一般用于用户登陆的时候,根据角色转发到相应的模块.
+		redirect:一般用于用户注销登陆时返回主页面和跳转到其它的网站等
+		
+		页面请求就会页面，服务端请求就回服务端，浏览器请求页面，页面中js再加载回调的地址
+		通联的支付页面，页面倒计时，reload我们的路径地址，服务器的redirect应该也是可以的
+		
+	
+		
+		

@@ -147,7 +147,7 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
 30¡¢	Ê¹ÓÃjunit²âÊÔÎÄ¼þÀà
 	@RunWith(SpringJUnit4ClassRunner.class)
-	@SpringApplicationConfiguration(classes = SpringBootSampleApplication.class)
+	@SpringApplicationConfiguration(classes = SpringBootSampleApplication.class)£¬ÐÂ°æµÄÓÃ@SpringBootTest´úÌæ
 	@WebAppConfiguration
 
 31¡¢	Ê¹ÓÃhttpsÅäÖÃ
@@ -196,7 +196,7 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 bootÍÆ¼ö»ùÓÚjavaÅäÖÃÓÅÓÚxml
 
 maven×ÜÊÇ»áÓÃ×î½üµÄÒÀÀµ£¬Ò²¾ÍÊÇË­£¬ÄãÔÚÏîÄ¿ÖÐµÄ¹¹½¨ËµÃ÷ÎÄ¼þÔö¼Ó¸ÃÒÀÀµ£¬»á¸²¸Ç´«µÝÒÀÀµÒýÈëÁíÒ»¸öÒÀÀµ£¬±ÈÈçÒýÈëÁËÁ½¸ö²»Í¬°æ±¾µÄjar£¬ÓÅÏÈ½üµÄÒÀÀµ
- springbootÖÐµÄlogbackÈÕÖ¾ÐèÒªÄ¬ÈÏÎÄ¼þµÄÃû³ÆÊÇlogback.xml
+ springbootÖÐµÄlogbackÈÕÖ¾ÐèÒªÄ¬ÈÏÎÄ¼þµÄÃû³ÆÊÇlogback.xml£¬Ò²¿ÉÒÔÍ¨¹ýlogging.configÖ¸¶¨¾ßÌåµÄÃû³Æ
 ¼ÇÔØµÄÓÅÏÈË³ÐòÊÇlogback.xml--->properties--->logback-spring.xml£¬Ò»°ãÓÃºóÕß£¬²»ÐÐÓÃÇ°Õß£¬Çø±ðÔÚÓÚÊÇ·ñÊ¹ÓÃÊôÐÔÖµ
 
 
@@ -239,8 +239,24 @@ new ¶ÔÏóÖÐµÄÊôÐÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓÐ×ßÈÝÆ÷»ñÈ¡£¬Ö»ÓÐ´ÓÈÝÆ÷ÖÐ²ÅÄÜÄÃµ
 
 springbootÖÐµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôÐÔ½øÐÐ¾«Ï¸»¯ÅäÖÃ
+	  @ConditionalOnMissingBean£¬ÊÇ¸²¸Ç×Ô¶¯ÅäÖÃµÄ¹Ø¼ü£¬´æÔÚÏàÓ¦µÄ¾Í»á½µµÍ×Ô¶¯ÅäÖÃµÄÓÅÏÈ¼¶¡£
+	  springbootµÄÉè¼ÆÊÇ£º¼ÓÔØÓ¦ÓÃ¼¶ÅäÖÃ£¬ËæºóÔÙ¿¼ÂÇ×Ô¶¯ÅäÖÃÀà
+	  
+	  
+	  
+	  @ConfigurationPropertiesÒ»°ãÐèÒª@EnableConfigurationProperties¿ªÆôÖ§³Ö£¬µ«ÊÇºóÃæbootµÄ×Ô¶¯ÅäÖÃÒÑ¾­¼ÓÉÏÁË£¬ËùÒÔÒ»°ãÒ²¿ÉÒÔ²»ÏÔÊ¾¿ªÆô
 
-
-
-
+bootÖÐµÄ¶à»·¾³ÅäÖÃ
+	application.properties
+	application-{profile}.properties
+	spring.profiles.active=dev ¿ªÆôÄ¬ÈÏµÄprofileÊôÐÔ
 	
+	Ä¿Ç°¿´»¹ÊÇmavenµÄ¶à»·¾³±È½ÏºÏÊÊ£¬²»»á´æÔÚ¶à¸öÎÊÌâ
+	
+	Ò²¿ÉÒÔ×Ô¶¨ÒåerrorÒ³Ãæ·ÅÔÚtemplatesÏÂ£¬
+	
+	×Ô¶¨ÒåÁËlogÅäÖÃÒÔºó£¬¼òµ¥µÄÅäÖÃÒ²ÐèÒª<appender name="STDOUT">,·ñÔò¿ØÖÆÌ¨²»»á´òÓ¡ÈÕÖ¾
+	
+	springµÄmockMvc²âÊÔ¿ò¼Ü£¬¿ÉÒÔ²»ÐèÒªÈÝÆ÷ÔËÐÐ¾Í²âÊÔmvc£¬½ö´Ë¶øÒÑ£¬ÖªµÀ¼´¿É¡£
+	
+	<property name="logbackpath" value="../logs/"></property> springbootµÄjarÆô¶¯£¬µ±Ç°µÄÎ»ÖÃ¾ÍÊÇjarµÄÎ»ÖÃ

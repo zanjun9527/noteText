@@ -2,94 +2,33 @@
 http://www.95598.cn/
 zanjun9527	z3-4
 
-httpclient工具的使用，使用qq和微博账号登录
-
 外网和内网使用
-
 分库分表的设计
 
 solradmin中的df查询
 
-jvm的性能优化
-  
-
-maven的几个常用plugin	maven教程可以学习一下
-使用 mvn clean install -Dmaven.test.skip pom工程 ，
 maven-jar-plugin 和maven-dependency-plugin在main启动dubbo时的使用
 
-使用PowerDesigner 设计数据库相关，暂时也不需要
-
-
-
-主从数据库的读写分离
-
-数据库的并发配置
-
-copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建
-
-使用 mvn clean install -Dmaven.test.skip pom工程 ，我艹 逆天了
-
-tomcat的内存性能调优
-
-数据库建表的字段讲究  数据库中的索引类型
+主从数据库读写分离
 
 netty的基本了解
 
 双master的消息写入策略，是分别写还是写入同样的
 
-部署项目到tomcat下，注意的问题是 要加入maven依赖，相关contextloader错误时
-
-
-
-//	 @RequestMapping(params="send")
-由某个路径引发的静态资源无法访问，坑
-
-DEBUG [http-bio-8080-exec-4] - DispatcherServlet with name 'SpringMVC' processing GET request for [/taocicheng/statics/images/1.jpg]
-DEBUG [http-bio-8080-exec-4] - Looking up handler method for path /statics/images/1.jpg
-DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
-DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
-DEBUG [http-bio-8080-exec-4] - Resolving exception from handler [null]: org.springframework.web.bind.UnsatisfiedServletRequestParameterException: Parameter conditions "send" not met for actual request parameters: 
-DEBUG [http-bio-8080-exec-4] - Null ModelAndView returned to DispatcherServlet with name 'SpringMVC': assuming HandlerAdapter completed request handling
-DEBUG [http-bio-8080-exec-4] - Successfully completed request
-DEBUG [http-bio-8080-exec-4] - Returning cached instance of singleton bean 'sqlSessionFactory'
-
-
-
-rocketmq的生产者在控制台中找不到
-
-idea多个模块之间的问题，多个项目
-
 
 synchronized和lock的区别
 
 多线程的对象的公用和私有
-set 中的hash冲突
 
-
-VisualSVN  搭建svn服务器
-
-服务端的推送技术  	 websocket
-
-使用thymeleaf框架
-
-springboot中注册servlet，filter等
-
-
-springboot的动态数据源问题    目前看再与怎么讲两个datasource注入到容器中
-
+VisualSVN  搭建svn服务器，copssh安装gi私服 maven的仓库管理软件——Sonatype Nexus搭建私服 有空再搭建
 
 JeeSite项目可以看看
 
-idea 中的show dependency 问题看看呢
+多个微服务的dubbo的架构问题，
 
-URLEncoder.encode(str, "UTF-8");  转码的暂时不看
-
-idea中的workspace中的模块间的maven依赖的问题
-idea中maven的jar搜索的问题
 @EnableConfigurationProperties 再看看
 httpclient 的请求和接收
 idea target地下不自动更新
-
 自定义相同的拦截路径，后面就不进mvc了，配置成/**进拦截器，但是controller没走print方法，对于mv没有返回的会执行三次拦截器，return  就好了
 @WebServlet(
         name="myServlet",
@@ -103,8 +42,13 @@ idea target地下不自动更新
     public void init(FilterConfig config) throws ServletException {
         this.config = config;
     }
+<<<<<<< .mine
   filter的启动初始化参数
 
+=======
+  filter的启动初始化参数
+
+>>>>>>> .theirs
 动态代理  service 注入的是 代理类还是service bean  再aop代理的过程中
 
 spring-boot 热加载

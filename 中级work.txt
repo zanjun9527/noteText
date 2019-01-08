@@ -1,0 +1,857 @@
+
+XA协议采用两阶段提交方式来管理分布式事务
+
+2PC需要对整个资源加锁，因此不适用于高并发的分布式场景；而tcc只对需要的资源进行加锁，加锁的粒度小，且try commit Cancel都是本地短事务，因此能在保证强一致性的同时最大化提高系统可用性
+2PC是有数据库来保证回滚，而TCC是应用层实现回滚：为每一个try操作提供一个对应的cancel操作
+
+
+
+CAP定理
+WEB服务无法同时满足一下3个属性：
+一致性(Consistency) ： 客户端知道一系列的操作都会同时发生(生效)
+可用性(Availability) ： 每个操作都必须以可预期的响应结束
+分区容错性(Partition tolerance) ： 即使出现单个组件无法可用,操作依然可以完成
+具体地讲在分布式系统中，在任何数据库设计中，一个Web应用至多只能同时支持上面的两个属性。显然，任何横向扩展策略都要依赖于数据分区。因此，设计人员必须在一致性与可用性之间做出选择。
+
+
+BASE理论
+在分布式系统中，我们往往追求的是可用性，它的重要程序比一致性要高，BASE理论，它是用来对CAP定理进行进一步扩充的。BASE理论指的是：
+Basically Available（基本可用）
+Soft state（软状态）
+Eventually consistent（最终一致性）
+BASE理论是对CAP中的一致性和可用性进行一个权衡的结果，理论的核心思想就是：我们无法做到强一致，但每个应用都可以根据自身的业务特点，采用适当的方式来使系统达到最终一致性（Eventual consistency）。
+
+
+最经典的分布式事务解决方法就是“两段式提交(two-phase commit)”。XA/JTA方案
+	在两段式提交过程中，涉及两类角色，协调者(Coordinator)和参与者(Participants)。
+	第一个阶段：预提交阶段，也可以称之为投票阶段，一票否决性
+	第二个阶段：提交决定阶段。协调者根据上一个阶段的投票结果决定是Commit还是Abort，这个决定是全局性的，会通知到所有的参与者执行最终的决定，并回传一个ack确认信息。
+	强一致性的目的，长生命周期的分布式事务就不适合两段式提交。比如旅游订票的过程，中间应该增加重试的机制。
+	整个完成才释放资源，锁力度大，性能差
+	
+	
+TCC
+TCC包含了三个阶段：Try，Confirm，Cancel，因此而得名「TCC」。一种柔性事务解决方案
+	Try: 尝试执行业务
+		 完成所有业务检查(一致性)
+		 预留必须业务资源(准隔离性)          
+	Confirm:确认执行业务
+		 真正执行业务
+		 不作任何业务检查
+		 只使用Try阶段预留的业务资源 
+		 Confirm操作要满足幂等性
+	Cancel: 取消执行业务
+		 释放Try阶段预留的业务资源 
+		 Cancel操作要满足幂等性
+
+TCC 其实就是采用的补偿机制，其核心思想是：针对每个操作，都要注册一个与其对应的确认和补偿（撤销）操作，TCC的Try、Confirm和Cancel操作功能需业务提供，开发成本高。
+TCC	数据库层的二阶段提交上提到了应用层来实现，对于数据库来说是一阶段提交，规避了数据库层的2PC性能低下问题
+
+TCC与2PC协议比较：
+	 位于业务服务层而非资源层
+	 没有单独的准备(Prepare)阶段， Try操作兼备资源操作与准备能力 
+	 Try操作可以灵活选择业务资源的锁定粒度(以业务定粒度) 
+	 较高开发成本
+
+
+2PC的强一致性依赖于数据库，而TCC的强一致性依赖于应用层的Commit与cancel
+
+
+
+
+SQL Server 数据库是由两个文件组成的，一个数据库文件和一个日志文件，每次先记录操作日志，再写数据库。
+
+
+
+jvm的相关：
+	1、程序计数器：可以看做是当前线程执行的字节码行号指示器
+		jvm的多线程是通过线程轮流切换并分配处理器执行时间的的方式实现的，任何时刻，一个处理器只会执行一条线程指令。为了切换后恢复正确的执行位置，每条线程需要独立的程序计数器。
+		这类内存区域称为“线程私有”的内存
+		
+	2、	java虚拟机栈：是线程私有的，生命周期与线程相同
+		是虚拟机中局部变量的表部分，所需的内存空间在编译时期完成分配，方法运行时期不会改变大小，存放了编译器可知的各种基本数据类型，对象引用和returnadress类型（指向了一条字节码指令的地址）
+		这个区域的两种异常情况：
+			1.当线程请求的栈深度大于jvm允许的深度，抛出stackoverflowError
+			2.如果jvm动态扩展时无法申请到足够的内存时会抛出outOfMemoryError
+		使用-Xss配置栈内存容量，可以减少栈内存容量
+		定义大量的本地变量，可增加次方法帧中本地变量表的长度
+		
+		在单个线程下，无论是由于栈帧太大，还是虚拟机栈容量太小，当内存无法分配的时候，虚拟机抛出的都是stackOverflowError
+			
+	
+	3、本地方法栈(stack)：
+		虚拟机栈为虚拟机执行java方法（也就是字节码）服务
+		本地方法栈为虚拟机使用到的native方法服务
+		
+	4、java堆(heap)：
+		是jvm中所管理内存中最大的一块，是所有线程共享的内存区域，jvm启动时创建。用来存放对象实例。
+		所有对象的实例都要在堆上分配
+		java堆是垃圾收集器管理的主要区域，因此也被称为gc堆。现在的收集器基本采用的是分代手机算法（根据对象存活周期的不同，将内存划分成为几个区域），所有java堆中还可以细分为：新生代（MinorGC）和老年代（MajorGC）
+		目前主流的虚拟机都是按照可扩展来实现的（通过-Xmx 和-Xms控制），如果堆中没有内存完成实例分配，并且堆也无法再扩展时，将抛出OutOfMemoryError异常
+		将堆的最小值-Xms参数和最大值-Xmx参数设置一样可避免堆自动扩展，增加无效的fullgc，浪费时间，即不可扩展
+		
+		堆中有eden，survivor，和old三个区域，非堆中有code cache和 perm gen
+		
+		
+	5、方法区：
+		存放class相关信息，如类名、访问修饰符、常量池、字段描述、方法描述
+		各线程共享的内存区域，用于存放已被jvm加载的类信息、常量、静态变量、即是编译器编译后的代码等数据。别名Non-Heap(非堆)。
+		可选择固定大小或可扩展，该区域内存回收目标主要是针对常量池的回收和对类型的卸载，
+		当方法区无法满足内存分配需求时，将抛出outOfMemoryError
+		MaxPermSize，最大方法区容量
+		
+		-XX:permSize 和 -XX:MaxPermSize 配置大小
+	
+	6、运行时常量池
+		属于方法区的一部分
+		
+	7、直接内存 	direct memory  
+		分配不会受到java堆大小的限制，配置内存容易忽略这块，导致超过物理内存限制，从而导致动态扩展时出现OutOfMemoryError异常
+		比如大量的nio操作
+		
+	jvm重要的三个内存区域：
+		java栈，java堆，方法区
+		
+		
+	reference类型通过1.句柄    2直接指针（这种情况直接存储的就是对象地址）     定位java堆中的具体位置
+
+	
+	java堆的溢出
+		内存映像分析工具分析
+		1、内存泄漏			泄漏对象垃圾收集器无法自动回收，
+		2、内存溢出			内存中对象必须存活，调节虚拟机的堆参数的配置
+	
+		内存溢出就是你要求分配的内存超出了系统能给你的，系统不能满足需求，于是产生溢出。
+
+		Java内存泄漏就是没有及时清理内存垃圾，导致系统无法再给你提供内存资源（内存资源耗尽）。
+
+		1.Java内存泄露是说程序逻辑问题,造成申请的内存无法释放.这样的话无论多少内存,早晚都会被占用光的. 最简单的例子就是死循环了.
+
+		2.Java内存泄漏是指在堆上分配的内存没有被释放，从而失去对其控制。这样会造成程序能使用的内存越来越少。
+
+	
+	
+	栈内存溢出：jvm-37
+		每个线程分配到的栈容量越大，可以建立的线程数量自然越少，建立线程时就越容易吧剩下的内存耗尽，
+		如果是建立过多线程导致的内存溢出，在不能减少线程数量情况下，只能通过减少最大堆和减少栈容量来换取更多的线程。
+	
+	
+
+	对类进行增强时，都会使用cglib这类的字节码，增强的类越多，越需要大的方法区来保证动态生成的class可以加载入内存
+	
+	栈随线程生灭，方法或者线程结束，其内存自然就回收了，但是java堆和方法区不一样。
+	堆中存放的是java中的对象实例，已经dead(属于对象是否存活)的对象需要被回收
+	
+	jvm判断对象是否存活，并不是使用的是1、引用计数算法（相互引用，不成立）
+	使用的是2、根搜索算法，基本思路是通过一系列名为gc roots 的对象作为起始点，从该节点向下搜索，走过的路径成为引用链，当一个对象到gc roots没有任何引用链相连（即从gc roots到这个对象不可达），则对象不可用将被判定为可回收对象
+	
+	java中，可作为gc roots对象包括：
+		1、虚拟机栈（栈帧中的本地变量表）中的引用对象
+		2、方法区中的类静态属性引用对象
+		3、方法区中的常量引用对象
+		4、本地方法栈中的native方法的引用的对象
+		
+	finalize()：	
+	对象进行根搜索就发现没有与gc roots相连接的引用链，需要看对象是否覆盖finalize(),没有覆盖或者该方法已经被jvm调用过，则对象没必要执行finalize()。
+	对象死亡需要经过两次至少两次的标记，一次就是gc roots的不相连接，执行finalize()会对f-queue中的对象第二次标记，只要重新与引用链上的任何一个对象建立关联，那么将移除即将回收的集合，即执行finalize()，是对象的自我拯救方法，对象依然可以存活，在被gc时自我拯救，且对象只能执行一次该方法。
+		
+		
+	在堆中，尤其在新生代中，垃圾回收的效率很高，但是在永久代中（只要是废弃常量和无用的类），效率很低，
+	
+	新生代中：主要是用来存放新生的对象。一般占据堆的1/3空间。由于频繁创建对象，所以新生代会频繁触发MinorGC进行垃圾回收。
+		对象优先在Eden区分配
+		Eden区：Java新对象的出生地(如果新创建的对象占用内存很大，则直接分配到老年代)。
+		ServivorTo：保留了一次MinorGC过程中的幸存者。
+		ServivorFrom：上一次GC的幸存者，作为这一次GC的被扫描者。
+		默认Eden与Survivor默认比例是8:1
+		
+	老年代的对象比较稳定，所以MajorGC不会频繁执行。
+
+	在进行MajorGC前一般都先进行了一次MinorGC，使得有新生代的对象晋身入老年代，导致空间不够用时才触发。当无法找到足够大的连续空间分配给新创建的较大对象时也会提前触发一次MajorGC进行垃圾回收腾出空间。
+	
+	内存分配与回收策略
+		对象内存分配，往大方向上讲，就是在堆上分配，对象主要分配在新生代的eden区上
+		1、对象优先在eden分配
+			当Eden区内存不够的时候就会触发MinorGC，对新生代区进行一次垃圾回收。
+		2、大对象直接进入老年代
+			指的是需要大量连续内存空间的java对象，典型的是很长的字符串和数组，比如byte[]，
+		3、长期存活的对象将进入老年代
+			默认gc后年龄计数器+1，达到15进入老年代，参数可配置
+		4、动态对象年龄判断
+			当年大于survivor空间的一半，大于等于该年龄的直接进入老年代
+		5、空间分配担保
+			发生minor GC,jvm会检测室之前晋升到老年代的平均值大小，再根据老年代的剩余空间大小，够就开启担保（避免频繁full gc），允许就执行minor gc，不允许就full gc，不够直接full gc，如果担保失败，也进行full gc。
+			
+			
+	虽然java的垃圾回收机制仅是回收堆区的资源，而对于非堆区无效，这种只能凭借开发人员自身的约束来解决。（堆区有java回收机制、非堆区开发人员能够很好的解决），
+	配置堆区：-Xms 、-Xmx、-XX:newSize、-XX:MaxnewSize、-Xmn
+	配置非堆区：-XX:PermSize、-XX:MaxPermSize
+	
+内存溢出：	
+	第一种OutOfMemoryError： PermGen space   永久区内存溢出 修改PermSize  MaxPermSize，又叫非堆内存溢出，永久保存区域是存放class信息和meta信息，分配了后，jvm是不会去回收的
+	发生这种问题的原意是程序中使用了大量的jar或class，使java虚拟机装载类的空间不够，与Permanent Generation space有关。解决这类问题有以下两种办法：
+	1. 增加java虚拟机中的XX:PermSize和XX:MaxPermSize参数的大小，其中XX:PermSize是初始永久保存区域大小，XX:MaxPermSize是最大永久保存区域大小。
+	如针对tomcat6.0，在catalina.sh 或catalina.bat文件中一系列环境变量名说明结束处（大约在70行左右） 增加一行：JAVA_OPTS=" -XX:PermSize=64M -XX:MaxPermSize=128m"
+	如果是windows服务器还可以在系统环境变量中设置。感觉用tomcat发布sprint+struts+hibernate架构的程序时很容易发生这种内存溢出错误。使用上述方法，我成功解决了部署ssh项目的tomcat服务器经常宕机的问题。
+	2. 清理应用程序中web-inf/lib下的jar，如果tomcat部署了多个应用，很多应用都使用了相同的jar，可以将共同的jar移到tomcat共同的lib下，减少类的重复加载。
+
+	第二种OutOfMemoryError：  Java heap space 堆内存溢出 Xms 和Xmx
+	发生这种问题的原因是java虚拟机创建的对象太多，在进行垃圾回收之间，虚拟机分配的到堆内存空间已经用满了，与Heap space有关。解决这类问题有两种思路：
+		1. 检查程序，看是否有死循环或不必要地重复创建大量对象。找到原因后，修改程序和算法。
+		2. 增加Java虚拟机中Xms（初始堆大小）和Xmx（最大堆大小）参数的大小。如：set JAVA_OPTS= -Xms256m -Xmx1024m
+		
+	定位永久区的内存溢出，jstat -gcpermcapacity pid  ,数据都是以kb为单位的
+	内存配置默认是物理内存的1/64;JVM最大分配的内存由-Xmx指定，默认是物理内存的1/4。
+	默认空余堆内存小于40%时，JVM就会增大堆直到-Xmx的最大限制;空余堆内存大于70%时，JVM会减少堆直到-Xms的最小限制。因此服务器一般设置-Xms、-Xmx相等以避免在每次GC 后调整堆的大小
+		
+		
+jvm的性能监控域处理工具   jconsole 和jvisualVM 可视化监控工具
+	jps：显示指定系统所有的hotspot jvm进程 常用的是使用-l查看完整的类路径和jar包的位置
+	jstat：手机hotspot jvm各方面（类装载，内存，垃圾收集）的运行数据				运行期定位jvm性能首选
+	jinfo： 显示虚拟机的配置信息
+	jmap：生成jvm的内存转储快照（heapdump文件），java内存映像工具
+	jhat：分析heapdump文件，会建立一个http/htm服务器，让用户可在浏览器上查看分析结果
+	jstack：显示jvm的线程快照  可定位线程长时间未响应的原因
+	
+	后续也可以使用VisualVM和Jconsole可视化监视工具监控系统的内存
+	new byte[64*1024],创建一个64kb大小的字节数组
+	处于作用域中的gc是无效的，比如gc在测试主函数内
+	
+	JConsole远程连接配置 	https://blog.csdn.net/dumbant/article/details/80392506
+	
+	eclipse的启动优化，中使用-Xverify:none，禁止掉启动过程的字节码验证,
+	在eclipse.in 中
+		-Xverify:none			禁止掉启动过程的字节码验证,//属于通联钱包的需求,直接提现相关金额
+	                		UserResult userResult = userInfoService.getUserInfoByUserCode(null, request.getToAcctNo());
+	                		//1、校验用户资金平衡		2、金额校验、提现校验  3、认证校验
+//	                		Result vResult = userManagerService.userAccountValidate(request.getToAcctNo());//放过,log_user_trade无法校验，
+	                		Result vResult = new Result();
+	                		vResult.setSuccess(true);
+	                		String withDrawMoney=String.valueOf(OrderCodeUtil.fengToYuan(request.getTranAmt()));
+	                		Result valiResult = withdrawService.validateAmount(withDrawMoney, userResult.getBalance(), userResult,"0");
+	                		
+	                		if(vResult.isSuccess() && StringConstants.ONE.equals(userResult.getAuthFlagDto()) && valiResult.isSuccess()){
+	                    		userResult.setCardNo("0123456789");//默认卡号123
+	                    		// 提现,默认pc端的余额提现
+	                    		Result submitResult = withdrawService.submit(userResult, withDrawMoney, "11",null,"0");
+	                    		if (!submitResult.isSuccess()) {
+	                    			//短信通知
+	                    			String handleMsg=String.format("账户：%s提现处理错误,错误信息:%s,单号:%s",request.getToAcctNo(),submitResult.getMessage(),xyeOrderExtSnStr);
+	                    			LOGGER.info("通联钱包验收提现处理错误:"+handleMsg);
+	                    			ExceptionSmsUtil.send("通联钱包验收提现处理错误---","handleExceptionMsg:"+submitResult.getMessage(), xyeOrderExtSnStr,request.getToAcctNo(),null,request.getTranAmt());
+	                    		}
+		-XX:+DisableExplicitGC  取消显示的system.gc
+	实际测试效果不是很明显
+
+class加载的问题
+	编译器将java代码编译成存储字节码的class文件（对应的结构，顺序和长度都是固定的），就可以在jvm中运行
+	
+jvm的类加载机制：jvm把描述类的数据从class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可被jvm直接使用的java类型，	
+	对于静态字段，只有直接定义这个字段的类才会初始化，因此通过其子类来引用父类中的定义的静态字段，只会触发父类的初始化而不会触发子类的初始化
+	静态代码块static{}用来初始化信息
+	加载的几个阶段：加载，验证，准备，解析，初始化，使用，卸载，前5个就是类的加载过程，2-4属于连接
+	加载：获取类的二进制字节流，将其代表的静态存储结构转化为方法区的运行时数据结构，在堆中生成代表该类的class对象，作为方法区这些数据的访问入口。
+	验证：确保class文件的字节流中包含的信息符合当前虚拟机的要求，并不会危害jvm自身安全
+	准备：在方法区中，为类变量分配内存并设置类变量的初始值
+	解析：jvm将常量池内存内的符号引用替换为直接引用的过程
+	初始化：
+	
+	
+	
+	对于任意一个类，都需要有加载它的类加载器和这个类本省一同确立其在jvm中的唯一性。
+	
+	在jvm的角度将，只存在两种不同的类加载器，一种是启动类加载器，另一种是所有其他的类加载器（独立于虚拟机外部，全部继承自抽象类java.lang.classLoader），
+	
+	代码编译的结果从本地机器码转变为字节码，是存储格式发展的一小步，确实编程语言发展的一大步
+	
+	
+	volatile保证了多线程操作时变量的可见性，而普通变量则不能保证这一点
+	线程是cpu调度的最基本单位
+	
+	
+	final这类的不可变对象一定是线程安全的。典型的String类就是
+	
+	线程安全的实现方法
+		1互斥同步 主要的问题就是进行线程阻塞和唤醒带来的性能问题，也称为阻塞同步
+			典型的是synchronized
+			
+	一个thread对象中都有一个threadlocalmap的对象，该对象存储了一组以threadlocal.threadlocalhashcode为键，以本地线程变量为值的k-v值对，这样就保证了线程变量的唯一性
+	Thread.ThreadLocalMap<ThreadLocal, Object>;
+	
+	
+	
+分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。
+
+满足的条件
+	系统是一个分布式系统（关键是分布式，单机的可以使用ReentrantLock或者synchronized代码块来实现）
+	共享资源（各个系统访问同一个资源，资源的载体可能是传统关系型数据库或者NoSQL）
+	同步访问（即有很多个进程同事访问同一个共享资源。没有同步访问，谁管你资源竞争不竞争）
+	
+
+	
+	
+	
+aop事务的动态代理实现：
+
+/**
+ * @ClassName: TransactionHandler
+ * @Description: 动态代理封装事务
+ * @author: 十期-牛迁迁
+ * @date: 2015-10-11 下午2:59:15
+ */
+public class TransactionHandler implements InvocationHandler
+{
+    private Object targetObject;
+
+    public Object newProxyInstance(Object targetObject)
+    {
+        this.targetObject = targetObject;
+        //使用Proxy类，通过反射得到一个动态的代理对象
+        return Proxy.newProxyInstance(targetObject.getClass().getClassLoader(),
+                targetObject.getClass().getInterfaces(), this);
+    }
+
+     //在invoke方法中做一些其他操作
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable
+    {
+        Connection conn = null;
+        Object ret = null;
+        try
+        {
+            // 从ThreadLocal中取得Connection
+            conn = ConnectionManager.getConnection();
+            if (method.getName().startsWith("add")
+                    || method.getName().startsWith("del")
+                    || method.getName().startsWith("modify"))
+            {
+                // 手动控制事务提交
+                ConnectionManager.beginTransaction(conn);
+            }
+            // 调用目标对象的业务逻辑方法
+            ret = method.invoke(targetObject, args);
+            if (!conn.getAutoCommit())
+            {
+                // 提交事务
+                ConnectionManager.commitTransaction(conn);
+            }
+        }
+        catch (ApplicationException e)
+        {
+            // 回滚事务
+            ConnectionManager.rollbackTransaction(conn);
+            throw e;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            if (e instanceof InvocationTargetException)
+            {
+                InvocationTargetException ete = (InvocationTargetException) e;
+                throw ete.getTargetException();
+            }
+            // 回滚事务
+            ConnectionManager.rollbackTransaction(conn);
+            throw new ApplicationException("操作失败！");
+        }
+        finally
+        {
+            ConnectionManager.closeConnection();
+        }
+        return ret;
+    }
+	
+	
+网关路由的mvc中requestmapping具体实现，
+	Spring是怎样检测并处理我们@RequestMapping注解的：?
+	扫描所有注册的Bean?遍历这些Bean，依次判断是否是处理器，并检测其HandlerMethod?遍历Handler中的所有方法，
+	找出其中被@RequestMapping注解标记的方法。?获取方法method上的@RequestMapping实例。?
+	检查方法所属的类有没有@RequestMapping注解??将类层次的RequestMapping和方法级别的RequestMapping结合? (createRequestMappingInfo)?当请求到达时，
+	去urlMap中需找匹配的url，以及获取对应mapping实例，然后去handlerMethods中获取匹配HandlerMethod实例。?将RequestMappingInfo实例以及处理器方法注册到缓存中。
+
+	
+	
+	使用@Aspect的aop代理中，暂时默认@before和@after是无法终止原来的方法的，只有@around可以终止原来的方法，截到具体的方法后，直接return 对象即可终止方法，
+
+	
+	
+	dubbo的负载均衡：
+		
+		4种策略
+			1、随机
+			2、轮询
+			3、按照活跃数少的优先调用，最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差。使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
+			3、hash一致：一致性hash，默认对第一个参数hash，相同参数请求发送统一提供者
+		
+		
+		
+		
+		3、权重，可以在dubbo中配置，也可以在dubbo后台管理中配置权重
+	
+
+	
+根据基本的线程知识，可以不加思索的想到下面的一些方法： 
+	1、秒杀在技术层面的抽象应该就是一个方法，在这个方法里可能的操作是将商品库存-1，将商品加入用户的购物车等等，在不考虑缓存的情况下应该是要操作数据库的。那么最简单直接的实现就是在这个方法上加上synchronized关键字，通俗的讲就是锁住整个方法； 
+	2、锁住整个方法这个策略简单方便，但是似乎有点粗暴。可以稍微优化一下，只锁住秒杀的代码块，比如写数据库的部分； 
+	3、既然有并发问题，那我就让他“不并发”，将所有的线程用一个队列管理起来，使之变成串行操作，自然不会有并发问题。
+	
+	
+分布式锁的必要性：
+	如果不同的系统或是同一个系统的不同主机之间共享了一个或一组资源，那么访问这些资源的时候，往往需要互斥来防止彼此干扰来保证一致性，在这种情况下，便需要使用到分布式锁。
+	
+	对接接口的安全性，1、使用同一的token校验，2、增加ip白名单过滤，3、获取动态口令，优先时间60秒
+	
+	
+	
+java.net.SocketTimeoutException: connect timed out
+
+系统间的调用，会出现超时的情况，关键的回调，需要做job的补偿回调。对于及时性比较高的，需要在超时间内，得到补偿信息
+
+一直以为spring的ioc容器生成的对象都是代理对象，其实这个是错误的。spring ioc默认的都是原生对象  只有通过aop增强的对象才是代理对象
+
+
+
+MyBatis 拦截器 （实现分页功能） 
+	@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class }) })
+	具体的原理是在StatementHandler上进行拦截，并进行代理，实现的思路是StatementHandler-> BOUNDSQL-->加工boundsql-->return ivk.proceed();
+	
+	
+	MapperScannerConfigurer可以对basePackage下所有Mapper接口创建代理对象
+	
+	SqlSessionFactoryBean,主要是把*Mapper*.xml文件与*Mapper*.java加载进来，根据namespace加载对应的接口类到MapperRegistry，把方法名与*Mapper*.xml里的Select id对应起来等等。MapperRegistry相当于是一个缓存，后面创建代理对象是会用到。
+	 
+	创建一个代理核心MapperProxy，并使用jdk的动态代理创建代理类，将sqlsession封装在invoke方法中
+	public static <T> T newMapperProxy(Class<T> mapperInterface, SqlSession sqlSession) {
+    ClassLoader classLoader = mapperInterface.getClassLoader();
+    Class<?>[] interfaces = new Class[]{mapperInterface};
+    MapperProxy proxy = new MapperProxy(sqlSession);
+    return (T) Proxy.newProxyInstance(classLoader, interfaces, proxy);
+  }
+
+	
+	
+tomcat简单额session缓存共享
+	1.Tomcat-redis-session-manager
+	2.配置tomcat配置文件context.xml
+	3.3、添加Tomcat-redis-session-manager的jar包到tomcat/lib目录下，需要的jar包如下：
+			commons-pool2-2.2.jar
+　　　　	jedis-2.5.2.jar
+　　　　	tomcat-redis-session-manage-tomcat7.jar
+
+
+
+
+hashmap的扩容问题
+	底层是数组+链表的结构，数组的长度是固定的，当元素大于长度的时候就需要扩容，叫做resize，默认的数组大小是16。这个扩容过程有点像jvm的动态增加内存一样
+	HashMap()：构建一个初始容量为 16，负载因子为 0.75 的 HashMap。超过16*0.75=12，就扩容一倍，比较消耗性能，最好指定已知的初始容量，和合适的负载因子
+	
+HashMap 可以接受 null 键值和值，而 HashTable 则不能
+HashMap 使用 LinkedList 来解决hash碰撞问题，其中存放改的是entry
+
+
+优化hash冲突的方法，。一些优秀的开发者会指出使用不可变的、声明作 final 的对象，并且采用合适的
+equals()和 hashCode()方法的话，将会减少碰撞的发生，提高效率。不可变性使得能够
+缓存不同键的 hashcode，这将提高整个获取对象的速度，使用 String，Interger 这样
+的 wrapper 类作为键是非常好的选择。
+
+
+不可变性
+是必要的，因为为了要计算 hashCode()，就要防止键值改变，如果键值在放入
+时和获取时返回不同的 hashcode 的话，那么就不能从 HashMap 中找到你想
+要的对象。不
+	
+	主要区别
+	1）.HashTable 的方法前面都有 synchronized 来同步，是线程安全的；HashMap 未经同步，是非线程安全的。
+	2）.HashTable 不允许 null 值(key 和 value 都不可以) ；HashMap 允许 nul(key 和 value 都可以
+	
+	
+	
+	ConcurrentHashMap 和 Hashtable 主要区别就是
+	围绕着锁的粒度以及如何锁,可以简单理解成把一个大的 HashTable 分解成多个，形成了锁分离。
+	如图:而 Hashtable 的实现方式是---锁整个 hash
+	
+	
+	
+	
+作为键的条件，是创建之后的hashcode就不能变了
+	
+	集合在遍历时候，不能修改本身否则或发生并发修改异常
+	
+多线程的实现
+继承 Thread 类、实现 Runnable 接口Future 实现有返回结果的多线
+
+
+
+
+在 java 中有以下 3 种方法可以终止正在运行的线程：
+1. 使用退出标志，使线程正常退出，也就是当 run 方法完成后线程终止。
+2. 使用 stop 方法强行终止，但是不推荐这个方法，因为 stop 和 suspend 及 resume 一样都是过期作废的方法。
+3. 使用 interrupt 方法中断线
+
+
+
+
+27.如何保证线程安全
+对非安全的代码进行加锁控制；
+使用线程安全的类；
+多线程并发情况下，线程共享的变量改为方法级的局部变
+
+
+
+Lock的锁定是通过代码实现的，lock是一个类，通过该类可实现同步访问，而 synchronized 是java的关键字，是在 JVM 层面上实现的，
+synchronized 会自动释放锁，而 Lock 一定要手工释放，且须在finally 中释放。Lock 锁的范围有局限性，块范围，而 synchronized 可以锁住块、对象、类
+
+
+
+synchronized 缺点：
+	代码块被 synchronized 修饰，当一个线程获取了对应的锁，并执行该代码块时，其他线程便只能一直等待，等待获取锁的线程释放锁，而这里获取锁的线程释放锁只会有两种情况：
+	 1）获取锁的线程执行完了该代码块，然后线程释放对锁的占有；
+	 2）线程执行发生异常，此时 JVM 会让线程自动释放锁。
+	 那么如果这个获取锁的线程由于要等待 IO 或者其他原因（比如调用 sleep 方法）被阻塞了，但是又没有释放锁，其他线程便只能干巴巴地等待，影响程序执行效率
+	 
+	 意思就是lock可以控制等待的时间
+	 
+	 还有尝尽个就是读写操作的，使用synchronized关键字的话，多个读操作就要相互等待，浪费资源，
+	 
+因此就需要有一种机制可以不让等待的线程一直无期限地等待下去（比如只等待一定的时间或者能够响应中断），通过 Lock 就可以办到
+
+
+
+Lock lock = new ReentrantLock(); //注意这个地方
+在 insert 方法中的 lock 变量是局部变量，每个线程执行该方法时
+都会保存一个副本，那么理所当然每个线程执行到 lock.lock()处获取的是不同的锁，所以就不会发生冲突。
+
+
+
+
+
+
+
+5.Lock 和 synchronized 的选择
+	 1）Lock 是一个接口，而 synchronized 是 Java 中的关键字，synchronized 是内置的语言实现；
+	 2）synchronized 在发生异常时，会自动释放线程占有的锁，因此不会导致死锁现象发生；而 Lock 在发生异常时，如果没有主动通过 unLock()去释放锁，则很可能造成死锁现象，因此使用 Lock 时需要在 finally 块中释放锁；
+	 3）Lock 可以让等待锁的线程响应中断，而 synchronized 却不行，使用synchronized 时，等待的线程会一直等待下去，不能够响应中断；
+	 4）通过 Lock 可以知道有没有成功获取锁，而 synchronized 却无法办到。
+	 5）Lock 可以提高多个线程进行读操作的效率。
+
+
+
+
+
+1、可重入锁：synchronized 和 ReentrantLock 都是可重入锁，进入对象的第二个锁方法，不需要重新获取锁
+	class MyClass {
+		public synchronized void method1() {
+		method2();
+		}
+		public synchronized void method2() {
+		}
+	}
+2、可中断锁	synchronized 就不是可中断锁，而 Lock 是可中断锁。
+
+3、公平锁
+	公平锁即尽量以请求锁的顺序来获取锁。比如同是有多个线程在等待一个锁，当这个
+	锁被释放时，等待时间最久的线程（最先请求的线程）会获得该所，这种就是公平锁。
+	
+	synchronized 就是非公平锁，它无法保证等待的线程获取锁的顺序。
+	ReentrantLock 和 ReentrantReadWriteLock，它默认情况下是非公平锁，但是可以设置为公平锁
+	
+4、读写锁
+	ReentrantReadWriteLock并未实现 Lock 接口，它实现的是ReadWriteLock 接口
+	可以通过 readLock()获取读锁，通过 writeLock()获取写锁。
+
+
+	ConcurrentHashMap 锁住的不是全部的hash表，而是以多个segment的形式锁住单独的区域， 相当于把之前的数组分成多个segment，
+	segment 可以看成是 HashMap 的一个部分，（ConcurrentHashMap 基于concurrencyLevel 划分出了多个 segment 来对 key-value 进行存储）每次操作都只对当前segment 进行锁定，从而避免每次 put 操作锁住整个 map。
+
+	
+	
+	线程修改变量的过程：
+		每一个线程运行时都有一个线程栈，线程栈保存了线程运行时候变量值信息。
+		当线程访问某一个对象时候值的时候，首先通过对象的引用找到对应在堆内存
+		的变量的值，然后把堆内存变量的具体值 load 到线程本地内存中，建立一个变
+		量副本，之后线程就不再和对象在堆内存变量值有任何关系，而是直接修改副
+		本变量的值，在修改完之后的某一个时刻（线程退出之前），自动把线程变量
+		副本的值回写到对象在堆中变量。这样在堆中的对象的值就产生变化了
+		
+		Java内存模型规定了所有的变量都存储在主内存中。
+		每条线程有自己的工作内存，其中使用的变量是主内存中的拷贝的变量副本，线程对变量的所有操作（读取，赋值）都必须在工作内存中进行。
+		不同线程之间也无法直接访问对方工作内存中的变量，线程间变量值的传递均需要通过主内存来完成。
+		
+		
+		
+	ConcurrentHashMap 默认情况下采用将数据分为 16 个段进行存储，并且每个段各自拥有自
+	己的锁，锁仅用于 put 和 remove 等改变集合对象的操作，基于 voliate 及 hashEntry 链表
+	的不变性实现读取的不加锁?
+	
+	方法区用于存放 Class 相关信息，需要足够大内存的方法区用于保证动态生成的Class可以加载入内存。
+	
+新生代中的算法:停止-复制
+年轻代可以分为 3 个区域：Eden 区（伊甸园，亚当夏娃偷吃禁果生娃娃的地方，用来表示内存首次分配的区域，再 贴切不过）
+和两个存活（Survivor 0 、Survivor 1,并且两个servivor区中必须有一个是空白的）内存分配过程为，最终gc后存活的就进入老年代，
+这种垃圾回收的方式就是著名的“停止-复制（Stop-and-copy）”清理法（将 Eden 区和一个 Survivor 中仍然存活的对象拷贝到另一个 Survivor 中），
+
+需要明确一点，就是在新生代采用的停止复制算法中，“停 止（Stop-the-world）”的意义是在回收内存时，需要暂停其他所 有线程的执行。这个是很低效的，现在的各种新生代收集器越来越优化这一点，但仍然只是将停止的时间变短，并未彻底取消停止。
+
+
+	
+
+老年代中的算法：标记-整理
+	如果使用停止-复制算法，则相当低效。一般，老年代用的算法是标记-整理算法，即：标记出仍然存活的对象（存在引用的），将所有存活的对象向一端移动，以保证内存的连续
+
+JVM 每次只会使用 Eden 和其中的一块 Survivor 区域来为对象服务，所以无论什么时候，总是有一块Survivor区域是空闲着的,复制完就清空。存活区默认切换15次就会进入老年代了。
+	
+	
+	
+	
+ 方法区（永久代）： 永久代的回收有两种：常量池中的常量，无用的类信息，常量的回收很简单，没有引用了就可以被回收。对于无用的类进行回收，必须保证 3 点：
+ 1. 类的所有实例都已经被回收
+ 2. 加载类的 ClassLoader 已经被回收
+ 3. 类对象的 Class 对象没有被引用（即没有通过反射引用该类的地
+	
+
+sleep()方法是 Thread 类中方法，而 wait()方法是 Object 类中的方法。
+sleep()方法导致了程序暂停执行指定的时间，让出 cpu 该其他线程，但是他的
+监控状态依然保持者，当指定的时间到了又会自动恢复运行状态，
+sleep()方法，线程不会释放对象锁。
+wait()方法，线程会放弃对象锁，进入等待此对象的等待锁定池，只有针对此对象调用 notify()方法后本线程才进入对象锁定池准备。
+
+
+当两个进程在进行远程通信时，彼此可以发送各种类型的数据。无论是何种类型的数据，都会以二进制序列的形式在网络上传送。所以需要序列化和反序列化。
+
+
+一.PreparedStatement 是预编译的,对于批量处理可以大大提高效率. 也叫JDBC 存储过程
+二.使用Statement 对象。在对数据库只执行一次性存取的时侯，用Statement 对象进行处理。PreparedStatement对象的开销比 Statement 大，对于一次性操作并不会带来额外的好处。
+三.statement 每次执行 sql 语句，相关数据库都要执行 sql 语句的编译，preparedstatement 是预编译得,preparedstatement 支持批
+
+
+预编译可以多次执行根据参数不同sql不同
+
+web 服务器在调用 doFilter 方法时，会传递一个 filterChain 对象进来，filterChain 对象是
+filter 接口中最重要的一个对象，它也提供了一个 doFilter 方法，开发人员可以根据需求决
+定是否调用此方法，调用该方法，则 web 服务器就会调用 web 资源的 service 方法，即
+web 资源就会被访问，否则 web 资源不会被访问
+
+
+
+权限相关的东西：用户-角色-路径
+
+装饰者模式（Decorator）,使用例子：
+	ServletRequestWrapper 和 HttpServletRequestWrapper 提供对 request 对象进行包装的
+	方法，但是默认情况下每个方法都是调用原来 request 对象的方法，
+	也就是说包装类并没有对 request 进行增强在这两个包装类基础上，继承 HttpServletRequestWrapper ，覆盖需要增强的方法即可
+	
+	
+	
+	
+二级缓存
+MyBatis 包含一个非常强大的查询缓存特性,它可以非常方便地配置和定制。默认情况下是没有开启缓存的。
+1. 映射语句文件中的所有 select 语句将会被缓存。
+2. 映射语句文件中的所有 insert,update 和 delete 语句会刷新	
+	
+	
+	
+	
+	
+一级缓存也称本地缓存，sqlSession级别的缓存。一级缓存是一直开启的；与数据库同一次回话期间查询到的数据会放在本地缓存中。
+如果需要获取相同的数据，直接从缓存中拿，不会再查数据库。有点事务开启到提交这期间的过程。
+二级缓存：全局缓存；基于namespace级别的缓存。一个namespace对应一个二级缓存。
+　　　　　　工作机制：1.一个会话，查询一条数据，这个数据会被放在当前会话的一级缓存中。
+　　　　　　　　　　　2,如果会话被关闭了，一级缓存中的数据会被保存带二级缓存。新的会话查询信息就会参照二级缓存。
+　　　　　　　　　　　	不同的namespace查出的数据会放在自己对应的缓存中。
+　　　　　　　　　　　效果：查出的数据首先放在一级缓存中，只有一级缓存被关闭或者提交以后，一级缓存数据才会转移到二级缓存
+
+
+
+事务的第一个方面是传播行为（propagation behavior）。当事务方法被另一个事务方法调用时，必须指定事务应该如何传播
+
+嵌套事务一个非常重要的概念就是内层事务依赖于外层事务。外层事务失败时，会回滚内层事务所做的动作。而内层事务操作失败并不会引起外层事务的回，两个方法之间有个savepoint的概念，这个就是嵌套事务的关键点。
+	默认事务只有遇到运行期异常时才会回滚，
+	
+
+Spring 提供了对编程式事务和声明式事务的支持：
+	编程式事务允许用户在代码中精确定义事务的边界，而声明式事务（基于 AOP）有助于用户将操作与事务规则进行解耦。
+	简单地说，编程式事务侵入到了业务代码里面，但是提供了更加详细的事务管理，即使用 TransactionTemplate,直接事务模板处理，可以返回自定义的result。
+	而声明式事务由于基于 AOP，所以既能起到事务管理的作用，又可以不影响业务代码的具体，即使用aop事务，@transactional
+	
+	1、配置事务管理器	transactionManager
+	2、配置事务拦截器 	transactionInterceptor 	配置事务的传播属性
+	
+	
+	一：事务的拦截器
+	二：tx aop哦诶之
+	三：全注解
+	
+	
+	事务拦截器的aop配置,tx配置，这种应该是xml中比较合适的通配方法
+	 <tx:advice id="txAdvice" transaction-manager="transactionManager">
+		 <tx:attributes>
+			<tx:method name="*" propagation="REQUIRED" />
+		 </tx:attributes>
+	 </tx:advice>
+	 <aop:config>
+		<aop:pointcut id="interceptorPointCuts" expression="execution(* com.bluesky.spring.dao.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="interceptorPointCuts" /> 
+	 </aop:config>
+	
+	
+	
+	
+	全注解事务，方便可用
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	一般拦截器
+	<context:annotation-config />
+    <context:component-scan base-package="com.oumyye"/>
+    <bean id="logInterceptor" class="com.oumyye.aop.LogInterceptor"></bean>
+    <aop:config>
+        <aop:pointcut expression="execution(public * com.oumyye.service..*.add(..))" 
+        id="servicePointcut"/>
+        <aop:aspect id="logAspect" ref="logInterceptor">
+            <aop:before method="before"  pointcut-ref="servicePointcut" />
+        </aop:aspect>
+    </aop:config>
+	
+	在springmvc中，DispatcherServlet 根据 HandlerMapping 找到对应的 Handler,将处理权交给 Handler
+	（Handler 将具体的处理进行封装），再由具体的 HandlerAdapter 对 Handler 进行具体的调用。
+	
+	
+分布式锁的相关：
+	可行的一些方案：
+	1、基于数据库资源表的分布式锁，这里是乐观锁(版本号的更新概念)
+	2、使用了Redis 的 setnx()和 expire()的分布式锁解决的问题
+	3、使用了 memecahed 的 add()方法(不常用)
+	4、使用 zookeeper，用于分布式锁。(不常用)
+	
+	
+	ReentrantLock 的 lock 和 unlock 要求必须是
+	在同一线程进行，而分布式应用中，lock 和 unlock 是两次不相关的请求，因此肯
+	定不是同一线程，因此分布式锁中，无法使用 ReentrantLock。
+
+	乐观锁的：
+		(1). 这种操作方式，使原本一次的 update 操作，必须变为 2 次操作: select 版本号一次；update 一次。增加了数据库操作的次
+		(2).基于数据库操作，在高并发的要求下，对数据库连接的开销一定是无法忍受的
+	
+	使用redis的锁实现分布式的相关操作：
+		1. setnx(lockkey, 1) 如果返回 0，则说明占位失败；如果返回 1，则说明占位成功
+		2. expire()命令对 lockkey 设置超时时间，为的是避免死锁问题。
+		3. 执行完业务代码后，可以通过 delete 命令删除 key。
+		方案的弊端就是，在设置超时时间的时候，会出现宕机，这样就会出现死锁问题。
+		**********redis实现的原理***************
+		所以如果要对其进行完善的话，可以使用 redis 的 setnx()、get()和 getset()方法来实现分布式锁。方案待定，不一定适用。
+		
+		1. setnx(lockkey, 当前时间+过期超时时间) ，如果返回 1，则获取锁成功；如果返回 0 则没有获取到锁，转向 2。
+		2. get(lockkey)获取值 oldExpireTime ，并将这个 value 值与当前的系统时间进行比较，如果小于当前系统时间，则认为这个锁已经超时，可以允许别的请求重新获取，转向 3。
+		3. 计算 newExpireTime=当前时间+过期超时时间，然后 getset(lockkey, newExpireTime) 会返回当前 lockkey 的值 currentExpireTime。
+		4. 判断 currentExpireTime 与 oldExpireTime 是否相等，如果相等，说明当前getset 设置成功，获取到了锁。如果不相等，说明这个锁又被别的请求获取走了，那么当前请求可以直接返回失败，或者继续重试。
+		5. 在获取到锁之后，当前线程可以开始自己的业务处理，当处理完毕后，比较自己的处理时间和对于锁设置的超时时间，如果小于锁设置的超时时间，则直接执行delete 释放锁；如果大于锁设置的超时时间，则不需要再锁进行处
+	
+	connection 类本身提供了对事务的支持，可以通过设置connection 的 autocommit 属性为 false 然后显式的调用 commit 或 rollback 方法来实现。
+	
+	使用 select…for update 会把数据给锁住，不过我们需要注意一些锁的级别，MySQL InnoDB 默认行级锁。行级锁都是基于索引的，如果一条 SQL 语句用不到索引是不会使用行级锁的，会使用表级锁把整张表锁住，这点需要注意
+	
+	注入过程的工作方式是提前终止文本字符串，然后追加一个新的命令。 提前;-- 结束
+	防止sql注入的方法：
+	1、普通用户与系统管理员用户的权限要有严格的区分。普通用户不能有Drop Table等表结构的权限
+	2、强迫使用参数化语，不能让sql直接嵌入进去,参数化的语句使用参数而不是将用户输入变量嵌入到 SQL 语句中。类似的就是sql中的#和$
+	3、加强对用户输入内容的检查与验证，在 SQLServer 数据库中，有比较多的用户输入内容验证工具，检查输入内容的合法性，比如拒绝包含二进制数据、转义序列和注释字符的输入内等
+	   测试用户输入内容的大小和数据类型，强制执行适当的限制与转换。这即有助于防止有意造成的缓冲区溢出，对于防治注入式攻击有比较明显的效果
+	   故始终通过测试类型、长度、格式和范围来验证用户输入，过滤用户输入的内容。这是防止 SQL 注入式攻击的常见并且行之有效的措施
+	   
+		如果管理员采用了 Parameters 这个集合的话，则用户输入的内容将被视
+		为字符值而不是可执行代码。即使用户输入的内容中含有可执行代码，则数据库也会过滤
+		掉。因为此时数据库只把它当作普通的字符来处理。使用 Parameters 集合的另外一个优
+		点是可以强制执行类型和长度检查，范围以外的值将触发异常。
+		
+	在经常使用在 WHERE 子句中的列上面创建索引，加快条件的判断速度
+		
+	如果索引是建立在多个列上, 只有在它的第一个列(leading column)被 where 子句引用时,优化器才会选择使用该索引. 这也是一条简单而重要的规则，当仅引用索引的第二个列时,优化器使用了全表扫描而忽略了索引
+		
+	索引有两个特征，即唯一性索引和复合索
+	在复合索引中，列的排列顺序是非常重要的，因此要认真排列列的顺序，原则上，应该
+	首先定义最唯一的列，例 如在（COL1，COL2）上的索引与在（COL2，COL1）上的索引是
+	不相同的，因为两个索引的列的顺序不同；为了使查询优化器使用复合索引，查询语 句中的
+	WHERE 子句必须参考复合索引中第一个列；当表中有多个关键列时，复合索引是非常有用
+	的；使用复合索引可以提高查询性能，减少在一个表中所创建的 索引数量
+	
+	where 语句中索引独立出现，索引才会起作用，不要放在表达式中(如: 转换函数一般放在值那边，不要放在列那边)，或发生不合适的隐式转换
+
+	1. 如果条件中有 or，即使其中有条件带索引也不会使用(这也是为什么尽量少用 or 的原(注意：要想使用 or，又想让索引生效，只能将 or 条件中的每个列都加上索引)
+	2.对于多列索引，不是使用的第一部分，则不会使用索引
+	3.like 查询是以%开头
+	4.如果列类型是字符串，那一定要在条件中将数据使用引号引用起来,否则不使用
+	5.如果 mysql 估计使用全表扫描要比使用索引快,则不使用
+	
+	
+	HSET key field value 设置域值 常用的是字符串类型， 这边使用的是散列类型，相当于以field为key，key-value为value，其他的还有散列和集合类型
+	
+	公私钥，公钥是钥匙，私钥是锁
+	
+	https的传输使用的是证书，证书之间传递相当于加密了一个公用的私钥，通过私钥，两者之间实现，信息的传输,相关的配置是tomcat和nginx的使用
+	用约定好的HASH方式（如md5），把握手消息取HASH值，  然后用 随机数加密 “握手消息+握手消息HASH值(签名)”  并一起发送给服务端
+    使用加密签名的方式，用于验证握手消息在传输过程中没有被篡改过。
+	这样就完成了一次请求，后续是用公用的随机key使用对称加密算法进行加密即可
+	
+	握手的时候使用的非对称加密算法 ，用来加密握手之后的请求和应答
+	传输信息的时候使用的对称加密，
+	保证数据的完整性用的是hash算法(数字签名)
+	
+	1.客户端发送自己支持的加密规则给服务器，代表告诉服务器要进行连接了
+	2.服务器从中选出一套加密算法和hash算法以及自己的身份信息(地址等)以证书的形式发送给浏览器，证书中包含服务器信息，加密公钥，证书的办法机构
+	3.客户端收到网站的证书之后要做下面的事情： 
+		验证证书的合法性
+		如果验证通过证书，浏览器会生成一串随机数，并用证书中的公钥进行加密
+		用约定好的hash算法计算握手消息，然后用生成的密钥进行加密，然后一起发送给服务器
+	4.服务器接收到客户端传送来的信息，要求下面的事情： 
+		用私钥解析出密码，，用密码解析握手消息，验证hash值是否和浏览器发来的一致
+		使用密钥加密消息，回送
+	5.如果计算法hash值一致，握手成功
+	
+	那么这样看ca证书就是对两者之间的传输key进行了加密，确保两者之间的传输key的安全性，这个证书其实就是公钥，认证加密后的公钥，即是证书，又称为CA证书，证书中包含了很多信息，最重要的是申请者的公钥。
+	
+	CA机构在给公钥加密时，用的是一个统一的密钥对，在加密公钥时，用的是其中的私钥，所以ca证书就是ca机构的密钥对中的公钥，ca机构的私钥对发送方的公钥加密。
+	ca证书中包含的是发送方的公钥，有了这个公钥之后，就可以解密证书，拿到发送方的公钥，然后解密发送方发过来的签名，获取摘要，重新计算摘要
+	
+	使用Quartz做计划任务时，默认情况下，当前任务总会执行，无论前一个任务是否结束。  
+        设置 <property name="concurrent" value="false" /> 可以让Job顺序执行。  
+        设置 <property name="concurrent" value="true" /> 可以让Job并行执行，而不用管上一个Job是否结束。
+
+
+对称加密：加密数据用的密钥，跟解密数据用的密钥是一样的。
+
+对称加密的优点在于加密、解密效率通常比较高。缺点在于，数据发送方、数据接收方需要协商、共享同一把密钥，并确保密钥不泄露给其他人。此外，对于多个有数据交换需求的个体，两两之间需要分配并维护一把密钥，这个带来的成本基本是不可接受的。
+
+非对称加密：加密数据用的密钥（公钥），跟解密数据用的密钥（私钥）是不一样的。
+
+私钥能解开公钥加密的数据，但忽略了一点，私钥加密的数据，同样可以用公钥解密出来（公钥是公开的，那么由服务器-》客户端的就存在安全隐患）
+
+
+1.小明访问XX，XX将自己的证书给到小明（其实是给到浏览器，小明不会有感知）
+2.浏览器从证书中拿到XX的公钥A
+3.浏览器生成一个只有自己知道的对称密钥B，用公钥A加密，并传给XX（其实是有协商的过程，这里为了便于理解先简化）
+4.XX通过私钥解密，拿到对称密钥B
+5.浏览器、XX 之后的数据通信，都用密钥B进行加密
+
+
+
+下载完ssl相关的内容，其中包含了各个web服务器的证书，比如ningx和tomcat相关的
+使用OPENSSL 命令行来生成 KEY+CSR2 个文件，Tomcat，JBoss，Resin 等使用 KEYTOOL 来
+生成 JKS 和 CSR 文件
+配置ssl证书后可使用301重定向到https的访问页面
+使用https的访问，tomcat中需要配置秘钥相关
+所有加了https安全证书转换的，post请求都要是https请求
+<Connector SSLEnabled="true" clientAuth="false" keystoreFile="d:\tomcat.keystore" keystorePass="123456" maxThreads="150" port="9443" protocol="org.apache.coyote.http11.Http11Protocol" scheme="https" secure="true" sslProtocol="TLS"/>
+
+
+多个dubbo的服务
+<dubbo:protocol name="dubbo" port="20881"/>
+做集群的时候，两台服务器的都暴露的是20881端口，是服务端暴露
+如果要在同一台服务器上启动多个不同的服务server，那么就需要启动多个提供者，暴露多个dubbo的端口，但是注册到统一的zookeeper上
+
+主从数据库：
+	修改的254从库，但是生产是从253主库读取的，
+	所以页面读取不到（253主-从，但是254的数据库只是备份用的）254修改后没反应，
+	生产读取的是253的库，254只是备份用的库，只能算是展示功能，
+
+
+	
+	
