@@ -104,3 +104,8 @@ idea target地下不自动更新
         this.config = config;
     }
   filter的启动初始化参数
+
+动态代理  service 注入的是 代理类还是service bean  再aop代理的过程中
+
+spring-boot 热加载
+boot中使用mapperscan 代替代码配置应该也行吧，需要搭配@mapper标签。其中@select 和@results搭配使用
