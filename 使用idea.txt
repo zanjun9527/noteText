@@ -113,3 +113,15 @@ Settings→Editor→General→Auto Import
 然后勾选Add unambiguous imports on the fly以及Optimize imports on the fly
 
 搜索mouse move   show quick documentation on mouse move  提示api信息
+
+tools中的start ssh session 直接可以远程连接服务器
+
+
+tomcat
+	使用run中的editconfiguration
+	git相关的切换分支在右下角
+javadoc 中的inspections中的 可以修改相关的提示线颜色
+查看方法的调用链   navigate 中的call hierarchy
+
+
+查看上一个文件 ctrl+e

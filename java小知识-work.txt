@@ -461,6 +461,22 @@
 			tar -zxvf apache-rocketmq.tar.gz -C rocketmq/  解压文件到指定的目录
 			kill -9 pid
 			lsof -i :22 查看22端口被哪个进程占用
+			
+			ps -ef|grep java
+			
+			--定义環境變量，輸出環境變量
+			#export JAVA_HOME=/usr/java/jdk1.8.0_131 
+			MAVEN_HOME=/usr/local/maven3
+			export MAVEN_HOME
+			export PATH JAVA_HOME CLASSPATH
+			
+			echo $PATH
+			
+			一、查看文件安装路径： 
+				whereis oracle 
+			二、查询运行文件所在路径：
+				which oracle 
+			
 
 
 66、			多个tomcat实例运行：
