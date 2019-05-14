@@ -76,8 +76,8 @@ jvmµÄÏà¹Ø£º
 	2¡¢	javaÐéÄâ»úÕ»£ºÊÇÏß³ÌË½ÓÐµÄ£¬ÉúÃüÖÜÆÚÓëÏß³ÌÏàÍ¬
 		ÊÇÐéÄâ»úÖÐ¾Ö²¿±äÁ¿µÄ±í²¿·Ö£¬ËùÐèµÄÄÚ´æ¿Õ¼äÔÚ±àÒëÊ±ÆÚÍê³É·ÖÅä£¬·½·¨ÔËÐÐÊ±ÆÚ²»»á¸Ä±ä´óÐ¡£¬´æ·ÅÁË±àÒëÆ÷¿ÉÖªµÄ¸÷ÖÖ»ù±¾Êý¾ÝÀàÐÍ£¬¶ÔÏóÒýÓÃºÍreturnadressÀàÐÍ£¨Ö¸ÏòÁËÒ»Ìõ×Ö½ÚÂëÖ¸ÁîµÄµØÖ·£©
 		Õâ¸öÇøÓòµÄÁ½ÖÖÒì³£Çé¿ö£º
-			1.µ±Ïß³ÌÇëÇóµÄÕ»Éî¶È´óÓÚjvmÔÊÐíµÄÉî¶È£¬Å×³östackoverflowError
-			2.Èç¹ûjvm¶¯Ì¬À©Õ¹Ê±ÎÞ·¨ÉêÇëµ½×ã¹»µÄÄÚ´æÊ±»áÅ×³öoutOfMemoryError
+			1.µ±Ïß³ÌÇëÇóµÄÕ»Éî¶È´óÓÚjvmÔÊÐíµÄÉî¶È£¬Å×³östackoverflowError	µÝ¹éµ÷ÓÃ»á³ö´í
+			2.Èç¹ûjvm¶¯Ì¬À©Õ¹Ê±ÎÞ·¨ÉêÇëµ½×ã¹»µÄÄÚ´æÊ±»áÅ×³öoutOfMemoryError   ¾­³£µÄ±àÒëclassÎÄ¼þµÄÄÚ´æ²»¹»
 		Ê¹ÓÃ-XssÅäÖÃÕ»ÄÚ´æÈÝÁ¿£¬¿ÉÒÔ¼õÉÙÕ»ÄÚ´æÈÝÁ¿
 		¶¨Òå´óÁ¿µÄ±¾µØ±äÁ¿£¬¿ÉÔö¼Ó´Î·½·¨Ö¡ÖÐ±¾µØ±äÁ¿±íµÄ³¤¶È
 		
@@ -100,15 +100,17 @@ jvmµÄÏà¹Ø£º
 		
 	5¡¢·½·¨Çø£º
 		´æ·ÅclassÏà¹ØÐÅÏ¢£¬ÈçÀàÃû¡¢·ÃÎÊÐÞÊÎ·û¡¢³£Á¿³Ø¡¢×Ö¶ÎÃèÊö¡¢·½·¨ÃèÊö
-		¸÷Ïß³Ì¹²ÏíµÄÄÚ´æÇøÓò£¬ÓÃÓÚ´æ·ÅÒÑ±»jvm¼ÓÔØµÄÀàÐÅÏ¢¡¢³£Á¿¡¢¾²Ì¬±äÁ¿¡¢¼´ÊÇ±àÒëÆ÷±àÒëºóµÄ´úÂëµÈÊý¾Ý¡£±ðÃûNon-Heap(·Ç¶Ñ)¡£
+		¸÷Ïß³Ì¹²ÏíµÄÄÚ´æÇøÓò£¬ÓÃÓÚ´æ·ÅÒÑ±»jvm¼ÓÔØµÄÀàÐÅÏ¢¡¢³£Á¿¡¢¾²Ì¬±äÁ¿¡¢¼´ÊÇ±àÒëÆ÷±àÒëºóµÄ´úÂëµÈÊý¾Ý¡£±ðÃûNon-Heap(·Ç¶Ñ)¡£Çø±ðÓÚ¶ÑÄÚ´æheap
 		¿ÉÑ¡Ôñ¹Ì¶¨´óÐ¡»ò¿ÉÀ©Õ¹£¬¸ÃÇøÓòÄÚ´æ»ØÊÕÄ¿±êÖ÷ÒªÊÇÕë¶Ô³£Á¿³ØµÄ»ØÊÕºÍ¶ÔÀàÐÍµÄÐ¶ÔØ£¬
-		µ±·½·¨ÇøÎÞ·¨Âú×ãÄÚ´æ·ÖÅäÐèÇóÊ±£¬½«Å×³öoutOfMemoryError
+		µ±·½·¨ÇøÎÞ·¨Âú×ãÄÚ´æ·ÖÅäÐèÇóÊ±£¬½«Å×³öoutOfMemoryError		PermGen space
 		MaxPermSize£¬×î´ó·½·¨ÇøÈÝÁ¿
+		
+		1.8Ö®ºóÒÆ³ý£¬-XX:PermSize£¬Ê¹ÓÃÔª¿Õ¼ä(Metaspace)´úÌæ
 		
 		-XX:permSize ºÍ -XX:MaxPermSize ÅäÖÃ´óÐ¡
 	
 	6¡¢ÔËÐÐÊ±³£Á¿³Ø
-		ÊôÓÚ·½·¨ÇøµÄÒ»²¿·Ö
+		ÊôÓÚ·½·¨ÇøµÄÒ»²¿·Ö£¬ÔÚÀà¼ÓÔØÖ®ºó£¬´æ·Åµ½·½·¨ÇøµÄÔËÐÐÊ±³£Á¿³ØÖÐ
 		
 	7¡¢Ö±½ÓÄÚ´æ 	direct memory  
 		·ÖÅä²»»áÊÜµ½java¶Ñ´óÐ¡µÄÏÞÖÆ£¬ÅäÖÃÄÚ´æÈÝÒ×ºöÂÔÕâ¿é£¬µ¼ÖÂ³¬¹ýÎïÀíÄÚ´æÏÞÖÆ£¬´Ó¶øµ¼ÖÂ¶¯Ì¬À©Õ¹Ê±³öÏÖOutOfMemoryErrorÒì³£
@@ -148,7 +150,7 @@ jvmµÄÏà¹Ø£º
 	¶ÑÖÐ´æ·ÅµÄÊÇjavaÖÐµÄ¶ÔÏóÊµÀý£¬ÒÑ¾­dead(ÊôÓÚ¶ÔÏóÊÇ·ñ´æ»î)µÄ¶ÔÏóÐèÒª±»»ØÊÕ
 	
 	jvmÅÐ¶Ï¶ÔÏóÊÇ·ñ´æ»î£¬²¢²»ÊÇÊ¹ÓÃµÄÊÇ1¡¢ÒýÓÃ¼ÆÊýËã·¨£¨Ïà»¥ÒýÓÃ£¬²»³ÉÁ¢£©
-	Ê¹ÓÃµÄÊÇ2¡¢¸ùËÑË÷Ëã·¨£¬»ù±¾Ë¼Â·ÊÇÍ¨¹ýÒ»ÏµÁÐÃûÎªgc roots µÄ¶ÔÏó×÷ÎªÆðÊ¼µã£¬´Ó¸Ã½ÚµãÏòÏÂËÑË÷£¬×ß¹ýµÄÂ·¾¶³ÉÎªÒýÓÃÁ´£¬µ±Ò»¸ö¶ÔÏóµ½gc rootsÃ»ÓÐÈÎºÎÒýÓÃÁ´ÏàÁ¬£¨¼´´Ógc rootsµ½Õâ¸ö¶ÔÏó²»¿É´ï£©£¬Ôò¶ÔÏó²»¿ÉÓÃ½«±»ÅÐ¶¨Îª¿É»ØÊÕ¶ÔÏó
+	¶øÊÇÊ¹ÓÃµÄÊÇ2¡¢¸ùËÑË÷Ëã·¨£¬»ù±¾Ë¼Â·ÊÇÍ¨¹ýÒ»ÏµÁÐÃûÎªgc roots µÄ¶ÔÏó×÷ÎªÆðÊ¼µã£¬´Ó¸Ã½ÚµãÏòÏÂËÑË÷£¬×ß¹ýµÄÂ·¾¶³ÉÎªÒýÓÃÁ´£¬µ±Ò»¸ö¶ÔÏóµ½gc rootsÃ»ÓÐÈÎºÎÒýÓÃÁ´ÏàÁ¬£¨¼´´Ógc rootsµ½Õâ¸ö¶ÔÏó²»¿É´ï£©£¬Ôò¶ÔÏó²»¿ÉÓÃ½«±»ÅÐ¶¨Îª¿É»ØÊÕ¶ÔÏó
 	
 	javaÖÐ£¬¿É×÷Îªgc roots¶ÔÏó°üÀ¨£º
 		1¡¢ÐéÄâ»úÕ»£¨Õ»Ö¡ÖÐµÄ±¾µØ±äÁ¿±í£©ÖÐµÄÒýÓÃ¶ÔÏó
@@ -158,7 +160,7 @@ jvmµÄÏà¹Ø£º
 		
 	finalize()£º	
 	¶ÔÏó½øÐÐ¸ùËÑË÷¾Í·¢ÏÖÃ»ÓÐÓëgc rootsÏàÁ¬½ÓµÄÒýÓÃÁ´£¬ÐèÒª¿´¶ÔÏóÊÇ·ñ¸²¸Çfinalize(),Ã»ÓÐ¸²¸Ç»òÕß¸Ã·½·¨ÒÑ¾­±»jvmµ÷ÓÃ¹ý£¬Ôò¶ÔÏóÃ»±ØÒªÖ´ÐÐfinalize()¡£
-	¶ÔÏóËÀÍöÐèÒª¾­¹ýÁ½´ÎÖÁÉÙÁ½´ÎµÄ±ê¼Ç£¬Ò»´Î¾ÍÊÇgc rootsµÄ²»ÏàÁ¬½Ó£¬Ö´ÐÐfinalize()»á¶Ôf-queueÖÐµÄ¶ÔÏóµÚ¶þ´Î±ê¼Ç£¬Ö»ÒªÖØÐÂÓëÒýÓÃÁ´ÉÏµÄÈÎºÎÒ»¸ö¶ÔÏó½¨Á¢¹ØÁª£¬ÄÇÃ´½«ÒÆ³ý¼´½«»ØÊÕµÄ¼¯ºÏ£¬¼´Ö´ÐÐfinalize()£¬ÊÇ¶ÔÏóµÄ×ÔÎÒÕü¾È·½·¨£¬¶ÔÏóÒÀÈ»¿ÉÒÔ´æ»î£¬ÔÚ±»gcÊ±×ÔÎÒÕü¾È£¬ÇÒ¶ÔÏóÖ»ÄÜÖ´ÐÐÒ»´Î¸Ã·½·¨¡£
+	¶ÔÏóËÀÍöÐèÒª¾­¹ýÁ½´ÎÖÁÉÙÁ½´ÎµÄ±ê¼Ç£¬Ò»´Î¾ÍÊÇgc rootsµÄ²»ÏàÁ¬½Ó£¬Ö´ÐÐfinalize()»á¶Ôf-queue¶ÓÁÐÖÐµÄ¶ÔÏóµÚ¶þ´Î±ê¼Ç£¬Ö»ÒªÖØÐÂÓëÒýÓÃÁ´ÉÏµÄÈÎºÎÒ»¸ö¶ÔÏó½¨Á¢¹ØÁª£¬ÄÇÃ´½«ÒÆ³ý¼´½«»ØÊÕµÄ¼¯ºÏ£¬¼´Ö´ÐÐfinalize()£¬ÊÇ¶ÔÏóµÄ×ÔÎÒÕü¾È·½·¨£¬¶ÔÏóÒÀÈ»¿ÉÒÔ´æ»î£¬ÔÚ±»gcÊ±×ÔÎÒÕü¾È£¬ÇÒ¶ÔÏóÖ»ÄÜÖ´ÐÐÒ»´Î¸Ã·½·¨¡£
 		
 		
 	ÔÚ¶ÑÖÐ£¬ÓÈÆäÔÚÐÂÉú´úÖÐ£¬À¬»ø»ØÊÕµÄÐ§ÂÊºÜ¸ß£¬µ«ÊÇÔÚÓÀ¾Ã´úÖÐ£¨Ö»ÒªÊÇ·ÏÆú³£Á¿ºÍÎÞÓÃµÄÀà£©£¬Ð§ÂÊºÜµÍ£¬
@@ -168,7 +170,7 @@ jvmµÄÏà¹Ø£º
 		EdenÇø£ºJavaÐÂ¶ÔÏóµÄ³öÉúµØ(Èç¹ûÐÂ´´½¨µÄ¶ÔÏóÕ¼ÓÃÄÚ´æºÜ´ó£¬ÔòÖ±½Ó·ÖÅäµ½ÀÏÄê´ú)¡£
 		ServivorTo£º±£ÁôÁËÒ»´ÎMinorGC¹ý³ÌÖÐµÄÐÒ´æÕß¡£
 		ServivorFrom£ºÉÏÒ»´ÎGCµÄÐÒ´æÕß£¬×÷ÎªÕâÒ»´ÎGCµÄ±»É¨ÃèÕß¡£
-		Ä¬ÈÏEdenÓëSurvivorÄ¬ÈÏ±ÈÀýÊÇ8:1
+		Ä¬ÈÏEdenÓëµ¥¸öSurvivorÄ¬ÈÏ±ÈÀýÊÇ8:1
 		
 	ÀÏÄê´úµÄ¶ÔÏó±È½ÏÎÈ¶¨£¬ËùÒÔMajorGC²»»áÆµ·±Ö´ÐÐ¡£
 
@@ -210,7 +212,7 @@ jvmµÄÏà¹Ø£º
 	Ä¬ÈÏ¿ÕÓà¶ÑÄÚ´æÐ¡ÓÚ40%Ê±£¬JVM¾Í»áÔö´ó¶ÑÖ±µ½-XmxµÄ×î´óÏÞÖÆ;¿ÕÓà¶ÑÄÚ´æ´óÓÚ70%Ê±£¬JVM»á¼õÉÙ¶ÑÖ±µ½-XmsµÄ×îÐ¡ÏÞÖÆ¡£Òò´Ë·þÎñÆ÷Ò»°ãÉèÖÃ-Xms¡¢-XmxÏàµÈÒÔ±ÜÃâÔÚÃ¿´ÎGC ºóµ÷Õû¶ÑµÄ´óÐ¡
 		
 		
-jvmµÄÐÔÄÜ¼à¿ØÓò´¦Àí¹¤¾ß   jconsole ºÍjvisualVM ¿ÉÊÓ»¯¼à¿Ø¹¤¾ß
+jvmµÄÐÔÄÜ¼à¿ØÓò´¦Àí¹¤¾ß   jconsole ºÍjvisualVM ¿ÉÊÓ»¯¼à¿Ø¹¤¾ß£¬Ä¿Ç°Ö÷ÍÆµÄÊÇjvisualVMÕâ¿îµÄ¹¦ÄÜ
 	jps£ºÏÔÊ¾Ö¸¶¨ÏµÍ³ËùÓÐµÄhotspot jvm½ø³Ì ³£ÓÃµÄÊÇÊ¹ÓÃ-l²é¿´ÍêÕûµÄÀàÂ·¾¶ºÍjar°üµÄÎ»ÖÃ
 	jstat£ºÊÖ»úhotspot jvm¸÷·½Ãæ£¨Àà×°ÔØ£¬ÄÚ´æ£¬À¬»øÊÕ¼¯£©µÄÔËÐÐÊý¾Ý				ÔËÐÐÆÚ¶¨Î»jvmÐÔÄÜÊ×Ñ¡
 	jinfo£º ÏÔÊ¾ÐéÄâ»úµÄÅäÖÃÐÅÏ¢
@@ -255,11 +257,11 @@ jvmµÄÀà¼ÓÔØ»úÖÆ£ºjvm°ÑÃèÊöÀàµÄÊý¾Ý´ÓclassÎÄ¼þ¼ÓÔØµ½ÄÚ´æ£¬²¢¶ÔÊý¾Ý½øÐÐÐ£Ñé£¬×ª»»½
 	¶ÔÓÚ¾²Ì¬×Ö¶Î£¬Ö»ÓÐÖ±½Ó¶¨ÒåÕâ¸ö×Ö¶ÎµÄÀà²Å»á³õÊ¼»¯£¬Òò´ËÍ¨¹ýÆä×ÓÀàÀ´ÒýÓÃ¸¸ÀàÖÐµÄ¶¨ÒåµÄ¾²Ì¬×Ö¶Î£¬Ö»»á´¥·¢¸¸ÀàµÄ³õÊ¼»¯¶ø²»»á´¥·¢×ÓÀàµÄ³õÊ¼»¯
 	¾²Ì¬´úÂë¿éstatic{}ÓÃÀ´³õÊ¼»¯ÐÅÏ¢
 	¼ÓÔØµÄ¼¸¸ö½×¶Î£º¼ÓÔØ£¬ÑéÖ¤£¬×¼±¸£¬½âÎö£¬³õÊ¼»¯£¬Ê¹ÓÃ£¬Ð¶ÔØ£¬Ç°5¸ö¾ÍÊÇÀàµÄ¼ÓÔØ¹ý³Ì£¬2-4ÊôÓÚÁ¬½Ó
-	¼ÓÔØ£º»ñÈ¡ÀàµÄ¶þ½øÖÆ×Ö½ÚÁ÷£¬½«Æä´ú±íµÄ¾²Ì¬´æ´¢½á¹¹×ª»¯Îª·½·¨ÇøµÄÔËÐÐÊ±Êý¾Ý½á¹¹£¬ÔÚ¶ÑÖÐÉú³É´ú±í¸ÃÀàµÄclass¶ÔÏó£¬×÷Îª·½·¨ÇøÕâÐ©Êý¾ÝµÄ·ÃÎÊÈë¿Ú¡£
+	¼ÓÔØ£º1.»ñÈ¡ÀàµÄ¶þ½øÖÆ×Ö½ÚÁ÷£¬2.½«Æä´ú±íµÄ¾²Ì¬´æ´¢½á¹¹×ª»¯Îª·½·¨ÇøµÄÔËÐÐÊ±Êý¾Ý½á¹¹£¬3.ÔÚ¶ÑÖÐÉú³É´ú±í¸ÃÀàµÄclass¶ÔÏó£¬×÷Îª·½·¨ÇøÕâÐ©Êý¾ÝµÄ·ÃÎÊÈë¿Ú¡£
 	ÑéÖ¤£ºÈ·±£classÎÄ¼þµÄ×Ö½ÚÁ÷ÖÐ°üº¬µÄÐÅÏ¢·ûºÏµ±Ç°ÐéÄâ»úµÄÒªÇó£¬²¢²»»áÎ£º¦jvm×ÔÉí°²È«
-	×¼±¸£ºÔÚ·½·¨ÇøÖÐ£¬ÎªÀà±äÁ¿·ÖÅäÄÚ´æ²¢ÉèÖÃÀà±äÁ¿µÄ³õÊ¼Öµ
+	×¼±¸£ºÔÚ·½·¨ÇøÖÐ£¬ÎªÀà±äÁ¿(±»staticÐÞÊÎµÄ±äÁ¿£¬²»°üÀ¨ÊµÀý±äÁ¿)·ÖÅäÄÚ´æ²¢ÉèÖÃÀà±äÁ¿µÄ³õÊ¼Öµ£¬ÊµÀý±äÁ¿½«»áÔÚ¶ÔÏóÊµÀý»¯Ê±Ëæ×Å¶ÔÏóÒ»Æð·ÖÅäÔÚjava¶ÑÖÐ£¬
 	½âÎö£ºjvm½«³£Á¿³ØÄÚ´æÄÚµÄ·ûºÅÒýÓÃÌæ»»ÎªÖ±½ÓÒýÓÃµÄ¹ý³Ì
-	³õÊ¼»¯£º
+	³õÊ¼»¯£ºÕæÕý¿ªÊ¼Ö´ÐÐÀàÖÐ¶¨ÒåµÄjava³ÌÐò´úÂë(»òÕßËµÊÇ×Ö½ÚÂë)
 	
 	
 	
@@ -894,7 +896,7 @@ Spring Ìá¹©ÁË¶Ô±à³ÌÊ½ÊÂÎñºÍÉùÃ÷Ê½ÊÂÎñµÄÖ§³Ö£º
 	ÈÈ±¸·ÝÊÇÊµÊ±±¸·Ý£¬·¢Éúµ¹»»Ò²²»Ó°ÏìÒµÎñ£»Àä±¸·ÝÔòÊÇÖÜÆÚÐÔ±¸·Ý£¨Èç£º¶¨Ê±Ã¿ÌìÁè³¿¿ªÊ¼±¸·Ý£©£¬·¢Éúµ¹»»Ê±£¬±¸»úµÄÊý¾Ý²»ÊÇ×îÐÂµÄ¡£
 	
 	
--- ²¢·¢Êµ¼ù  Ò³Âë56
+-- ²¢·¢Êµ¼ù  ÊéÐ´µÄ²»ÔõÃ´Ñù
 	
 	Ïß³Ì¹²Ïí½ø³Ì·¶Î§ÄÚµÄ×ÊÔ´£¬µ«ÊÇÃ¿¸öÏß³Ì¶¼ÓÐ×Ô¼ºµÄ³ÌÐò¼ÆÊýÆ÷£¬Õ»£¬±¾µØ±äÁ¿£¬Í³Ò»½ø³ÌÖÐµÄÏß³Ì·ÃÎÊÍ³Ò»±äÁ¿£¬´ÓÍ¬Ò»¶ÑÖÐ·ÖÅä¶ÔÏó£¬ÊµÏÖÁËÊý¾Ý¹²Ïí£¬µ«ÊÇÒ²¿ÉÄÜÐÞ¸ÄÁËÆäËûÏß³ÌÕýÔÚÊ¹ÓÃµÄÊý¾Ý¡£Ìá¹©×ÊÔ´ÀûÓÃÂÊºÍÍÌÍÂÁ¿
 	³ÌÐòµ÷¶ÈµÄ»ù±¾µ¥Î»ÊÇÏß³Ì
@@ -924,5 +926,101 @@ Spring Ìá¹©ÁË¶Ô±à³ÌÊ½ÊÂÎñºÍÉùÃ÷Ê½ÊÂÎñµÄÖ§³Ö£º
 	synchronized,Ëø¶ÔÏóºÍ·½·¨(¾ÍÊÇ¸Ã·½·¨ËùÔÚ¶ÔÏó±¾Éí)£¬¾²Ì¬µÄsynchronized·½·¨´Óclass¶ÔÏóÉÏ»ñÈ¡Ëø
 	ÄÚ²¿ËøÔÚjavaÖÐÊÇ»¥³âËøµÄ´æÔÚ£¬µ«ÊÇ»á´øÀ´µÄÏìÓ¦ÐÔµÄÎÊÌâ¡£ÐÔÄÜÎÊÌâºÍÏß³Ì°²È«ÎÊÌâÊÇÒ»¶¨³Ì¶ÈÉÏ»¥³âµÄ
 	
+	Í¨¹ýËõÐ¡synchronized¿éµÄ·¶Î§À´Î¬»¤Ïß³Ì°²È«ÐÔ£¬ÈÝÒ×ÌáÉý²¢·¢µÄÐÔÄÜ£¬¾¡Á¿½«ºÄÊ±µÄ²»Ó°Ïì¹²Ïí×´Ì¬µÄ²Ù×÷·ÖÀë³öÀ´
+	
+	Ïñi/oµÈºÄÊ±µÄ¼ÆËã»ò²Ù×÷£¬Ö´ÐÐÕâÐ©²Ù×÷ÆÚ¼ä²»ÒªÕ¼ÓÐËø
+	
+	Ëø²»½ö¹ØÓÚÍ¬²½Óë»¥³â£¬Ò²¹ØÓÚÄÚ´æ¿É¼û¡£È·±£Ïß³Ì¶¼ÄÜ¿´µ½¹²Ïí£¬¿É±ä±äÁ¿µÄ×îÐÂÖµ£¬¶ÁÈ¡ºÍÐ´ÈëÏß³Ì±ØÐëÊ¹ÓÃ¹«¹²µÄËø½øÐÐÍ¬²½¡£
+	¼ÓËø¿ÉÒÔ±£Ö¤¿É¼ûÐÔºÍÔ­×ÓÐÔ£¬volatile±äÁ¿Ö»ÄÜ±£Ö¤¿É¼ûÐÔ
+	(¿É¼ûÐÔ£¬Àí½âÊÇget²Ù×÷µÈ´ýÁíÒ»¸öÏß³ÌµÄset²Ù×÷£¬±£Ö¤ÖµÊÇ×îÐÂµÄ)
+	
+	²¢·¢Éæ¼°µ½µÄÈý¸öÌØÐÔ
+		1¡¢Ô­×ÓÐÔ£º¼´Ò»¸ö²Ù×÷»òÕß¶à¸ö²Ù×÷ ÒªÃ´È«²¿Ö´ÐÐ²¢ÇÒÖ´ÐÐµÄ¹ý³Ì²»»á±»ÈÎºÎÒòËØ´ò¶Ï£¬ÒªÃ´¾Í¶¼²»Ö´ÐÐ¡£
+		2¡¢¿É¼ûÐÔÊÇÖ¸µ±¶à¸öÏß³Ì·ÃÎÊÍ¬Ò»¸ö±äÁ¿Ê±£¬Ò»¸öÏß³ÌÐÞ¸ÄÁËÕâ¸ö±äÁ¿µÄÖµ£¬ÆäËûÏß³ÌÄÜ¹»Á¢¼´¿´µÃµ½ÐÞ¸ÄµÄÖµ¡£
+		3¡¢ÓÐÐòÐÔ£º¼´³ÌÐòÖ´ÐÐµÄË³Ðò°´ÕÕ´úÂëµÄÏÈºóË³ÐòÖ´ÐÐ¡£
+	
+	´¦ÀíÆ÷ÔÚ½øÐÐÖØÅÅÐòÊ±ÊÇ»á¿¼ÂÇÖ¸ÁîÖ®¼äµÄÊý¾ÝÒÀÀµÐÔ£¬Ö¸ÁîÖØÅÅÐò²»Ó°Ïìµ¥Ïß³ÌµÄ´¦Àí£¬ÁË½â¼´¿É£¬ÄÇÃ´Àí½â¾ÍÊÇ°´Ë³ÐòÖ´ÐÐ¾ÍÐÐ£¨ÔÝ²»ÁË½â£©
+	
+	¿É¼ûÐÔ£º£¨Éæ¼°µ½±¾µØÏß³ÌÄÚ´æºÍÖ÷ÄÚ´æµÄ¸ÅÄî£¬ÔËËã½áÊø£¬¸ßËÙ»º´æ£¨Ïàµ±ÓÚ±¾µØµÄÏß³ÌÄÚ´æ£¬Ò²½Ð¹¤×÷ÄÚ´æ£©ÖÐµÄÊý¾ÝË¢ÐÂµ½Ö÷´æµ±ÖÐ£©
+		¶ÔÓÚ¿É¼ûÐÔ£¬JavaÌá¹©ÁËvolatile¹Ø¼ü×ÖÀ´±£Ö¤¿É¼ûÐÔ,µ«ÊÇ²»ÄÜ±£Ö¤Ô­×ÓÐÔ(ÔÚ¶à¸öÏß³Ì·ÃÎÊµÄÊ±ºò£¬Ô­×ÓÐÔ¾Í²»ÄÜ±£Ö¤ÁË£¬µ¥Ïß³ÌÊÇ¿ÉÒÔµÄ)
+¡¡¡¡		µ±Ò»¸ö¹²Ïí±äÁ¿±»volatileÐÞÊÎÊ±£¬Ëü»á±£Ö¤ÐÞ¸ÄµÄÖµ»áÁ¢¼´±»¸üÐÂµ½Ö÷´æ£¬µ±ÓÐÆäËûÏß³ÌÐèÒª¶ÁÈ¡Ê±£¬Ëü»áÈ¥Ö÷ÄÚ´æÖÐ¶ÁÈ¡ÐÂÖµ¡£
+¡¡¡¡		¶øÆÕÍ¨µÄ¹²Ïí±äÁ¿²»ÄÜ±£Ö¤¿É¼ûÐÔ£¬ÒòÎªÆÕÍ¨¹²Ïí±äÁ¿±»ÐÞ¸ÄÖ®ºó£¬Ê²Ã´Ê±ºò±»Ð´ÈëÖ÷´æÊÇ²»È·¶¨µÄ£¬µ±ÆäËûÏß³ÌÈ¥¶ÁÈ¡Ê±£¬´ËÊ±ÄÚ´æÖÐ¿ÉÄÜ»¹ÊÇÔ­À´µÄ¾ÉÖµ£¬Òò´ËÎÞ·¨±£Ö¤¿É¼ûÐÔ¡£
+¡¡¡¡		ÁíÍâ£¬Í¨¹ýsynchronizedºÍLockÒ²ÄÜ¹»±£Ö¤¿É¼ûÐÔ£¬synchronizedºÍLockÄÜ±£Ö¤Í¬Ò»Ê±¿ÌÖ»ÓÐÒ»¸öÏß³Ì»ñÈ¡ËøÈ»ºóÖ´ÐÐÍ¬²½´úÂë£¬²¢ÇÒÔÚÊÍ·ÅËøÖ®Ç°»á½«¶Ô±äÁ¿µÄÐÞ¸ÄË¢ÐÂµ½Ö÷´æµ±ÖÐ¡£Òò´Ë¿ÉÒÔ±£Ö¤¿É¼ûÐÔ
+
+	¶ÔÓÚvolatileÐÞÊÎµÄ±äÁ¿£¬jvmÐéÄâ»úÖ»ÊÇ±£Ö¤´ÓÖ÷ÄÚ´æ¼ÓÔØµ½Ïß³Ì¹¤×÷ÄÚ´æµÄÖµÊÇ×îÐÂµÄ(Ïàµ±ÓÚget ºÍreload²Ù×÷)
+
+	Èç¹û¶ÔÉùÃ÷ÁËvolatileµÄ±äÁ¿½øÐÐÐ´²Ù×÷£¬JVM¾Í»áÏò´¦ÀíÆ÷·¢ËÍÒ»ÌõÖ¸Áî£¬½«Õâ¸ö±äÁ¿ËùÔÚ»º´æÐÐµÄÊý¾ÝÐ´»Øµ½ÏµÍ³ÄÚ´æ¡£µ«ÊÇ£¬¾ÍËãÐ´»Øµ½ÄÚ´æ£¬Èç¹ûÆäËû´¦ÀíÆ÷»º´æµÄÖµ»¹ÊÇ¾ÉµÄ£¬ÔÙÖ´ÐÐ¼ÆËã²Ù×÷¾Í»áÓÐÎÊÌâ¡£
+	ÔÚ¶à´¦ÀíÆ÷ÏÂ£¬ÎªÁË±£Ö¤¸÷¸ö´¦ÀíÆ÷µÄ»º´æÊÇÒ»ÖÂµÄ£¬¾Í»áÊµÏÖ»º´æÒ»ÖÂÐÔÐ­Òé£¬Ã¿¸ö´¦ÀíÆ÷Í¨¹ýÐáÌ½ÔÚ×ÜÏßÉÏ´«²¥µÄÊý¾ÝÀ´¼ì²é×Ô¼º»º´æµÄÖµÊÇ²»ÊÇ¹ýÆÚÁË£¬µ±´¦ÀíÆ÷·¢ÏÖ×Ô¼º»º´æÐÐ¶ÔÓ¦µÄÄÚ´æµØÖ·±»ÐÞ¸Ä£¬¾Í»á½«µ±Ç°´¦ÀíÆ÷µÄ»º´æÐÐÉèÖÃ³ÉÎÞÐ§×´Ì¬£¬µ±´¦ÀíÆ÷¶ÔÕâ¸öÊý¾Ý½øÐÐÐÞ¸Ä²Ù×÷µÄÊ±ºò£¬»áÖØÐÂ´ÓÏµÍ³ÄÚ´æÖÐ°ÑÊý¾Ý¶Áµ½´¦ÀíÆ÷»º´æÀï¡£
+	×Ü½áÏÂÀ´£º
+
+	µÚÒ»£ºÊ¹ÓÃvolatile¹Ø¼ü×Ö»áÇ¿ÖÆ½«ÐÞ¸ÄµÄÖµÁ¢¼´Ð´ÈëÖ÷´æ£»
+	µÚ¶þ£ºÊ¹ÓÃvolatile¹Ø¼ü×ÖµÄ»°£¬µ±Ïß³Ì2½øÐÐÐÞ¸ÄÊ±£¬»áµ¼ÖÂÏß³Ì1µÄ¹¤×÷ÄÚ´æÖÐ»º´æ±äÁ¿µÄ»º´æÐÐÎÞÐ§£¨·´Ó³µ½Ó²¼þ²ãµÄ»°£¬¾ÍÊÇCPUµÄL1»òÕßL2»º´æÖÐ¶ÔÓ¦µÄ»º´æÐÐÎÞÐ§£©£»
+	µÚÈý£ºÓÉÓÚÏß³Ì1µÄ¹¤×÷ÄÚ´æÖÐ»º´æ±äÁ¿µÄ»º´æÐÐÎÞÐ§£¬ËùÒÔÏß³Ì1ÔÙ´Î¶ÁÈ¡±äÁ¿µÄÖµÊ±»áÈ¥Ö÷´æ¶ÁÈ¡¡£
+	×îÖØÒªµÄÊÇ£º
+
+	¿É¼ûÐÔ£º¶ÔÒ»¸övolatile±äÁ¿µÄ¶Á£¬×ÜÊÇÄÜ¿´µ½£¨ÈÎÒâÏß³Ì£©¶ÔÕâ¸övolatile±äÁ¿×îºóµÄÐ´Èë¡£
+	Ô­×ÓÐÔ£º¶ÔÈÎÒâµ¥¸övolatile±äÁ¿µÄ¶Á/Ð´¾ßÓÐÔ­×ÓÐÔ£¬µ«ÀàËÆÓÚvolatile++ÕâÖÖ¸´ºÏ²Ù×÷²»¾ßÓÐÔ­×ÓÐÔ¡£
+
+Ô­×ÓÐÔ£º
+	1.¼´²Ù×÷¹ý³Ì±»ÆäËûÏß³Ì¸ÉÈÅµ¼ÖÂÐÅÏ¢´íÎóºÍÐÅÏ¢¶ªÊ§£¬Ô­×Ó²Ù×÷ÔÚ²Ù×÷Íê±ÏÖ®Ç°²»»áÏß³Ìµ÷¶ÈÆ÷ÖÐ¶Ï
+	***2.Ìá¹©ÁË»¥³â·ÃÎÊ£¬Í¬Ò»Ê±¿ÌÖ»ÄÜÓÐÒ»¸öÏß³Ì¶ÔËü½øÐÐ²Ù×÷***
+	
+	
+
+
+	½â¾ö±¾µØ»º´æ²»Ò»ÖÂµÄÇé¿ö£º
+	¡¡ÎªÁË½â¾ö»º´æ²»Ò»ÖÂÐÔÎÊÌâ£¬Í¨³£À´ËµÓÐÒÔÏÂ2ÖÖ½â¾ö·½·¨£º
+
+¡¡¡¡	1£©Í¨¹ýÔÚ×ÜÏß¼ÓLOCK#ËøµÄ·½Ê½
+			Èç¹ûÒ»¸öÏß³ÌÔÚÖ´ÐÐ i = i +1£¬Ö´ÐÐ¹ý³ÌÖÐ£¬ÔÚ×ÜÏßÉÏ·¢³öÁËLCOK#ËøµÄÐÅºÅ£¬ÄÇÃ´Ö»ÓÐµÈ´ýÕâ¶Î´úÂëÍêÈ«Ö´ÐÐÍê±ÏÖ®ºó£¬
+			ÆäËûCPU²ÅÄÜ´Ó±äÁ¿iËùÔÚµÄÄÚ´æ¶ÁÈ¡±äÁ¿£¬È»ºó½øÐÐÏàÓ¦µÄ²Ù×÷¡£µ«ÊÇÔÚËø×¡×ÜÏßÆÚ¼ä£¬ÆäËûCPUÎÞ·¨·ÃÎÊÄÚ´æ£¬µ¼ÖÂÐ§ÂÊµÍÏÂ¡£
+
+¡¡¡¡	2£©Í¨¹ý»º´æÒ»ÖÂÐÔÐ­Òé
+			ËùÒÔ¾Í³öÏÖÁË»º´æÒ»ÖÂÐÔÐ­Òé¡£×î³öÃûµÄ¾ÍÊÇIntel µÄMESIÐ­Òé£¬MESIÐ­Òé±£Ö¤ÁËÃ¿¸ö»º´æÖÐÊ¹ÓÃµÄ¹²Ïí±äÁ¿µÄ¸±±¾ÊÇÒ»ÖÂµÄ¡£
+			ËüºËÐÄµÄË¼ÏëÊÇ£ºµ±CPUÐ´Êý¾ÝÊ±£¬Èç¹û·¢ÏÖ²Ù×÷µÄ±äÁ¿ÊÇ¹²Ïí±äÁ¿£¬¼´ÔÚÆäËûCPUÖÐÒ²´æÔÚ¸Ã±äÁ¿µÄ¸±±¾£¬»á·¢³öÐÅºÅÍ¨ÖªÆäËûCPU½«¸Ã±äÁ¿µÄ»º´æÐÐÖÃÎªÎÞÐ§×´Ì¬£¬
+			Òò´Ëµ±ÆäËûCPUÐèÒª¶ÁÈ¡Õâ¸ö±äÁ¿Ê±£¬·¢ÏÖ×Ô¼º»º´æÖÐ»º´æ¸Ã±äÁ¿µÄ»º´æÐÐÊÇÎÞÐ§µÄ£¬ÄÇÃ´Ëü¾Í»á´ÓÄÚ´æÖØÐÂ¶ÁÈ¡¡£
+
+¡¡¡¡	Õâ2ÖÖ·½Ê½¶¼ÊÇÓ²¼þ²ãÃæÉÏÌá¹©µÄ·½Ê½¡£
+
+¡¡
+	
+	threadlocalÌá¹©ÁËgetºÍset·ÃÎÊÆ÷£¬ÎªÊ¹ÓÃËüµÄÏß³ÌÎ¬»¤Ò»·Ýµ¥¶ÀµÄ¿½±´£¬get×ÜÊÇ·µ»ØÓÉµ±Ç°Ö´ÐÐÏß³ÌÍ¨¹ýsetÉèÖÃµÄ×îÐÂÖµ
+	threadlocal<T>¿ÉÒÔ¿´×÷ÊÇmap<thread,t>£¬´æ´¢ÁËÓëÏß³ÌÏà¹ØµÄÖµ¡£ÊÇÏß³ÌÏÞÖÆ
+	***ÊµÏÖ±äÁ¿µÄ³õÊ¼»¯***
+	ThreadLocal<Integer> iin=new ThreadLocal<Integer>(){
+				 public Integer initialValue() {
+					 	int a=1;
+				        return a;
+				    }
+				};
+	
+	½«µ¥ ¡ª¡·¶àÏß³ÌÖÐ£¬¿É½«¹²ÏíµÄÈ«¾Ö±äÁ¿×ª»»³ÉthreadlocalÀàÐÍ£¬µ«ÊÇ½«Ó¦ÓÃ¼¶±ðµÄ»º´æ±à³ÌÒ»¶ÑÏß³Ì±¾µØ»º³å£¬ÄÇÃ´ÊÇÃ»ÓÐÒâÒåµÄ
+	³£ÓÃÓÃ·¨£ººÍcontext½áºÏÊ¹ÓÃ£¬½«contextºÍÏß³Ì¹ØÁªÆðÀ´£¬½µµÍÁËÃ¿¸ö·½·¨´«µÝÖ´ÐÐÉÏÏÂÎÄÐÅÏ¢µÄÐèÒª¡£
+¡¡¡¡±ãÓÚÏß³ÌµÄÉÏÏÂÎÄ´«Êä£¬Òþ²Ø²ÎÊý´«µÝ
+
+
+	×¢ÒâÕâÀïÊÇ¾²Ì¬³ÖÓÐÉÏÏÂÎÄµÄ£¬ÓÐÁ½¸öÌØÐÔ£¬Ò»¸öÊÇ·â±ÕÒþ²Ø£¬Ò»¸öÊÇ´«ÊäÐÔ£¬
+	ËäÈ»¿É½µµÍÖØÓÃÐÔ£¬µ«»áÒýÈëÒþ»ÞµÄÀà¼äñîºÏ¡£
+	public class ApplicationContext implements Serializable
+	{
+    /** Ó¦ÓÃÉÏÏÂÎÄÏß³Ì±äÁ¿ */
+	private static final ThreadLocal<ApplicationContext> opContextHolder = new ThreadLocal<ApplicationContext>();
+	
+	private Map<String, Object> parameters;
+    private Object info;
+    public static ApplicationContext getContext()
+    {
+        ApplicationContext context = opContextHolder.get();
+        if (null == context)
+        {
+            context = new ApplicationContext();
+            opContextHolder.set(context);
+        }
+        return context;
+    }
+	
+	Éú²úÕßºÍÏû·ÑÕßÖ®¼ä£¬Ê¹ÓÃÓÐ½ç¶ÓÁÐ£¨×èÈû¶ÓÁÐ£©¶Ô×ÊÔ´½øÐÐ¹ÜÀí,¿ÉÒÔÆ½ºâ¶þÕßµÄ¹¤×÷Ê±¼ä
+	ÓÐ½ç¶ÓÁÐ·ÀÖ¹Ó¦ÓÃ³ÌÐò¹ýÔØ¶øºÄ¾¡ÄÚ´æ
+	executor»ùÓÚÉú²úÕß-Ïû·ÑÕßÄ£Ê½ÊµÏÖµÄ£¬Ìá½»ÈÎÎñµÄÖ´ÐÐÕßÊÇÉú²úÕß£¬Ö´ÐÐÈÎÎñµÄÏß³ÌÊÇÏû·ÑÕß¡£
 	
 	
