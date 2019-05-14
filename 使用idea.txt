@@ -69,8 +69,18 @@ idea 安装 破解版：
 	在 editor中的inspections取消过多的waring警告
 	
 	设置中 build相关中的compiler 选择build project automatically
-
-		
+	
+	按Ctrl + Shift + F繁体变简体  
+	
+	javadoc去除文本注释提醒
+	
+	idea 中不能自动编译的问题（实测html）
+	在edit-macros-start macros recording中录制Ctrl + s ，Ctrl +f9的组合键，
+	然后在keymap中macros中添加宏add keyboard Shortcut，使用Ctrl + s 即可
+	
+	未保存文件提示
+	Settings -> Editor -> General -> Editor Tabs: Check "Mark modified tabs with asterisk"
+	
 git，maven相关
 	打开maven的依赖树，然后Ctrl+O，打开图中的搜索功能，可以定位到具体的依赖位置
 	
