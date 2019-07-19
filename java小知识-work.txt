@@ -18,3 +18,66 @@
 	
 	
 5.try 在for之外，那么异常是会终止循环的，若在之内，捕获后可继续循环
+
+6、spring的循环依赖问题：在注入@Autowired 下加@Lazy 注解即可(两边都加比较保险)
+   原因是spring中Bean构造函数入参引用的对象必须已经准备就绪，那么两个相互依赖的bean就有可能出现问题
+   
+   还有一个解决方式是：将相互依赖的两个Bean中的其中一个Bean采用Setter注入(也就是属性注入)的方式即可。
+   
+   
+   spring对象初始化三个步骤：
+	（1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象
+	（2）populateBean：填充属性，这一步主要是多bean的依赖属性进行填充
+	（3）initializeBean：调用spring xml中的init 方法。
+	从上面讲述的单例bean初始化步骤我们可以知道，循环依赖主要发生在第一、第二部。也就是构造器循环依赖和field循环依赖。
+
+	
+	Spring容器会将每一个正在创建的Bean 标识符放在一个“当前创建Bean池”中，Bean标识符在创建过程中将一直保持在这个池中。
+	因此如果在创建Bean过程中发现自己已经在“当前创建Bean池”里时将抛出BeanCurrentlyInCreationException异常表示循环依赖；而对于创建完毕的Bean将从“当前创建Bean池”中清除掉。
+	初始化完的Bean会从池中移除
+	
+	
+	setter是实例化结束的对象放到一个Map，可以获取，构造是放在池中，池不能重复创建同一对象
+   
+   
+
+7、生产上的tomcat是没有配置ssl的，都是nginx端配置的https，所以请求实际上都是在http上存入缓存
+
+
+8、default-autowire="byName" 在配置mybatis数据源的地方去掉，否则读取属性文件找不到
+
+	<parent>
+	<relativePath>作用
+
+	<!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项 
+	目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom。 -->
+	<relativePath />
+	
+	ContextLoaderListener默认去WEB-INF下加载applicationContext.xml配置。
+	默认的applicationContext.xml和x-servlet.xml文件
+	
+	netpay中不能吧openservice也依赖进来，这样就不是远程的服务了
+	rpc的公用接口jar一定要和service分离开来
+	
+	直接拖动相关java文件，对应的会更新引用	
+
+	编译ok 运行异常，肯能是tomcat的运行配置中少了环境
+	
+	
+9、jdk版本切换要点
+	cmd  echo %path% 输出系统的环境变量
+	更换java_home
+	删除path中的变量C:\Program Files (x86)\Common Files\Oracle\Java\javapath;
+	删除C:\ProgramData\Oracle\Java，将Java文件直接删除
+	然后更换system32中的三个java文件对应版本即可
+	最多还要修改下注册表	HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment
+				HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Development Kit
+	
+	
+	
+10、boot使用数据源或者jndi
+	JndiObjectFactoryBean，DataSourceBuilder
+
+	
+	
+	

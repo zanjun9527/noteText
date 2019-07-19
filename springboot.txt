@@ -260,3 +260,9 @@ boot中的多环境配置
 	spring的mockMvc测试框架，可以不需要容器运行就测试mvc，仅此而已，知道即可。
 	
 	<property name="logbackpath" value="../logs/"></property> springboot的jar启动，当前的位置就是jar的位置
+
+	
+
+Spring Boot 可以通过 @PropertySource,@Value,@Environment, @ConfigurationProperties 来绑定变量，
+
+Spring Boot 可以兼容老 Spring 项目，使用@ImportResource注解导入老 Spring 项目配置文件。

@@ -33,7 +33,7 @@ idea 安装 破解版：
 	全局搜索		Ctrl+Shift+R			就是全局搜索文件
 	查看最近文件	Ctrl+E					返回、回退、后退 最近的文件
 	查看调用链		Ctrl+Alt+H  			navigate 中的call hierarchy
-	多方案导包		alt+enter
+	多方案导包		alt+enter			实现接口的方法
 			
 	Eclipse和Intellij IDEA中常用快捷键差异总结。
 
@@ -75,7 +75,7 @@ idea 安装 破解版：
 	javadoc去除文本注释提醒
 	
 	idea 中不能自动编译的问题（实测html）
-	在edit-macros-start macros recording中录制Ctrl + s ，Ctrl +f9的组合键，
+	在edit-macros-start macros recording中录制Ctrl + s ，Ctrl +f9的组合键，（Ctrl +f9实时编译）
 	然后在keymap中macros中添加宏add keyboard Shortcut，使用Ctrl + s 即可
 	
 	未保存文件提示
@@ -99,6 +99,13 @@ git，maven相关
 		关联已有的git，在设置中的version controll 中添加即可
 		在git的commit中可以还原文件，也可以选择提交
 
+		在version controller中如果git关联显示红色，表明没有关联到git，对应module项目应该关联顶层的pom目录，即.git文件的当前目录
+
+		所有的git项目都是提现commit后，再push的，idea中的在merge的时候注意要push完之后再merge远程
+			
+		可以查看某个改动的分支号，revision number ，右边是当前，左边是之前的版本
+
+
 代码相关
 	点击进入接口的实现类，选中方法右击goto，查看实现类的方法
 	使用eclipse模式   使用ctrl+alt+shift+j  缩写提示 设置完背景色也差不多 
@@ -121,6 +128,8 @@ idea小常识
 	tools中的start ssh session 直接可以远程连接服务器
 	
 	java 创建需要标记为sourceroot后才能创建package
+
+	实现接口的方法的时候，@Override无效，是要在Project Structure中选择1.7以上的编译版本
 	
 继承mybatis自动生成插件：目前暂时用不到，对代码有侵入性
 	1、
@@ -144,7 +153,8 @@ idea小常识
 
 			
 
-
+idea中解决Error:java: Compilation failed: internal java compiler error的问题
+	在Settings->Buile,Execution,Deployment->Compiler->Java Compiler设置Module的Target bytecode version
 
 
 

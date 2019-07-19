@@ -2090,10 +2090,12 @@
 31.shiro相关：
 		SecurityManager：我们知道其在Shiro中的地位，类似于一个“安全大管家”，相当于SpringMVC中的DispatcherServlet或者Struts2中的FilterDispatcher，是Shiro的心脏，所有具体的交互都通过SecurityManager进行控制，它管理着所有Subject、且负责进行认证和授权、及会话、缓存的管理
 
-		shiro三大核心模块：Subject（用户）、SecurityManager(框架心脏)、Realm（Shiro与应用安全数据间的“桥梁”）
+		shiro三大核心模块：Subject（用户）、SecurityManager(框架心脏)、Realm（Shiro与应用安全数据间的“桥梁”，主要用来权限校验和密码校验）
 
-		shiro.xml中配置ShiroFilterFactoryBean时候，在容器中注入的是filterbean，拦截/*请求，未登录，跳转loginUrl,unauthorizedUrl是没有权限跳转的路径
+		shiro.xml中配置ShiroFilterFactoryBean时候，在容器中注入的是filterbean，拦截/*请求，未登录，跳转loginUrl,unauthorizedUrl是没有权限跳转的路径,重点是配置这个ShiroFilterFactoryBean
 
+		配置重点ShiroFilterFactoryBean,SecurityManager,Realm
+		
 		securityManager中继承了多个功能模块（继承链由顶端向下）：
 		1、CachingSecurityManager			主要提供缓存支持，管理缓存操作
 		2、RealmSecurityManager				可理解为数据处理组件，比如Realm根据用户名数据库，和输入的用户密码比对，验证登录，还有授权数据等）
@@ -3041,7 +3043,7 @@
 	
 	
 		dubbo在springboot中，不使用内嵌的tomcat启动，jar启动
-			SpringApplication.run(XyeServiceCoreApplication.class, args);	//静态的run方法，使用内嵌的tomcat启动，至于能不能用在无tomcat的jar启动，暂不测试
+			//SpringApplication.run(XyeServiceCoreApplication.class, args);	//静态的run方法，使用内嵌的tomcat启动，至于能不能用在无tomcat的jar启动，暂不测试
 			new springapplicationbuilder(a.class).web(false).run(args)，jar启动其中中不使用tomcat，启动springboot工程，搭配下面的使用
 			com.alibaba.dubbo.container.Main.main(args);//dubbo的推荐的main函数启动
 
