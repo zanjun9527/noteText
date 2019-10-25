@@ -1,0 +1,516 @@
+
+https://www.liaoxuefeng.com/wiki/1022910821149312/1023020925712064     类型和变量
+
+廖雪峰
+问题：文件上传，ajax的跨域方案可以看看
+	
+
+
+js
+	每个语句尽量以;结束
+	注释 1.//  2./*...*/
+	
+	
+	JavaScript不区分整数和浮点数，统一用Number表示，以下都是合法的Number类型：
+		NaN; // NaN表示Not a Number，当无法计算结果时用NaN表示   				比较特殊
+		Infinity; // Infinity表示无限大
+		
+		false == 0; // true
+		false === 0; // false
+		
+		第一种是==比较，它会自动转换数据类型再比较，很多时候，会得到非常诡异的结果；
+		第二种是===比较，它不会自动转换数据类型，如果数据类型不一致，返回false，如果一致，再比较。
+		由于JavaScript这个设计缺陷，不要使用==比较，始终坚持使用===比较。
+		
+		
+	字符串是以单引号'或双引号"括起来的任意文本
+	
+	null表示一个空的值，而undefined表示值未定义
+	
+	数组：
+		JavaScript的Array可以包含任意数据类型，并通过索引来访问每个元素
+		var arr = [1, 2, 3.14, 'Hello', null, true];
+		动态给数组的长度和索引赋值是会改变数组的
+		一般不建议直接修改Array的大小
+		常规操作：
+				截取slice()
+				push()向Array的末尾添加若干元素，pop()则把Array的最后一个元素删除掉：
+				往Array的头部添加若干元素，使用unshift()方法，shift()方法则把Array的第一个元素删掉：
+				splice万能操作方法，可删可减
+				join()方法是一个非常实用的方法，它把当前Array的每个元素都用指定的字符串连接起来，然后返回连接后的字符串
+	
+	对象
+		{...}表示一个对象，键值对以xxx: xxx形式申明，用,隔开
+		JavaScript的对象是一组由键-值组成的无序集合，例如：
+		var person = {
+			name: 'Bob',
+			age: 20,
+			tags: ['js', 'web', 'mobile'],
+			city: 'Beijing',
+			hasCar: true,
+			zipcode: null
+		};
+		JavaScript对象的键都是字符串类型，值可以是任意数据类型。上述person对象一共定义了6个键值对，其中每个键又称为对象的属性，例如，person的name属性为'Bob'，zipcode属性为null。
+
+		要获取一个对象的属性，我们用对象变量.属性名的方式：但这要求属性名必须是一个有效的变量名。如果属性名包含特殊字符，就必须用''括起来：
+
+		person.name; // 'Bob'
+		person.zipcode; // null
+		
+		xiaohong的属性名middle-school不是一个有效的变量，就需要用''括起来。访问这个属性也无法使用.操作符，必须用['xxx']来访问：但是尽量简洁点，就可以直接使用.了
+		xiaohong['middle-school']; // 'No.1 Middle School'
+		
+		由于JavaScript的对象是动态类型，你可以自由地给一个对象添加或删除属性： 删除是直接delete xiaoming.age; 增加直接.属性即可
+		
+		
+		
+	赋值
+		var a = 123; // a的值是整数123  动态语言
+			a = 'ABC'; // a变为字符串
+
+		int a = 123; // a是整数类型变量，类型用int申明		静态语言
+
+		使用var申明的变量则不是全局变量，它的范围被限制在该变量被申明的函数体内（函数的概念将稍后讲解），同名变量在不同的函数体内互不冲突。
+
+
+	字符串
+		内容是不可变的
+		JavaScript的字符串就是用''或""括起来的字符表示。
+		如果'本身也是一个字符，那就可以用""括起来，比如"I'm OK"包含的字符是I，'，m，空格，O，K这6个字符。
+		如果字符串内部既包含'又包含"怎么办？可以用转义字符\来标识，
+		
+	es6中支持多行方式 ：
+		一般的用\n代替 
+		console.log(`多行
+					字符串
+					测试`);
+					
+		模板字符串，一般用+连接
+		var name = '小明';
+		var age = 20;
+		var message = `你好, ${name}, 你今年${age}岁了!`;
+		alert(message);
+		.length 长度，其他的也有一些indexOf()等操作方法
+	if else	
+		JavaScript把null、undefined、0、NaN和空字符串''视为false，其他值一概视为true
+		
+	for 循环
+		for ... in循环，它可以把一个对象的所有属性依次循环出来： 
+		var o = {
+					name: 'Jack',
+					age: 20,
+					city: 'Beijing'
+				};
+				for (var key in o) {
+					console.log(key); // 'name', 'age', 'city'
+				}
+				
+		由于Array也是对象，而它的每个元素的索引被视为对象的属性，因此，for ... in循环可以直接循环出Array的索引
+		
+		
+		for ... of  代替，直接遍历出数组的值，是用来遍历数组集合用的
+			for(var x of a){
+							console.log(x);
+						}
+									
+		
+		
+	map 和 set
+		一般也不常用
+		但是JavaScript的对象有个小问题，就是键必须是字符串。但实际上Number或者其他数据类型作为键也是非常合理的。
+		为了解决这个问题，最新的ES6规范引入了新的数据类型Map
+		
+		
+	函数
+			函数也是对象，所以可以var定义函数实现匿名函数
+			
+			function abs(x) {...} 和 var abs = function (x) {...}; 是等价的
+
+			传参多一个也没问题，取所需顺序参数即可；
+			少一个 abs(); // 返回NaN
+			此时abs(x)函数的参数x将收到undefined，计算结果为NaN。
+			
+			
+			var aa = typeof '11'== 'string';   判断参数类型
+
+			arguments是函数内置的对象，可以操作入参
+			
+			
+			这里是有坑的，因为行末是自动补上;的
+			function foo() {
+				return
+					{ name: 'foo' };
+			}
+			
+			
+			在JavaScript中，用var申明的变量实际上是有作用域的。
+			如果一个变量在函数体内部申明，则该变量的作用域为整个函数体，在函数体外不可引用该变量
+			如果两个不同的函数各自申明了同一个变量，那么该变量只在各自的函数体内起作用。换句话说，不同函数内部的同名变量互相独立，互不影响：
+
+			JavaScript的函数定义有个特点，它会先扫描整个函数体的语句，把所有申明的变量“提升”到函数顶部，但是不会赋值，
+			var y; // 提升变量y的申明，此时y为undefined
+			那么请严格遵守“在函数内部首先申明所有变量”这一规则。最常见的做法是用一个var申明函数内部用到的所有变量：
+			
+			全局作用域
+				不在任何函数内定义的变量就具有全局作用域。实际上，JavaScript默认有一个全局对象window，全局作用域的变量实际上被绑定到window的一个属性
+				JavaScript实际上只有一个全局作用域。绑定在windows上。任何变量（函数也视为变量），如果没有在当前函数作用域中找到，就会继续往上查找，最后如果在全局作用域中也没有找到，则报ReferenceError错误
+				
+				
+			避免全局变量的重复，把自己的代码全部放入唯一的名字空间MYAPP中，会大大减少全局变量冲突的可能。
+				// 使用唯一的全局变量MYAPP:
+				var MYAPP = {};
+
+				// 其他变量:
+				MYAPP.name = 'myapp';
+				MYAPP.version = 1.0;
+
+				// 其他函数:
+				MYAPP.foo = function () {
+					return 'foo';
+				};
+				
+			解构赋值，快速赋值的方法 ，了解即可
+			
+		方法：
+			在一个对象中绑定函数，称为这个对象的方法。 this只想当前调用的对象，如果在外层，就是window
+			var xiaoming = {
+							name: '小明',
+							birth: 1990,
+							age: function () {
+								var y = new Date().getFullYear();
+								return y - this.birth;
+							}
+						};
+						
+			xiaoming.age  			这个对象的一个属性
+			xiaoming.age()			这是调用对象的方法	
+			
+			
+			
+			这种情况也会报错，this指针只在age方法的函数内指向xiaoming，在函数内部定义的函数，this又指向undefined了！（在非strict模式下，它重新指向全局对象window！）
+				var xiaoming = {
+					name: '小明',
+					birth: 1990,
+					age: function () {
+						function getAgeFromBirth() {
+							var y = new Date().getFullYear();
+							return y - this.birth;
+						}
+						return getAgeFromBirth();
+					}
+				};
+
+				xiaoming.age(); // U
+			重新定义一次变量即可
+				var xiaoming = {
+								name: '小明',
+								birth: 1990,
+								age: function () {
+									var that = this; // 在方法内部一开始就捕获this
+									function getAgeFromBirth() {
+										var y = new Date().getFullYear();
+										return y - that.birth; // 用that而不是this
+									}
+									return getAgeFromBirth();
+								}
+							};
+							xiaoming.age(); // 25
+			
+			也可以使用apply来指定this调用的对象，一般不用
+			
+		高阶函数：sort，filter，array等，暂时用不到，后续使用可以再查
+		
+		闭包：
+			在函数lazy_sum中又定义了函数sum，并且，内部函数sum可以引用外部函数lazy_sum的参数和局部变量，
+			当lazy_sum返回函数sum时，相关参数和变量都保存在返回的函数中，即为闭包
+				function lazy_sum(arr) {
+						var sum = function () {
+							return arr.reduce(function (x, y) {
+								return x + y;
+							});
+						}
+						return sum;
+					}
+					var cc=lazy_sum([1,2]);
+					console.log(cc);			结果：function sum() 附带了[1,2]的函数
+					console.log(cc())			结果：3
+
+		箭头函数：不常用
+			x => x * x
+			上面的箭头函数相当于：
+
+			function (x) {
+				return x * x;
+			}
+			
+	标准对象
+		Date  	对应的月份是0~11
+		
+		RegExp 	对应匹配，用处遇到再看
+				var r= /^(\d{4})-(\d{1,2})-(\d{1,2})$/	r.test();
+				'a b   c'.split(/\s+/); // ['a', 'b', 'c']
+				
+				(),组的概念，exec()方法在匹配成功后，会返回一个Array，第一个元素是正则表达式匹配到的整个字符串，后面的字符串表示匹配成功的子串。
+
+		JSON	JSON.stringify(xiaoming)  
+				JSON.parse()把它变成一个JavaScript对象：
+	
+	
+	面向对象
+		构造函数，暂时没用
+		除了直接用{ ... }创建一个对象外，JavaScript还可以用一种构造函数的方法来创建对象。它的用法是：先定义一个构造函数，然后在new来调用这个函数，创建一个对象
+			function Student(name) {
+								this.name = name;
+								this.hello = function () {
+									alert('Hello, ' + this.name + '!');
+								}
+							}
+			这确实是一个普通函数，但是在JavaScript中，可以用关键字new来调用这个函数，并返回一个对象：
+			如果不写new，这就是一个普通函数，它返回undefined。但是，如果写了new，它就变成了一个构造函数，它绑定的this指向新创建的对象，并默认返回this，也就是说，不需要在最后写return this;
+
+			var xiaoming = new Student('小明');
+			xiaoming.name; // '小明'
+			xiaoming.hello(); // Hello, 小明!
+	
+		对象：class对象，继承相关
+			class Student {
+				constructor(name) {
+					this.name = name;
+				}
+
+				hello() {
+					alert('Hello, ' + this.name + '!');
+				}
+			}
+			比较一下就可以发现，class的定义包含了构造函数constructor和定义在原型对象上的函数hello()（注意没有function关键字），这样就避免了Student.prototype.hello = function () {...}这样分散的代码。
+
+			最后，创建一个Student对象代码和前面章节完全一样：
+
+			var xiaoming = new Student('小明');
+			xiaoming.hello();
+			
+	浏览器：
+			常规操作： 
+				.innerHTML获取标签的内容,这里不建议使用，因为可能会注入html的标签相关，使用innerText可以避免这一点(自动对字符串进行HTML编码，保证无法设置任何HTML标签)
+				
+				js中的confirm() 返回 true。如果点击取消按钮，则 confirm() 返回 false。中间可以传递相应的显示参数
+	
+				js中赋值全部带上引号
+					js.style.color = '#ff0000';
+					js命名为驼峰命名法，我习惯性写成了CSS里的font-weight:   p.style.fontSize = '20px,	js.style.fontWeight='bold';
+	
+			navigator可以拿到浏览器的相关信息
+			
+			screen对象表示屏幕的信息，常用的属性有：
+			
+			location对象表示当前页面的URL信息。例如，一个完整的URL：		http://www.example.com:8080/path/index.html?a=1&b=2#TOP
+			要加载一个新页面，可以调用location.assign()。如果要重新加载当前页面，调用location.reload()方法非常方便。
+			
+			
+			/**********
+			document对象表示当前页面。由于HTML在浏览器中以DOM形式表示为树形结构，document对象就是整个DOM树的根节点。
+
+			document的title属性是从HTML文档中的<title>xxx</title>读取的，但是可以动态改变： document.title = '你好吗';
+			
+			document.cookie;安全：服务器在设置Cookie时可以使用httpOnly，设定了httpOnly的Cookie将不能被JavaScript读取。
+			
+			history对象保存了浏览器的历史记录，JavaScript可以调用history对象的back()或forward ()，使用ajax后，这个已经基本废用了
+			
+		更新DOM信息
+		
+			.innerHTML 		不但可以修改一个DOM节点的文本内容，还可以直接通过HTML片段修改DOM节点内部的子树			可能变更了结构，又被注入攻击的危险
+			.innerText		这样可以自动对字符串进行HTML编码，保证无法设置任何HTML标签更安全，						只能是字符串的更新,HTML被自动编码，无法设置html节点:。input的值是value获取的	
+			.style			DOM节点的style属性对应所有的CSS，可以直接获取或设置。在JavaScript中字体大小改写为驼峰式命名fontSize。
+			.appendChild	添加一个子节点
+							var d = document.createElement('style');
+								d.setAttribute('type', 'text/css');			/d.type='text/css';
+								d.innerHTML = 'p { color: red }';
+								document.getElementsByTagName('head')[0].appendChild(d);
+							若要把子节点插入到指定的位置，可以使用parentElement.insertBefore(newElement, referenceElement);，子节点会插入到referenceElement之前。
+							list.children[i]; // 拿到第i个子节点
+		
+			.removeChild	删除一个节点，首先要获得该节点本身以及它的父节点，然后，调用父节点的removeChild把自己删掉,删除过程中，parent是在变化的
+							var parent = document.getElementById('parent');
+							parent.removeChild(parent.children[0]);
+			
+		操作表单：
+			<input>节点的引用，就可以直接调用value获得对应的用户输入值
+							<input type="text" id="email">
+							var input = document.getElementById('email');
+							input.value; // '用户输入的值'
+			
+			text、password、hidden以及select。但是，对于单选框和复选框，value属性返回的永远是HTML预设的值，而我们需要获得的实际是用户是否“勾上了”选项
+			
+			<input type="date" value="2015-07-01">	可以直接生成一个时间控件
+			
+			onsubmit="return checkForm()"，可以用来实现提交前的一些校验和准备操作，返回true/false,
+			
+			没有name属性的<input>的数据不会被提交，input值使用value获取的
+		
+		操作文件：
+			在HTML表单中，可以上传文件的唯一控件就是<input type="file">。
+			注意：当一个表单包含<input type="file">时，表单的enctype必须指定为multipart/form-data，method必须指定为post，浏览器才能正确编码并以multipart/form-data格式发送表单的数据。
+			出于安全考虑，浏览器只允许用户点击<input type="file">来选择本地文件，用JavaScript对<input type="file">的value赋值是没有任何效果的。当用户选择了上传某个文件后，JavaScript也无法获得该文件的真实路径：
+			
+			*************************文件上传还要看看
+			HTML5的File API提供了File和FileReader两个主要对象，可以获得文件信息并读取文件。
+			
+			JavaScript的一个重要的特性就是单线程执行模式
+			
+			
+			
+		ajax，实现异步的局部刷新
+			一般来说，如果开发API的是自己人的话，让他直接设置CORS就可以了。（我现在项目就是前后端分离，后台就是这样设置。） 如果要请求的API不在自己控制的话，如果对方提供了JSONP（像豆瓣那样的），可以使用JSONP。 
+			最后如果是对方没有提供JSONP，前端又需要用到那方面的API的话，那就需要搭建发现代理服务器咯。 其实我比较倾向于搭建代理服务器~
+			
+			一次HTTP请求对应一个页面。
+			如果要让用户留在当前页面中，同时发出新的HTTP请求，就必须用JavaScript发送这个新请求，接收到数据后，再用JavaScript更新页面，这样一来，用户就感觉自己仍然停留在当前页面，但是数据却可以不断地更新。
+			
+			
+			跨域的方案：跨域能否成功，取决于对方服务器是否愿意给你设置一个正确的Access-Control-Allow-Origin，决定权始终在对方手中。
+				架代理服务器，另一种在同源域名下架设一个代理服务器来转发，JavaScript负责把请求发送到代理服务器，服务端需要开发。
+				jsonp		我们如果在页面中先准备好foo()函数，然后给页面动态加一个<script>节点，带上回调函数，相当于动态读取外域的JavaScript资源，最后就等着接收回调了。
+				CORS
+				
+				
+				
+				
+		jQuery		
+			jQuery统一了不同浏览器之间的DOM操作的差异，让我们可以简单地对DOM进行操作
+			直接使用浏览器提供的API对DOM结构进行修改，不但代码复杂，而且要针对浏览器写不同的代码。有了jQuery，底层的DOM操作由jQuery完成就可以了。简化操作，提高兼容性
+			选择器是jQuery的核心。一个选择器写出来类似$('#dom-id')。快速定位到一个或多个DOM节点。
+			jQuery对象类似数组，它的每个元素都是一个引用了DOM节点的对象。jQuery的选择器不会返回undefined或者null，这样的好处是你不必在下一行判断if (div === undefined)。
+			通常情况下你不需要获取DOM对象，直接使用jQuery对象更加方便。如果你拿到了一个DOM对象，那可以简单地调用$(aDomObject)把它变成jQuery对象，这样就可以方便地使用jQuery的API了。
+			
+			三种选择器，
+					tag,			var ps = $('p'); // 返回所有<p>节点			ps.length; // 数一数页面有多少个<p>节点
+					class,
+					id。
+					属性			一个DOM节点除了id和class外还可以有很多属性，很多时候按属性查找会非常方便，比如在一个表单中按属性来查找：		var email = $('[name=email]'); 
+					
+					jQuery选择器(基本)：
+						$('#id')
+						$('.className')
+						$('div')				******直接选择div标签，直接选择标签******
+						$('div#id')
+						$('.class1.class2')  // 中间不加空格表示：类名同时等于class1和class2的
+						$('.class1 .class2')  // 中间加空格表示：类class1下面的class2							******层级之间用空格隔开******
+						$('.class1,.class2')   // 中间加逗号表示：类class1和类class2两个都
+			
+					层级选择器					$('ancestor descendant')								用空格隔开
+					子选择器					$('parent>child')										限制了必须是子父级关系
+					过滤器（Filter）			$('ul.lang li:first-child'); //******好像是用:******	过滤器一般不单独使用，它通常附加在选择器上，帮助我们更精确地定位元素。观察过滤器的效果：
+					
+					查找和过滤
+							以这个对象为基准，进行查找和过滤
+							find()，
+							next()和prev() 			同级前后查找
+							parent()				向上级查找
+							filter()				滤掉不符合选择器条件的节点
+							map()					把一个jQuery对象包含的若干DOM节点转化为其他对象
+							
+			jQuery_操作dom
+					修改文本内容			text(),html()		方法分别获取节点的文本和原始HTML文本		$('#test-ul li').text('JS'); 
+					
+					修改样式css				jQuery对象的所有方法都返回一个jQuery对象（可能是新的也可能是自身），这样我们可以进行链式调用
+											$('#test-css li.dy>span').css('background-color', '#ffd351').css('color', 'red');            css('name', 'value')   
+											css()方法将作用于DOM节点的style属性，具有最高优先级。如果要修改class属性，
+											div.hasClass('highlight'); // false， class是否包含highlight
+											div.addClass('highlight'); // 添加highlight这个class
+											div.removeClass('highlight'); // 删除highlight这个class
+											
+					显示和隐藏DOM				.hide(); 	.show()			隐藏DOM节点并未改变DOM树的结构，它只影响DOM节点的显示。这和删除DOM节点是不同的
+					获取dom信息					.attr()	获取或者更新							
+												attr()和removeAttr()方法用于操作DOM节点的属性：
+												.val()						一个val()就统一了各种输入框的取值和赋值的问题
+												******.val()和.attr()******的区别
+												.val()主要用来获取表单中元素的值，例如input， select 或者textarea。 value值
+												.attr()直接操作dom，还可以用来修改id  class等其他属性的
+						添加DOM
+							append()
+							append()把DOM添加到最后，prepend()则把DOM添加到最前。
+							after()或者before() 	同级节点
+							remove()				删除节点
+							
+			jQuery_事件
+				JavaScript在浏览器中以单线程模式运行，页面加载后，一旦页面上所有的JavaScript代码被执行完后，就只能依赖触发事件来执行JavaScript代码。
+				
+				获取和设置disabled、selected、checked这些属性时，应该使用prop()方法，不要使用attr()方法！！能够用prop()操作的尽量用prop()操作，不要用attr()操作。
+			
+				on方法用来绑定一个事件，我们需要传入事件名称和对应的处理函数。
+					var a = $('#test-link');
+						a.on('click', function () {
+							alert('Hello!');
+						})
+						
+				简化后：a.click(function () {
+								alert('Hello!');
+							});
+							
+													
+				鼠标事件	常用click: 鼠标单击时触发；  hover：鼠标进入和退出时触发两个函数 等
+				
+				键盘事件	keydown：键盘按下时触发； keyup：键盘松开时触发； keypress：按一次键后触发。通常<input>和<textarea>
+				
+				其他事件	focus：当DOM获得焦点时触发； blur：当DOM失去焦点时触发； 
+							change：当<input>、<select>或<textarea>的内容改变时触发； 
+							submit：当<form>提交时触发； 
+							******ready：当页面被载入并且DOM树完成初始化后触发。******
+							ready仅作用于document对象。由于ready事件在DOM完成初始化后触发，且只触发一次，适合初始化代码
+							
+							案例：先js 后表单内容：		为JavaScript在此执行的时候，<form>尚未载入浏览器，所以$('#testForm)返回[]，并没有绑定事件到任何DOM上。
+							简化：	$(document).ready(function () {
+										// on('submit', function)也可以简化:
+										$('#testForm).submit(function () {
+											alert('submit!');
+										});
+									});
+							
+							更简化：如果你遇到$(function () {...})的形式，牢记这是document对象的ready事件处理函数。
+								$(function () {
+										// init...
+									});
+																
+							
+							事件参数
+								有些事件，如mousemove和keypress，我们需要获取鼠标位置和按键的值，否则监听这些事件就没什么意义了。所有事件都会传入Event对象作为参数，可以从Event对象上获取到更多的信息：
+
+								$(function () {
+									$('#testMouseMoveDiv').mousemove(function (e) {
+										$('#testMouseMoveSpan').text('pageX = ' + e.pageX + ', pageY = ' + e.pageY);
+									});
+								});
+							
+							
+								var input = $('#test-input');
+								input.change(function () {
+									console.log('changed...');
+								});
+								当用户在文本框中输入时，就会触发change事件。但是，如果用JavaScript代码去改动文本框的值，将***不会***触发change事件：
+
+								var input = $('#test-input');
+								input.val('change it!'); // 无法触发change事件
+								
+								
+							浏览器安全限制
+								window.open()等函数：
+								
+			jQuery_动画
+					JavaScript实现动画，原理非常简单：我们只需要以固定的时间间隔（例如，0.1秒），每次把DOM元素的CSS样式修改一点（例如，高宽各增加10%），看起来就像动画了。
+					基本的操作后，动画效果还不能满足你的要求，animate()，可以实现任意动画效果，我们需要传入的参数就是DOM元素最终的CSS状态和时间，jQuery在时间段内不断调整CSS直到达到我们设定的值：							
+					
+					
+			jQuery_AJAX		
+				jQuery在全局对象jQuery（也就是$）绑定了ajax()函数。
+				如果需要使用JSONP，可以在ajax()中设置jsonp: 'callback'，让jQuery实现JSONP跨域加载数据。
+				
+	异常处理
+			try ... catch ... finally
+			编写JavaScript代码时，我们要时刻牢记，JavaScript引擎是一个事件驱动的执行引擎，代码总是以单线程执行，而回调函数的执行需要等到下一个满足条件的事件出现后，才会被执行。
+			涉及到异步代码，无法在调用时捕获，原因就是在捕获的当时，回调函数并未执行。典型的就是延迟函数
+
+
+					
+					
+					
+					

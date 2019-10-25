@@ -34,6 +34,7 @@ idea 安装 破解版：
 	查看最近文件	Ctrl+E					返回、回退、后退 最近的文件
 	查看调用链		Ctrl+Alt+H  			navigate 中的call hierarchy
 	多方案导包		alt+enter			实现接口的方法
+	debug/调试表达式	ctrl+u				调试查看表达式的值
 			
 	Eclipse和Intellij IDEA中常用快捷键差异总结。
 
@@ -80,6 +81,8 @@ idea 安装 破解版：
 	
 	未保存文件提示
 	Settings -> Editor -> General -> Editor Tabs: Check "Mark modified tabs with asterisk"
+
+	idea中注入mapper接口问题，在editor--inspection-spring core--code--autowiring for bean class 提示修改
 	
 git，maven相关
 	打开maven的依赖树，然后Ctrl+O，打开图中的搜索功能，可以定位到具体的依赖位置
@@ -130,6 +133,8 @@ idea小常识
 	java 创建需要标记为sourceroot后才能创建package
 
 	实现接口的方法的时候，@Override无效，是要在Project Structure中选择1.7以上的编译版本
+
+	idea中导入的新的maven工程，需要install
 	
 继承mybatis自动生成插件：目前暂时用不到，对代码有侵入性
 	1、
@@ -156,6 +161,9 @@ idea小常识
 idea中解决Error:java: Compilation failed: internal java compiler error的问题
 	在Settings->Buile,Execution,Deployment->Compiler->Java Compiler设置Module的Target bytecode version
 
+
+特别注意：idea新建包时，使用点分割，idea会默认创建一个文件，而不是多层
+	（例如：com.mabatis.mapper会被创建为一个文件，名称为com.mabatis.mapper，和我们需要不一样，因此，建议一层一层的创建）
 
 
 

@@ -53,10 +53,25 @@ https://github.com/liangjixunz/imgupload  liang github
 
 =======
 
-
 >>>>>>> .theirs
 https://www.processon.com/     在线的流程图和导图制作
 http://www.ftchinese.com/  ft中文网
 
 
 http://springboot.fun/    boot的整合资源网址
+
+https://developer.aliyun.com   阿里云开发社区
+
+掘金  https://juejin.im/
+
+http://springboot.fun/    boot的整合资源网址
+
+
+https://www.runoob.com/  菜鸟教程
+
+
+https://yq.aliyun.com 	云栖社区  
+
+
+
+前端资源汇总	https://blog.csdn.net/smxjant/article/details/78965612

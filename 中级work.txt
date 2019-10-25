@@ -1451,4 +1451,65 @@ docker:《第一本docker书》 大概浏览一遍就行，先简单用用
 	为什么要用序列化？进程通信实现文本图片音频等传输外（二进制序列形式），java对象传输必须序列化
 	
 	
+缓存共享，session共享
+	1、最原始的是：直接通过tomcat自带的复制功能，即访问其中一台tomcat服务器就会在其他配置好的tomcat服务器上各复制一份session，存在一定的延迟，同时若并发量一大的话也会有网络风暴的风险
+	2、使用tomcat-redis-session-manager,使用redis同步各tomcat之间的缓存（依赖tomcat，需要修改context.xml文件），但是目前只支持到jdk1.7
+	3、更新使用spring session，存储在第三方存储容器redis的spring session，是配置在项目和代码中的
+	
+	spring session相关：使用springboot项目很简单
+		spring session在spring框架中的实现原理，其实就是在请求request上通过DelegatingFilterProxy代理过滤器封装了一层，将原来存储在容器缓存的session变成存储在redis的session，所以在web.xml中的此filter必须得是在所有filter的前面。
+		用了spring session后，web.xml中设置session过期时间是无效。因为已存储在redis的session。
+		相应的springSessionRepositoryFilter需要放在filter最前面
+		jedisPoolConfig、connectionFactory、过期时间，springSessionRepositoryFilter,组装redisTemplate
 		
+		
+job调用多个soa服务，多个微服务，只有服务端才需要暴露相应的dubbo端口，客户端只要填写zookeeper地址即可，统一在注册中心找服务
+
+
+netty内容：
+	Netty 对 JDK 自带的 NIO 的 API 进行了封装,是异步高性能的通信框架。往往作为高性能基础通信组件被这些 RPC 框架使用。
+
+	传统的i/o模式，每个请求都需要独立的线程完成数据read，业务处理，数据write的完整操作问题，容易阻塞
+	Netty 的非阻塞 I/O 的实现关键是基于 I/O 复用模型，使用了多路复用器selector，一个 I/O 线程可以并发处理 N 个客户端连接和读写操作，这从根本上解决了传统同步阻塞 I/O 一连接一线程模型，架构的性能、弹性伸缩能力和可靠性都得到了极大的提升。
+	传统的 I/O 是面向字节流或字符流的，以流式的方式顺序地从一个 Stream 中读取一个或多个字节, 因此也就不能随意改变读取指针的位置。
+
+	在 NIO 中，抛弃了传统的 I/O 流，而是引入了 Channel 和 Buffer 的概念
+	Netty 的线程模型基于主从 Reactor 多线程
+	Netty 基于 Selector 对象实现 I/O 多路复用，通过 Selector 一个线程可以监听多个连接的 Channel 事件。
+	当向一个 Selector 中注册 Channel 后，Selector 内部的机制就可以自动不断地查询(Select) 这些注册的 Channel 是否有已就绪的 I/O 事件（例如可读，可写，网络连接完成等），这样程序就可以很简单地使用一个线程高效地管理多个 Channel 
+	
+	
+	在io模型中一个连接需要开一个线程
+	NIO解决这个问题的方式是数据读写不再以字节为单位，而是以字节块为单位。每次从缓存区读取一块数据
+	
+	class java.nio.channels.Selector 是Java 的非阻塞 I/O 实现的关键。它使用了事件通知 API，可在任何的时间检查任意的读操作或者写操作的完成状态，一个单一的线程便可以处理多个并发的连接。统一处理多个socket连接
+	
+	ChannelFutureListener提供的通知机制消除了手动检查对应的操作是否完成的必要
+	Netty 完全是异步和事件驱动的。这里体现监听事件是否完成，
+	
+	编码解码的事情：这两种方向的转换的原因很简单：网络数据总是一系列的字节
+	
+	网络数据的基本单位总是字节。Java NIO 提供了 ByteBuffer 作为它的字节容器，但是这个类使用起来过于复杂，而且也有些繁琐
+	Netty 的 ByteBuffer 替代品是 ByteBuf，一个强大的实现，既解决了 JDK API 的局限性，又为网络应用程序的开发者提供了更好的 API。
+	bio，传统的一请求一应答通信模型，一请求产生一个线程，交互完成，线程销毁，线程资源不可控，会阻塞
+	后来出现了线程池，这是伪异步i/o,采用线程池和任务队列可以实现一种叫做伪异步的 I/O 通信框架，线程资源可控，但是还是会阻塞
+	
+	
+	
+	
+	Reactor模式：
+			connection per thread,早起的tomcat就是这样实现的
+			一个线程只能对应一个socket
+			改进：采用基于事件驱动的设计，当有事件触发时，才会调用处理器进行数据处理。使用Reactor模式，对线程的数量进行控制，一个线程处理大量的事件。
+			
+			实际上的Reactor模式，是基于Java NIO的，在他的基础上，抽象出来两个组件——Reactor和Handler两个组件：
+		（1）Reactor：负责响应IO事件，当检测到一个新的事件，将其发送给相应的Handler去处理；新的事件包含连接建立就绪、读就绪、写就绪等。
+
+		（2）Handler:将自身（handler）与事件绑定，负责事件的处理，完成channel的读入，完成处理业务逻辑后，负责将结果写出channel。
+
+ 
+ 
+ 
+ 
+	
+	

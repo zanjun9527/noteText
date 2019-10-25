@@ -77,7 +77,342 @@
 	
 10、boot使用数据源或者jndi
 	JndiObjectFactoryBean，DataSourceBuilder
+	
+	
+	
+11、分页插件
+	目前的分页插件PagePlugin，也是网上随便copy的一份下来用的，对mapper有代码侵入，无法封装总页数
+	分页插件的原理  物理和逻辑分页
+	逻辑分页利用游标分页，好处是所有数据库都统一，坏处就是效率低。 
+	物理分页就是数据库本身提供了分页方式，如mysql的limit，好处是效率高
+
+	mybatis-plus 插件	https://www.cnblogs.com/leeego-123/p/10734330.html
+		常用的bootmaven依赖 
+		<!-- Spring Boot热部署 -->
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-devtools</artifactId>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+
+			
+		boot原本配置
+		mybatis:
+			mapper-locations: classpath:mappers/*.xml
+			 虽然可以配置这项来进行pojo包扫描，但我更倾向于在mapper.xml写全类名
+			 type-aliases-package: com.rhine.blog.po     配置之后好像可以省略xml中的包名，<resultMap id="userMap" type="UserBean">
+
+		plus插件的配置，但是需要排斥其他的mybatis依赖，在boot中
+			<!-- 
+			<dependency>
+					<groupId>org.mybatis.spring.boot</groupId>
+					<artifactId>mybatis-spring-boot-starter</artifactId>
+					<version>1.3.2</version>
+				</dependency>
+			-->
+		mybatis-plus:
+		  mapper-locations: classpath:mappers/*.xml
+		  type-aliases-package: com.rhine.blog.po
+		  
+		
+	pagehelper
+		PageHelper.startPage(1,3);
+        List<UserBean> byEmail = userMapper.findByEmail("100");//实际查询返回的是page对象，也是实现list接口的额，
+        PageInfo page = new PageInfo(byEmail);
+        long total = page.getTotal();
+
+			<dependency>
+				<groupId>com.github.pagehelper</groupId>
+				<artifactId>pagehelper-spring-boot-starter</artifactId>
+				<version>1.2.5</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.mybatis.spring.boot</groupId>
+						<artifactId>mybatis-spring-boot-starter</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+		//分页时，实际返回的结果list类型是Page<E>，如果想取出分页信息，需要强制转换为Page<E>，
+		//或者使用PageInfo类对结果进行包装，可以拿到多有的page属性
+		PageInfo page = new PageInfo(list);
+		Page<UserBean> byEmail = (Page)userMapper.findByEmail("100");
+	
+	总结：PageHelper首先将前端传递的参数保存到page这个对象中，接着将page的副本存放入ThreadLoacl中，这样可以保证分页的时候，参数互不影响，接着利用了mybatis提供的拦截器，取得ThreadLocal的值，重新拼装分页SQL，完成分页。
+
+	在threadlocal中设置分页参数，之后在查询的时候，获取当前线程中的分页参数，执行查询的时候通过拦截器再sql中添加分页参数，之后实现分页查询，查询结束后在finally语句中清除threadlocal中的查询参数
+
+	原理：使用ThreadLocal来传递和保存Page对象，每次查询，都需要单独设置PageHelper.startPage()方法
+
+	PageHelper.startPage()和查询方法连着用，实际就是拦截器再查询方法的时候，从线程变量中拿到分页信息组装的结果。
+
+	这个类实现了org.apache.ibatis.plugin.Interceptor接口。在com.github.pagehelper.PageInterceptor.intercept(Invocation)方法的最后finally块中调用了afterAll:
+	在你要使用分页查询的时候，先使用PageHelper.startPage这样的语句在当前线程上下文中设置一个ThreadLocal变量，再利用mybatis提供的拦截器（插件）实现一个com.github.pagehelper.PageInterceptor接口，这个分页拦截器拦截到后会从ThreadLocal中拿到分页的信息，如果有分页信息，这进行分页查询，最后再把ThreadLocal中的东西清除掉。
+	最后实在finally中清除的
+
+
+	使用pageinfo后面的关联问题
+	实际山查询出来的是一个page(list)信息，后面封装了pageinfo的参数
+
+	继承arraylist后，数据都是放在elementData数组中的
+	返回的page<e>就是一个数组，元素在elementData中（list中的数据组），
+
+		
+
+12、Java泛型中的标记符含义： 
+	 E - Element (在集合中使用，因为集合中存放的是元素)
+	 T - Type（Java 类）
+	 K - Key（键）
+	 V - Value（值）
+	 N - Number（数值类型）
+	
+	
+13、ThreadPoolTaskExecutor可以配置线程池相关，是spring的线程池技术，可以配置相关参数
+	调用demo
+	SpringThread t = new SpringThread(i);
+	executor.execute(t);
 
 	
+14、日期的时间变化，注意时分秒的精度
+	SELECT DATE_SUB('2019-07-02 17:21:08', INTERVAL 1 DAY)
+	SELECT DATE('2019-07-02 17:21:08'-INTERVAL 1 DAY)
+	
+15、移动端的日志插件
+	 <script type="text/javascript" src="https://www.w3cways.com/demo/vconsole/vconsole.min.js?v=2.2.0">
+	 <script>
+			var vConsole = new VConsole();
+	 </script>
+		
+		
+	后面直接使用日志打印即可，移动端会有vconsole的显示
+	
+	try{
+						
+	}catch(err){
+	   console.log(err)
+	   console.log(err.message);
+	}
+
+16、boot、dubbo
+	jar 启动时候可以用java -jar app.jar --spring.profiles.active=dev  来指定运行的环境，目前采用的是pom中指定profile加载的属性文件
+	
+	注册服务
+		spring.dubbo.application.name=controller-consumer
+		spring.dubbo.registry.address=zookeeper://172.17.0.2:2181
+		spring.dubbo.scan=com.gaoxi						扫描dubbo的注解，使用注解
+		
+		import com.alibaba.dubbo.config.annotation.Service;
+		@Service(version = "1.0.0")
+		@org.springframework.stereotype.Service
+
+	发现服务
+		@Reference(version = "1.0.0")
+		spring.dubbo.application.name=controller-consumer # 本服务的名称
+		spring.dubbo.registry.address=zookeeper://IP:2182 # zookeeper所在服务器的IP和端口号
+		spring.dubbo.scan=com.gaoxi # 引用服务的路径
+
+	其中可以将权限缓存在本地的map中，
+	
+
+17、在继承arraylist后，转为json对象，后面只能解析出list元素中的东西，使用fastjson是这样的
+	实际是判断list继承后解析的，只解析了list总的元素值，在eclipse中显示正常，但是在idea中显示缺少
 	
 	
+18、全局异常处理
+	使用@ControllerAdvice注解，全局捕获异常类，只要作用在@RequestMapping上，所有的异常都会被捕获
+	HandlerExceptionResolver，旧版的是在web.xml中配置错误页面
+	
+	
+19、shiro相关
+		shiro配置的两种方式，代码注入和配置ini文件加载
+
+		配置的几个关键的东西：securityManager,ShiroFilterFactoryBean,自定义Realm（创建时候可能需要加密的方式配置HashedCredentialsMatcher），
+
+		登录之后，存在session中，这样够缓存用户的信息，每次请求都创建一个subject，从缓存中新建的对象
+		权限更新后需要更新内存中的权限
+
+		使用shiro的注解需要配置AuthorizationAttributeSourceAdvisor	
+		HashedCredentialsMatcher 是密码加密相关
+
+		SecurityUtils.getSubject()是每个请求创建一个Subject, 并保存到ThreadContext的resources（ThreadLocal<Map<Object, Object>>）变量中，也就是一个http请求一个subject,并绑定到当前线程。 
+
+
+		login的时候，获取一个subject.login(new UsernamePasswordToken(name, userParam.getPassword()));这样在realm中认证的时候，用户的name 和密码信息就会被拿到了
+		然后再认证中返回 new SimpleAuthenticationInfo(userName, passwordInDB, ByteSource.Util.bytes(salt),getName());
+		最终是通过securitymanager调用AuthenticationInfo info = realm.getAuthenticationInfo(token);实现认证
+
+		可以初始化权限路径，将资源权限加载进来
+		  String permission = "perms[" + resources.getResurl()+ "]";
+		  filterChainDefinitionMap.put(resources.getResurl(),permission);
+
+		<!-- 过滤链定义，从上向下顺序执行，一般将/**放在最为下边 -->:这是一个坑呢，一不小心代码就不好使了;
+		SimpleAuthenticationInfo第一个参数一般传的是userinfo对象，有的也传username，暂时不确定，后续待验证
+
+
+		首先shiro会先从缓存中获取认证信息(对应getCachedAUthenticationInfo方法),如果没有才会继续从Realm中获取,
+		认证的时候 ByteSource credentialsSalt = ByteSource.Util.bytes("vip");
+		Object obj = new SimpleHash(hashAlgorithName, password, credentialsSalt, hashIterations);
+		会使用SimpleAuthenticationInfo中公用的salt，和token中的密码相对比，一致就校验通过
+
+
+
+		除了通用的过滤器外，可以自定义过滤器
+		//下面的配置路径 都需要在上面配置 authc 否则访问不到filter
+		filterChainDefinitionMap.put("/online","requestURL");
+
+
+		自定义路径拦截器继承PathMatchingFilter（可以实现用户路径权限的判断）
+
+		filtersMap.put("requestURL", getURLPathMatchingFilter());
+		shiroFilterFactoryBean.setFilters(filtersMap);
+
+		相关的配置文件：INI配置文件一般适用于用户少且不需要在运行时动态创建
+		INI文件优势 : 简单易懂 , 集成方便.
+		INI文件缺点 : 采用硬编码方式把认证授权信息写在INI文件中,可维护性差.
+		推荐相关配置放在数据库中动态读取
+
+
+		常见的realm，我们需要缓存功能,认证功能,授权功能,三大功能 .认证原则:什么样的用户是怎样的角色.拥有什么的权限.
+		shiro的默认的拦截器执行是有一定的顺序的，一般全匹配的放最后面，如果匹配到就不继续匹配了，所以把 /放到最前面，则 后面的链接都无法匹配到了。 
+
+		拦截器的通配符的写法
+		?：匹配一个字符
+		*：匹配零个或多个字符
+		**：匹配零个或多个路径
+
+		也可以使用一个过滤器，将每个路径都过滤一遍
+		感觉实现自己的路径拦截会更灵活点，在项目中配置注解，维护性差
+
+		Subject.login()登录成功后用户的认证信息实际上是保存在HttpSession中的。如果此时Web应用程序部署了多实例，必须要进行Session同步。
+
+
+		其实在SecurityManager中设置的CacheManager组中都会给Realm使用，即：真正使用CacheManager的组件是Realm。
+
+
+		首先需要对session进行同步，因为shiro的认证信息是存放在session中的；其次，当前端操作在某个实例上修改了权限时，需要通知后端服务的多个实例重新获取最新的权限数据。
+
+
+		当用户登录之后就会被缓存在session中，再次访问会根据sessionid渠道对应的pricipals，
+
+		principal, 就是传入的认证信息的第一个参数,传递的类型就是后面获取的值。UserBean user = (UserBean)subject.getPrincipal()
+		  public SimpleAuthenticationInfo(Object principal, Object hashedCredentials, ByteSource credentialsSalt, String realmName) {
+				this.principals = new SimplePrincipalCollection(principal, realmName);
+				this.credentials = hashedCredentials;
+				this.credentialsSalt = credentialsSalt;
+			}
+
+			
+20、ruoyi
+	获取request的方式，	1.从controller一层层往下传，
+						2.RequestContextHolder，直接在需要用的地方使用如下方式取HttpServletRequest即可
+						HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();  本质上还是使用了threadlocal变量
+						
+	job的配置：quartz调度三大核心元素Scheduler(任务调度器)、Trigger(触发器)、Job(任务)
+	Spring整合Quartz进行配置遵循下面的步骤：
+			
+	1：定义工作任务的Job
+	，通常也是jobdetail        
+	2：定义触发器Trigger，并将触发器与工作任务绑定
+	（两种方式，静态和动态，动态的配置文件不用配置）        
+	3：定义调度器，并将Trigger注册到Scheduler
+		
+
+	触发的方式
+	在项目中建一个类继承包中的QuartzJobBean类（这个方法是在时间到来时自动执行的方法）
+	是一个抽象类需要重载executeInternal（JobExecutionContext）方法
+
+	在设置jobdetail的时候，可以使用QuartzJobBean完成统一的触发入口，
+	也可每个detail都定义实现job统一接口，完成触发也行
+	jobDetail.getJobDataMap().增加参数		
+
+	session和缓存相关
+	查看唯一登录的情况，登录踢出的功能，就是实现用户信息和session绑定的情况，
+
+	其实在SecurityManager中设置的CacheManager组中都会给Realm使用，即：真正使用CacheManager的组件是Realm。
+
+	踢出的功能，是引入了一个 Deque<Serializable> deque，其中存放的是用户的sessionid，存放在相应的cache中，
+	当队列中size大于限制数，踢出对应的session， 将对应的session中设置kickout为true，当用户访问时，只要当前session中
+	的kickout为true，就logout并重定向。
+
+	shiro中常用的sessionmanager，DefaultWebSessionManager（可以不依赖容器管理会话）
+	cache是缓存的操作，session是会话的操作
+
+	Queue strings = new ArrayDeque<Serializable>();  队列顺序有点像栈
+	可以用linkedlist代替，但是list的顺序是按照添加的顺序
+
+	核心的路径匹配就是perm.implies(permission)
+
+	使用自定的redis作为缓存需要自己实现
+	CacheManager，主要管理缓存，提供一个缓存实例即可
+	Cache，操作具体的实例来完成
+	userRealm.setCacheManager(cacheManager);  表示开启了内存缓存
+	Cache<Object, AuthorizationInfo>，将权限信息缓存进了cache中，下次可以直接使用
+	
+	dependencyManagement只是申明依赖，可以实现统一版本，子模块按需自己引入相应的jar
+
+	SnakeYAML可以加载yaml文件，存进map中使用
+
+	动态数据源，在查询的时候拦截选定指定数据源，后面执行数据操作的时候匹配相应的数据源，主要的是继承AbstractRoutingDataSource
+
+
+
+21.	可以测试支付调用主站时候的"转码，url中的正常&是不能转义的
+	String param = dataForSign.replaceAll("\"", "%22").replaceAll("}", "%7d").replaceAll("\\{", "%7b").replaceAll(" ", "%20");
+
+	单纯的select * from a,b是笛卡尔乘积。
+	但是如果对两个表进行关联:select * from a,b where a.id = b.id 意思就变了，此时就等价于：select * from a inner join b on a.id = b.id。即就是内连接。
+
+	nignx先断3秒后关机,留给上一个请求处理时间
+	
+	数据库备份数据，不要勾选视图和存储过程
+
+	HAVING类似于WHERE（唯一的差别是WHERE过滤行，HAVING过滤组），是跟着group by 使用的，以组为查询的维度
+	
+	为日志增加变量输出
+		MDC.put(STR_USER, accountNo);
+		MDC.remove(STR_USER);    这个最终在finally中需要删除掉
+
+		
+		
+	正则表达式：
+		.（点号）也是一个正则表达式，它匹配任何一个字符
+		.*	任意字符匹配多次	a*   多个字符匹配多次  依次匹配
+		.*?	任意字符匹配一次	a*?
+		\s+	匹配任意多个上面的字符。另因为反斜杠在Java里是转义字符，所以在Java里，我们要这么用\\s+
+		. 匹配除换行符以外的任意字符
+
+		\w 匹配字母或数字或下划线或汉字 等价于 '[^A-Za-z0-9_]'。
+		\s 匹配任意的空白符
+		\d 匹配数字
+		\b 匹配单词的开始或结束
+		^ 匹配字符串的开始
+		$ 匹配字符串的结束
+
+		^\d+(\.\d+)?
+
+		1,^ 定义了以什么开始
+		2,\d+ 匹配一个或多个数字
+		? 设置括号内的选项是可选的
+		\. 匹配 "."
+		可以匹配的实例："5", "1.5" 和 "2.21"。
+
+		特殊字符必须转义之后才能当做字符串
+		java中\\代表一个\
+
+		^匹配输入字符串的开始位置，除非在方括号表达式中使用，此时它表示不接受该字符集合。要匹配 ^ 字符本身，请使用 \^。
+		
+		
+		
+		
+		
+		
