@@ -336,34 +336,42 @@
 	jobDetail.getJobDataMap().增加参数		
 
 	session和缓存相关
-	查看唯一登录的情况，登录踢出的功能，就是实现用户信息和session绑定的情况，
+			查看唯一登录的情况，登录踢出的功能，就是实现用户信息和session绑定的情况，
 
-	其实在SecurityManager中设置的CacheManager组中都会给Realm使用，即：真正使用CacheManager的组件是Realm。
+			其实在SecurityManager中设置的CacheManager组中都会给Realm使用，即：真正使用CacheManager的组件是Realm。
 
-	踢出的功能，是引入了一个 Deque<Serializable> deque，其中存放的是用户的sessionid，存放在相应的cache中，
-	当队列中size大于限制数，踢出对应的session， 将对应的session中设置kickout为true，当用户访问时，只要当前session中
-	的kickout为true，就logout并重定向。
+			踢出的功能，是引入了一个 Deque<Serializable> deque，其中存放的是用户的sessionid，存放在相应的cache中，
+			当队列中size大于限制数，踢出对应的session， 将对应的session中设置kickout为true，当用户访问时，只要当前session中
+			的kickout为true，就logout并重定向。
 
-	shiro中常用的sessionmanager，DefaultWebSessionManager（可以不依赖容器管理会话）
-	cache是缓存的操作，session是会话的操作
+			shiro中常用的sessionmanager，DefaultWebSessionManager（可以不依赖容器管理会话）
+			cache是缓存的操作，session是会话的操作
 
-	Queue strings = new ArrayDeque<Serializable>();  队列顺序有点像栈
-	可以用linkedlist代替，但是list的顺序是按照添加的顺序
+			Queue strings = new ArrayDeque<Serializable>();  队列顺序有点像栈
+			可以用linkedlist代替，但是list的顺序是按照添加的顺序
 
-	核心的路径匹配就是perm.implies(permission)
+			核心的路径匹配就是perm.implies(permission)
 
-	使用自定的redis作为缓存需要自己实现
-	CacheManager，主要管理缓存，提供一个缓存实例即可
-	Cache，操作具体的实例来完成
-	userRealm.setCacheManager(cacheManager);  表示开启了内存缓存
-	Cache<Object, AuthorizationInfo>，将权限信息缓存进了cache中，下次可以直接使用
-	
-	dependencyManagement只是申明依赖，可以实现统一版本，子模块按需自己引入相应的jar
+			使用自定的redis作为缓存需要自己实现
+			CacheManager，主要管理缓存，提供一个缓存实例即可
+			Cache，操作具体的实例来完成
+			userRealm.setCacheManager(cacheManager);  表示开启了内存缓存
+			Cache<Object, AuthorizationInfo>，将权限信息缓存进了cache中，下次可以直接使用
+			
+			dependencyManagement只是申明依赖，可以实现统一版本，子模块按需自己引入相应的jar
 
-	SnakeYAML可以加载yaml文件，存进map中使用
+			SnakeYAML可以加载yaml文件，存进map中使用
 
-	动态数据源，在查询的时候拦截选定指定数据源，后面执行数据操作的时候匹配相应的数据源，主要的是继承AbstractRoutingDataSource
+			动态数据源，在查询的时候拦截选定指定数据源，后面执行数据操作的时候匹配相应的数据源，主要的是继承AbstractRoutingDataSource
 
+			nested exception is org.springframework.core.NestedIOException: 
+			Failed to deserialize object type; nested exception is java.lang.ClassNotFoundException: com.xiaoyuer.pay.web.SessionData
+			以redis为缓存中心，当系统需要从redis中获取缓存信息的时候，其中的类需要反序列化出来，系统中需要有相应的类
+			
+			
+			
+
+			
 
 
 21.	可以测试支付调用主站时候的"转码，url中的正常&是不能转义的
@@ -411,8 +419,600 @@
 
 		^匹配输入字符串的开始位置，除非在方括号表达式中使用，此时它表示不接受该字符集合。要匹配 ^ 字符本身，请使用 \^。
 		
+	正则表达式：
+			字符串 String 的 split 方法，传入的分隔字符串是正则表达式！部分关键字（比如.[]()\|等）需要转义. |
+			"a.ab.abc".split("\\."); // 结果为["a", "ab", "abc"]
+			"a|ab|abc".split("\\|"); // 结果为["a", "ab", "abc"]
+		
+		
+	两端交互的时候，发送端指定编码，接收方使用固定编码接收即可	
+		response.setCharacterEncoding("UTF-8");//发送方固定统一编码utf8  然后接收方 的流处理使用统一编码解码即可
+		
+22.dubbo注解配置相关
+			EnableDubboConfiguration 是使用dubbo注解的，spring的扫描注解正常配置,不影响
+			
+			http://jm.taobao.org/2018/06/13/Provider配置/    		dubbo配置
+			http://dubbo.apache.org/zh-cn/blog/dubbo-annotation.html	官方文档
+
+			@Component
+			@PropertySource("classpath:application.properties")
+			@ConfigurationProperties(prefix = "application.dubbo.demo.server")
+			无敌属性类
+
+			代码配置 dubbo配置，后续使用注解配置，@DubboComponentScan("com.xiaoyuer")
+			@Configuration
+			public class Dubboconfig
+			注册
+			  @Bean
+					public RegistryConfig registryConfig() {
+						RegistryConfig registryConfig = new RegistryConfig();
+						registryConfig.setAddress(dubboProperties.getAddress());
+						registryConfig.setClient(dubboProperties.getClient());
+						return registryConfig;
+					}
+
+			<dependency>
+				<groupId>org.apache.dubbo</groupId>
+				<artifactId>dubbo-spring-boot-starter</artifactId>
+				<version>2.7.3</version>
+			</dependency>
+		
+		
+		boot 中 @ImportResource 是加载xml文件用的，也可以用来加载dubbo.xml文件内容
+		
+	jdk升级的tomcat问题:
+			Tomcat 从7升级到8的时候出现了 java .lang.IllegalArgumentException: An inval id domain [.xxx.com] was specified for this cookie 
+			在 tomcat context.xml中配置 <CookieProcessor className="org. apache .tomcat.util. http .LegacyCookieProcessor" />
+			
+	日志相关
+		stdout 输出到控制台，对应linux会输出到catalina.out
+		自己配置日志路径	<property name="logbackpath" value="C:/Users/xiaoyuer/Desktop/xye-log"></property>  可行
+		C:\Users\xiaoyuer\Desktop\xye-log  不行	
+		
+		additivity="false"  不继承父logger的输出，
+		若是additivity设为false，则子Logger只会在自己的appender里输出，而不会在父Logger的appender里输出。
+		
+		logback中   appender是打印器  需要绑定到logger中  而root是根logger
+		
+	<logger name="org.springframework" level="ERROR" />
+	这个是单独配置的级别  其中的参数默认覆盖root中的，其他的按照root默认来，会优先匹配logger，匹配不到才使用root的
+	
+	案例：
+		<logger name="orderValidate" additivity="false">
+			<level value="INFO" />
+			<appender-ref ref="orderValidate" />
+			<appender-ref ref="STDOUT" />      不加控制台不打印，加上打印，不加orderValidate，控制台也不打印，一个appender也不指定，也不会继承root，因为这里已经匹配了相应的logger了
+		</logger>
+		<root>
+			<level value="INFO" />
+			<appender-ref ref="STDOUT" />
+			<appender-ref ref="ERROR" />
+		</root>
+
+		orderValidate不加STDOUT，控制台是看不到的额，因为指定匹配了logger，没有使用root的
+		
+		<logger name="ch.qos.logback" level="ERROR" />  和 root 和日志级别关系    additivity="false"这个属性注意下
+		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。
+
+
+		
+		
+23.rpc相关
+		zookeeper和服务端建立的是长连接，可以定时进行心跳检测。这肯定是的啊  基础知识
+
+		服务端的底层实现包括服务扫描，服务启动，服务注册等特性。
+
+		定制@rpcservice注解，带有@service注解，这样启动可以被spring扫描到。然后通过反射创建该类的实例，加入容器管理，
+		并建立服务名称和服务实例之间的映射关系，便于从后续rpc请求中获取服务名称，拿到实例，反射调用目标实例
+		使用ApplicationContextAware获得上下文，初始化的时候，拿到所有标有@rpcservice的类，并将接口名和实例对象绑定
+		
+	静态内部类，可以实现延迟加载（初始化时候才加载），支付那边的就使用类，第一次调用加载，后续直接用只有在加载内部类的时候才初始化
+	
+	soa数据库加载使用
+			
+	在profile中现在dev环境也会默认指定的
+		<resources>
+			<resource>
+				<directory>../vars/${pay_env}/datasource</directory>
+				<filtering>true</filtering>
+				<targetPath>config</targetPath>
+			</resource>
+		</resources>
+		小秘书中的属性加载需要看resource中得默认指定的
+		
+		
+		具体就是运行文件所在的目录
+		C:/Users/xiaoyuer/git/xye-soa-pom/conf/xye-datasource.properties		pc
+		/usr/local/java_project/webapps  这是生产jar使用的位置					linux
+		
+	solr	
+		CommitWithin
+			简单的说就是告诉solr在多少毫秒内提交，比如如果我指定<add commitWithin=10000>，将会高速solr在10s内提交我的document。用法
+			1.可以在add方法设置参数，比如 server.add(mySolrInputDocument, 10000);
+				
+			solrServer.add(doc, Constants.CREATE_INDEX_MS);
+	
+	
+24.数据库相关
+		mysql中的主从复制是基于Binary log实现的
+		
+		分表能够解决单表数据量过大带来的查询效率下降的问题，但是，却无法给数据库的并发处理能力带来质的提升。
+
+		分库分表
+			分库分表的取模运算
+				分库分表的策略比前面的仅分库或者仅分表的策略要更为复杂，一种分库分表的路由策略
+				如下：
+				? 	中间变量=user_id%（库数量×每个库的表数量）； ? 
+					库=取整（中间变量/每个库的表数量）； ? 
+					表=中间变量%每个库的表数量。
+
+		数据库行锁住之后，是可以查询的 ，更新不行
+
+		乐观和悲观锁选择的标准是：冲突的频率和严重性，若冲突很少或者冲突后果不严重，选乐观
+		但是若冲突结果是严重的痛苦的，那么就需要使用悲观锁，使用乐观在检测到冲突的时候还是需要面临合并冲突处理的情况，但是一般业务是很难自动合并的，只能扔掉从头开始
+
+		任何读取的数据都需要跟共享数据进行版本标记比较，任何不同都意味着冲突的发生
+		
+		between '2019-09-18' AND '2019-09-19' 相当于 '2019-09-18 00:00:00' AND '2019-09-19 00:00:00'
+		
+		mysql多表联合更新
+		UPDATE  t1,t2	set  ... 	WHERE ...
+		
+		分库之后，夸库业务，由原来的联合查询转变为多次查询，写入类的如要保证事务，可能要引入分布式事务
+		
+		mysql有很多字符串函数 find_in_set(str1,str2)函数是返回str2中str1所在的位置索引，str2必须以","分割开。
+		
+		db_xiaoyuer.log_user_trade  在sqlyog中是可以夸库查询的
+
+		mysql---同服务器下跨数据库更新
+			update 
+				A数据库.表名,B数据库.表名 
+			set 
+				B数据库.表名.字段名 = A数据库.表名.字段名 
+			where 
+			条件（A数据库.表名.id = B数据库.表名.join_shop_id）;
+			
+		-- 批量插入
+		<insert id="batchInsert" parameterType="java.util.List">
+			insert into log_user_trade(trade_code,asset_from_code) values
+			<foreach collection="logTrades" item="item" separator=",">
+				#{item.tradeCode},
+				#{item.assetFromCode}
+			</foreach>
+		</insert>
+
+		
+		留个参考
+		update require_info
+		<trim prefix="set" suffixOverrides=",">
+			<trim prefix="Pay_User_Count=case id" suffix="end,">
+				<foreach collection="infos" item="item">
+					when #{item.id} then Pay_User_Count+#{item.orderCount}
+				</foreach>
+			</trim>
+			<trim prefix="Status=case id"  suffix="end">
+				<foreach collection="infos" item="item">
+					when #{item.id} then #{item.status}
+				</foreach>
+			</trim>
+		</trim>
+		where id in
+			(reqIds)
+			
+			
+					
+		
+25.属性文件相关
+		classpath 是xml中和属性文件中用的语言，直接属性文件加载不用，类似classpath*:a/b/c
+		
+		PropertiesConfiguration 快速读取属性文件，使用apache的PropertiesConfiguration接收
+		
+		  //先看看Properties
+			String propertiesFileName="a.properties";
+			Properties props = new Properties();
+			props.load(new FileInputStream(propertiesFileName));
+			String value =props.getProperties("key");
+
+			//然后是PropertiesConfiguration
+			PropertiesConfiguration propsConfig=new PropertiesConfiguration();
+			propsConfig.setEncoding("UTF-8") //默认的编码格式是ISO-8859-1，所以才在读取文件之前先设置了编码格式
+			propsConfig.load(propertiesFileName);
+			String strValue=propsConfig.getString("key");
+			String longValue=propsConfig.getLong("longKey");
+			String[] strArray=propsConfig.getStringArray(arrayKey);
+			//值得一提的是。propsConfig的默认分割符是','，换句话说，如果值使用','分割，使用getString去取的话是会抛出异常的，因为这被认为是个数组，分割符可以使用setListDelimiter设置。
+			...
+			三、总结
+			告别java.util.Properties。
+
+
+
+		
+		
+26.springboot 相关
+		编译不行直接在pom中加入
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<configuration>
+				<compilerVersion>1.7</compilerVersion>
+				<source>8</source>
+				<target>8</target>
+			</configuration>
+		</plugin>
+
+		boot整合redis，使用redistemplate，再加个工具类redisutil即可
+		
+		配置首页addViewControllers
+		
+		
+27.dubbo相关
+		dubbo默认服务提供方的IP为内网IP，生产上需要映射成公网ip
+		
+		几个soa问题：多级调用的延迟，调试跟踪困难，安全监测，qos支持，高了用，易伸缩
+		
+28.maven相关
+		Maven默认用的是JDK1.5去编译，使用高版本的maven需要在pom中配置
+		<build>
+		   <plugins>
+			 <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+				<source>1.8</source>
+				<target>1.8</target>
+				</configuration>
+			  </plugin>
+			</plugins>
+		</build>
+		
+		
+29.事务相关
+		事务的特性   要么全部完成 要么什么都不做
+		乐观锁：通过冲突检测和事务回滚来防止并发业务事务中的冲突，提交的时候才有锁冲突，导致其他的无效操作
+		悲观锁：每次只允许一个业务事务访问数据以防止并发业务事务中的冲突，一开始就拿到锁
+			
+		乐观事务锁的缺点是：只能在提交数据时才能发现业务事务将要失败，某些情况下，发现太迟，代价也大
+
+	乐观锁中使用版本号，返回行数如果是0，要将事务系统回滚以防止不一致的数据进入数据库，即业务事务必须要么被取消，要么解决冲突并重试
+	关键的修改需要加日志，版本号进行增量操作
+	
+	使用场景
+		乐观并发管理使用业务事务冲突低的情况。因为冲突频繁发生，直到提交数据才通知冲突很不友好，会默认为经常失败。
+		悲观锁在冲突率很高或者冲突代价很高更适用
+
+	获取乐观锁动作必须要和提交记录数据在同一个系统事务中完成，才能保证数据一致性。检测到并发冲突因回滚事务，应该在发生任何异常时都将系统事务回滚。
+
+	
+	两阶段提交保持一致性
+		 采用两阶段提交保证多master数据一致性，
+		   1.开启事务
+		   2.通知每个master执行某操作
+		   3.所有master接到请求后，锁定执行此操作需要的资源，如扣款动作，就冻结相应款项，冻结完毕后返回
+		   4.收到所有master的反馈后，如均为可执行此操作，则继续之后的步骤，如有一个master不能执行或者一段时间内无反馈，则通知所有master回滚操作
+		   5.通知所有master完成操作
+
+		先冻结，全部冻结ok了，就执行，全部执行ok就成功了，有一个不成功，就反馈回滚
+		   
+		   
+		三阶段提交
+		   是在两阶段提交的基础上增加了percommit过程，当所有master收到percommit后，并不执行动作，直到收到commit或超过一定时间后才完成操作
+		 
+		在实现两阶段或者三阶段提交时，为了避免通知所有master时出现问题，通常会借助消息中间件或让任意一个master接管成为通知者
+		
+		
+		可见性。
+			共享变量写入到内存的行为称为“冲刷处理器缓存”。也就是把共享变量从处理器缓存，冲刷到内存中。
+			此时，线程 B 刚好运行在 CPU B 上，指令为了获取共享变量，需要从内存中的共享变量进行同步。
+			这个缓存同步的过程被称为，“刷新处理器缓存”。也就是从内存中刷新缓存到处理器的寄存器中。
+			经过这两个步骤以后，运行在 CPU B 上的线程就能够同步到，CPU A 上线程处理的共享变量来。也保证了共享变量的可见性。
+						
+		
+30.其他
+		每次request请求完成后，下一次是重新的request，不会保留上次请求的信息，这叫无状态
+		
+		集群就是水平扩展，做负载均衡
+
+		int i=0;
+		int i=i++;  最后值为0			
+					
+		JVM 在处理 i = i++; 时 , 会建立一个临时变量来接收 i++ 的值 , 然后返回这个临时变量的值 ,
+		返回的值再被等号左边的变量接收了 , 这样就是说 i 虽然自增了但是又被赋值了0 , 这样输出的结果自然就是 0 了
+
+		不妨我们用 temp 临时变量来接收 i++ 的值 , 来看一下结果 :
+		int i = 0;
+		int temp = i++; //temp的值是 : 0
+		
+		类是对事物的抽象(抽象了属性和行为)，抽象类是对类的抽象，接口是对抽象类的抽象。
+		
+		request.getHeader("User-Agent")  是拿到前段浏览器的请求信息
+		
+		final的方法不能被重写。所以父类中的private方法默认是final的，子类将无法访问、覆盖该方法
+		
+		Java字符串用\\表示\
+		AntPathMatcher是URLs匹配工具类
+		
+		使用lambada的条件，必须只能是函数式接口（概述:接口中只有一个抽象方法）才适用。可以使用@FunctionalInterface 来提前校验函数式接口，编译时提前发现错误。
+		单来看lambda像一个没有名字的方法，它具有一个方法应该有的部分：参数列表int x，方法body　return x+1,和方法相比lambda好像缺少了一个返回值类型、异常抛出和名字
+		Runnable a=()->{System.out.println("测试新表达方式");};
+		
+		countDownLatch 是并发包使用的一个计数器，		调用await()方法的线程会被挂起，它会等待直到count值为0才继续执行
+		
+		Redis是单线程的，是线程安全的。
+		
+		当接口有多个实现类时，提供了@order注解实现自定义执行顺序，也可以实现Ordered接口来自定义顺序。(数字越小，优先级越高,)
+		注意：，也就是@Order(1)注解的类会在@Order(2)注解的类之前执行
+		
+		CGLib代理，不受接口的限制，底层采用ASM字节码生成框架，效率高比使用Java反射效率要高。唯一需要注意的是，CGLib不能对声明为final的方法进行代理，因为CGLib原理是动态生成被代理类的子类。
+
+		其中需要使用 //Enhancer类是CGLib中的一个字节码增强器，它可以方便的对你想要处理的类进行扩展
+		jdk使用的invocationhandler接口
+		cglib使用的是MethodInterceptor接口
+		
+		
+31.前后端缓存相关
+		客户端状态信息
+	前段参数传递，url参数，表单的隐藏域和cookie
+	cookie只工作在同一个域名的站点中，若一个站点包含了多个域名，cookie不会在之间传递
+	
+	在分布式的session中，各个server间的缓存同步是不合适的（tomcat中的session复制，sessionid一样，是非常低效的），
+	需要间缓存放在cache server中（以sessionid作为key）后面存在统一的redis中，
+		
+		
+	Spring-session 技术是解决同域名下的多服务器集群 session 共享问题的，不能解决跨域 Session 共享问题
+	在使用spring session过程中，发现spring session 往客户端写sessionID的策略要么是cookies要么是header。
+	其实在开发中实际上有时候既要支持cookies，也要支持header方式，比如在PC端，
+	一般是使用cookies，这样可以实现单点登录（不过还是没有解决跨域，要跨域只能用cas单点登录方案），
+	手机app的话，不支持cookies，只能使用header，服务器响应请求的时候，往header里面写sessionId。
+	
+	
+	登录相关
+		xxl的单点更加简单，就是一个sso server基于cookie和session中缓存统一管理，没有就返回
+		一般登陆ok是有两个cookie，一个是server端的 一个是client端的
+		app,非cookie登陆就是从header存储信息
+
+		我们Cookie的domain属性是sso.a.com，在给app1.a.com和app2.a.com发送请求是带不上的。
+		sso登录以后，可以将Cookie的域设置为顶域，即.a.com，这样所有子域的系统都可以访问到顶域的Cookie。我们在设置Cookie时，只能设置顶域和自己的域，不能设置其他的域。
+		这样可以实现顶域下的跨域处理，但是Cookie顶域的特性这种是属于伪跨域
+
+		单调的简单原理： 		https://yq.aliyun.com/articles/636281
+		server验证ok（写sso当前域）后需要ST 返回验票，成功后写app1当前域，
+		app2跳转后sso已经登录，直接st返回即可，流程同1
+
+		xxl-sso
+		1   cookie 和缓存都没有  跳转server
+		2   server成功返回，cookie没有  缓存有，设置cookie
+		3   登录后再访问，cookie有直接返回，不用设置cookie
+
+
+验证st（有一定时效性的）的必要性在于：
+其实这样问题时很严重的，如果我在SSO没有登录，而是直接在浏览器中敲入回调的地址，并带上伪造的用户信息，
+是不是业务系统也认为登录了呢？这是很可怕的。所以需要统一server端验证
+
+
+	
+	
+	
+	
 		
 		
 		
+32.线程相关
+	每个cpu（或者多核cpu中的每核cpu）在同一时间只能执行一个线程，
+	线程上下文切换(抢占式)，当io阻塞或者有高优先级线程要执行时，就会切换，切换时要存储目前线程的执行状态，并且恢复要执行线程的状态。
+	
+	实现异步future+callable 实现返回值线程请求，对执行结果进行监听. 
+	final List<Future<String>> resultList = new ArrayList<Future<String>>(); 
+		for(Seckill seckill:list){
+			resultList.add(executor.submit(new createhtml(seckill)));
+		}
+	   for (Future<String> fs : resultList) { 
+		   try {
+				System.out.println(fs.get());//打印各个线任务执行的结果，调用future.get() 阻塞主线程，获取异步任务的返回结果
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+	   } 
+		return Result.ok();
+	}
+	
+	class createhtml implements Callable<String>  {
+		Seckill seckill;
+
+		public createhtml(Seckill seckill) {
+			this.seckill = seckill;
+		}
+		@Override
+		public String call() throws Exception {
+			system.out.println(seckill.getSeckillId());
+			return "success";
+		}
+	}
+
+	
+	main函数内部是无法访问非静态内部类的
+	Future是返回各个线程的处理结果，并且多个线程，get的时候如果还没处理完就会阻塞（这是同步的），返回的对个future都是绑定固定的线程号的，线程只要执行完就能拿到结果。
+	线程是进行中的，调用future.get()时会阻塞主线程，获取异步任务的返回结果
+	
+	
+	/***开启新线程之前，将RequestAttributes对象设置为子线程共享*/
+		ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		RequestContextHolder.setRequestAttributes(sra, true);
+		
+		//在新的子线程中获取request
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+
+	
+
+	
+	
+
+33.单例模式，延迟加载
+		/**
+		 * 类级的内部类，也就是静态的成员式内部类，该内部类的实例与外部类的实例
+		 * 没有绑定关系，而且只有被调用到才会装载，从而实现了延迟加载（调用时候再加载，而不是一开始就加载）
+		 */
+		private static class SingletonHolder{
+		
+			 //静态初始化器，由JVM来保证线程安全,外部类加载时并不需要立即加载内部类，内部类不被加载则不去初始化INSTANCE，故而不占内存，当使用了静态内部类才加载
+			private  static AlipayClient alipayClient = new DefaultAlipayClient(Configs.getOpenApiDomain(), Configs.getAppid(),Configs.getPrivateKey(), PARAM_TYPE, CHARSET,
+														Configs.getAlipayPublicKey(),"RSA2");
+			
+			private  static AlipayTradeService tradeService = new AlipayTradeServiceImpl.ClientBuilder().build();
+		}
+
+
+		延迟一次性加载，后续直接使用
+		public class CommercePayRegister
+		{
+			 private static CommercePayRegister instance;
+				
+				private CommercePayRegister(){}
+				 
+				public static CommercePayRegister getInstance()
+				{
+					if (instance == null)
+					{
+						instance = new CommercePayRegister();
+					}
+					return instance;
+				}
+		}
+		
+		CommercePayRegister使用静态延迟创建一个实例，然后进行属性复制，后面这个静态类可以直接使用获得同一实例对象了。
+		使用的是饥汉模式，自己内部定义自己一个实例，使用时创建，单例模式。
+		这里使用延迟加载的都private了构造函数，这样这个就是单例的。
+		后面维护统一的初始化类，一般通用配置类会考虑使用单例，本来就是一次性加载的东西，单例更好提现
+
+		private static  只能在内部静态调用
+		静态内部类的形式去创建单例的，故外部无法传递参数进，静态变量是和类一起加载的，static实现共享，延迟实例化，调用的时候实现共享
+
+		静态内部类 单例   延迟加载  https://blog.csdn.net/mnb65482/article/details/80458571
+
+		
+
+34.多线程和锁相关
+			线程直接run就是普通的方法，并没有开线程。必须new Thread(Runnable target).start 才开新线程
+			
+				使用两种锁锁方法
+		   public static void lock(int i){
+				lock.lock();
+				num1 ++;
+				lock.unlock();
+			}
+			public static synchronized void sync(int i){
+				num2 ++;
+			}
+				
+			事物提交是在整个方法执行完才会提交。
+			select... for update  和update都可以实现悲观锁(一般伴随事务一起使用，数据锁定时间可能会很长)
+			String nativeSql = "UPDATE seckill  SET number=number-?,version=version+1 WHERE seckill_id=? AND version = ?";这个是乐观锁的实现方式之一，是具体的案例，
+			乐观锁这种场景，	并发高的时可能会出现失败次数多的情况
+		
+			select * from table_xxx where id='xxx' for update; 
+			注意：id字段一定是主键或者唯一索引，不然是锁表
+			
+			两者本质上是一样的 只不过是封装了下，这个和理解的是一致的
+			ExecutorService executorService = Executors.newFixedThreadPool(11);
+			new ThreadPoolExecutor(nThreads, nThreads,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>()); 这样默认的是最大的队列值
+			
+			
+			ListenableFuture是guava中的多线程能得到结果的方法,可得到多线程调用的结果  这个知道概念就行了
+			
+			
+			
+35.分布式锁相关
+		使用private static  Lock lock = new ReentrantLock(true);/  系统是放在@service中，因为容器中的实例能保证是单例的，这样并发下lock只有一个实例
+		
+		redisson获取锁，不成功则订阅释放锁的消息，获得消息前阻塞。得到释放通知后再去循环获取锁。后续删除key后会发送消息，所以上文提到获取锁失败后，阻塞订阅此消息。
+		和redis的setnx的方法差不多
 		
 		
+		分布式锁的使用场景：
+			Java提供的原生锁机制在多机部署场景下失效了
+			因为两台机器加的锁不是同一个锁(两个锁在不同的JVM里面)。需保证两台机器加的锁是同一个锁。 Lock或synchronize只能解决单个jvm线程安全问题
+			场景1	即同一请求多次操作一个资源 ，也肯能执行定时任务时就会遇到同一任务可能执行多次的情况，
+			场景2	不同请求操作统一资源
+			常见方案
+				1、数据库实现（效率低，不推荐），线程出现问题，容易出现死锁
+				2、redis实现（使用redission实现，但是需要考虑思索，释放问题。繁琐一些）   锁的失效时间难控制、容易产生死锁、非阻塞式、不可重入    这个怎么理解呢,待定
+				3、Zookeeper实现   （使用临时节点，效率高，失效时间可以控制）
+				4、Spring Cloud 实现全局锁（内置的）
+				
+			Zookeeper实现原理	
+					zk节点唯一的！ 不能重复！节点类型为临时节点
+					jvm1创建成功时候，jvm2和jvm3创建节点时候会报错，该节点已经存在。这时候 jvm2和jvm3进行等待。
+					jvm1的程序现在执行完毕，执行释放锁。关闭当前会话。临时节点不复存在了并且事件通知Watcher，jvm2和jvm3继续创建。
+					设置有效时间，超过时间就删除节点
+			
+		zookeeper
+				zookeeper=文件系统+监听通知机制。
+				
+				主要的开源框架	两款开源框架ZKClient和Curator。可以用来操作zookeeper
+				
+				ZooKeeper目录树中每一个节点对应一个Znode。每个Znode维护着一个属性结构，它包含着版本号(dataVersion)，时间戳(ctime,mtime)等状态信息。
+				ZooKeeper正是使用节点的这些特性来实现它的某些特定功能。每当Znode的数据改变时，他相应的版本号将会增加。
+				
+				ZooKeeper的临时节点不允许拥有子节点
+									
+			四种类型的znode：  持久 临时 有序
+				-持久化目录节点：客户端与zookeeper断开连接后，该节点依旧存在
+				-持久化顺序编号目录节点：断开后，该节点依旧存在，只是Zookeeper给该节点名称进行顺序编号
+				-临时目录节点：断开后，该节点被删除
+				-临时顺序编号目录节点：断开后，该节点被删除，只是Zookeeper给该节点名称进行顺序编号
+		
+			监听通知机制
+				客户端注册监听它关心的目录节点，当目录节点发生变化（数据改变、被删除、子目录节点增加删除）时，zookeeper会通知客户端。
+		
+			ZooKeeper为我们保证了数据的强一致性。锁服务可以分为两类，一个是保持独占，另一个是控制时序。
+
+			使用监听器时间同步等待的过程
+					@Override
+					void waitLock() {
+					   IZkDataListener iZkDataListener = new IZkDataListener() {
+						  // 节点被删除
+							public void handleDataDeleted(String arg0) throws Exception {
+								if (countDownLatch != null) {
+									countDownLatch.countDown(); // 计数器为0的情况，await 后面的继续执行
+								}
+						 }
+							// 节点被修改
+							public void handleDataChange(String arg0, Object arg1) throws Exception {
+
+							}
+						};
+						// 监听事件通知
+						zkClient.subscribeDataChanges(lockPath, iZkDataListener);
+						// 控制程序的等待
+						if (zkClient.exists(lockPath)) {  //如果 检查出 已经被创建了 就new 然后进行等待
+							countDownLatch = new CountDownLatch(1);
+							try {
+								countDownLatch.wait(); //等待时候 就不往下走了   当为0 时候 后面的继续执行
+							} catch (Exception e) {
+								// TODO: handle exception
+							}
+						}
+						//后面代码继续执行
+						//为了不影响程序的执行 建议删除该事件监听 监听完了就删除掉
+						zkClient.unsubscribeDataChanges(lockPath, iZkDataListener);
+
+					}
+				}
+			使用TimeUnit类来实现线程的sleep也可以
+			
+			
+36.回调的思想是:
+		类A的a()方法调用类B的b()方法
+		类B的b()方法执行完毕主动调用类A的callback()方法
+
+		同步回调和异步回调, 主要体现在其是否需要等待. 同步调用, 如果被调用一方的APi(第三方API), 
+		处理问题需要花很长时间, 我们需要等待, 那就是同步回调, 如果调用完之后不需要理解得到结果, 
+		我们调完就走, 去做其他事情, 那就是异步调用, 异步调用需要在我们调用第三方API处, 开启一个新的线程即可, 而同步调用和平常的调用没有任何区别.
+
+		目前就是a调用b方法，并把实现callback接口的实例传过去，b方法调用完直接用实例回调方法即可
+
+		a调用了b的方法，b开始执行，b执行完了，再调用a的方法，这就是回调。
+

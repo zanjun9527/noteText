@@ -35,6 +35,7 @@ idea 安装 破解版：
 	查看调用链		Ctrl+Alt+H  			navigate 中的call hierarchy
 	多方案导包		alt+enter			实现接口的方法
 	debug/调试表达式	ctrl+u				调试查看表达式的值
+	恢复默认的窗口		debug附近的 restore layout	恢复console， window中的restore是全窗口的复位
 			
 	Eclipse和Intellij IDEA中常用快捷键差异总结。
 
@@ -166,4 +167,18 @@ idea中解决Error:java: Compilation failed: internal java compiler error的问题
 	（例如：com.mabatis.mapper会被创建为一个文件，名称为com.mabatis.mapper，和我们需要不一样，因此，建议一层一层的创建）
 
 
+
+idea 中查看git 的log记录，是可以切换 分支（branch）和项目(paths)的,可以挑选某个改动cherry pick
+
+
+idea 中jdk的编译版本，除了在项目的属性中，还有在设置中的java compile 中也要注意下。
+
+
+=========================================================================================================================
+eclipse
+	java -editor-content assist-advanced  java proposals  alt+/多次切换
+	java -editor-content assist auto activation triggers for java  .abc...  自动提示
+	
+	排除target下的文件内容
+	项目的properties-->Resource Filters 下选择排除项
 

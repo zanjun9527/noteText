@@ -48,12 +48,8 @@ http://www.java1234.com/ 	java资源共享
 https://www.ckook.com/    	编程资源共享网
 http://www.smallseashell.com/   小贝壳模板共享
 https://github.com/liangjixunz/imgupload  liang github
-<<<<<<< .mine
 
 
-=======
-
->>>>>>> .theirs
 https://www.processon.com/     在线的流程图和导图制作
 http://www.ftchinese.com/  ft中文网
 
@@ -66,12 +62,18 @@ https://developer.aliyun.com   阿里云开发社区
 
 http://springboot.fun/    boot的整合资源网址
 
-
 https://www.runoob.com/  菜鸟教程
-
 
 https://yq.aliyun.com 	云栖社区  
 
-
-
 前端资源汇总	https://blog.csdn.net/smxjant/article/details/78965612
+
+http://zh.learnlayout.com/			css布局
+
+https://www.iteye.com/blog/user/825635381   	技术博客
+
+https://www.iconfont.cn/			图标库
+
+https://js.ifeng.com/a/20191223/8040707_0.shtml
+
+https://how2j.cn/k/springcloud/springcloud-intro/2035.html   springcloud教程

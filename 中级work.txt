@@ -1509,7 +1509,73 @@ netty内容：
 
  
  
+ 序列化问题
+	jdk序列化写入不仅是完整的类名，也包含整个类的定义，包含所有被引用的类。类定义可以是相当大的，也许构成了性能和效率的问题.
+	
+	
+	序列化是输出，用out流，反序列化是输入用input流，用到的就是 ByteArrayOutputStream()，ObjectOutputStrea/ByteArrayInputStream,ObjectInputStream;	
  
- 
+	使用protostuff序列化，将大大减小序列化后的数组大小，
+	需要引入的jar有protostuff-collectionschema，protostuff-core，protostuff-runtime，protostuff-api
+	
+	
+	
+
+设计模式
+	模板方法
+			模板方法中某些方法是超类处理，某些方法是子类处理。需要由子类提供的方法，必须在超类中申明为抽象。
+			
+			抽象类可以定义一些默认行为，并促使子类提供任意特殊化行为。但是接口好像是全实现。
+			抽象类是作为基类的，子类必须实现其操作
+			
+			被申明为final的方法是不能重写的，公用的实现类可以直接写在父类，特性方法的可以实现父类的抽象方法
+			子类继承抽象类必须实现其中抽象方法，除非子类为抽象类。
+			抽象类就是可以吧多个接口公用部分放在抽象类中，然后各子类在实现特性方法
+			抽象类是为了代码的复用，而使用接口的动机是为了实现多态性。复用的是公用的逻辑
+			
+			在超类中提供了基础方法，达到代码的复用，并允许子类指定行为。
+			
+			**********
+				抽象类中  抽象方法必须子类实现，普通方法可选，但是加上final就不能重写了
+				抽象实现特定，普通方法实现共性
+			**********
+	
+	单例模式		
+		*****确保一个类只有一个实例，并且提供一个全局访问点。*****分别对应构造私有和静态访问
+		确保只有一个实例会被创建
+		线程池，日志对象只能有一个实例。
+		单例实现：构造私有化，并提供static访问实例的方法即可
+		
+		典型代码：
+		这里可能会有线程问题，使用双重检查加锁，性能还可以
+		public class Singleton{
+			private static Singleton uniqueInstance;//利用一个静态变量记录该类的唯一实例
+			
+			private Singleton(){};
+			
+			public static Singleton getInstance(){
+				if(uniqueInstance==null){
+					uniqueInstance=new Singleton();
+				}
+				
+				return uniqueInstance;
+			}
+		
+		这里使用静态变量有两层意思：1.静态方法类中变量必须是静态变量。2.单例就是共享一个实例，符合静态共享
+		private static Singleton uniqueInstance=new new Singleton();  这个就是线程安全的
+		
+		}
+			
+		
+		java中实现单例模式需要：1私有构造，2静态方法 和3静态变量
+	
+	
+	工厂模式
+			用来封装对象的创建，让子类决定该创建的对象时什么。
+			定义了一个创建对象的接口，由子类决定要实例化的接口是哪一个。工厂方法让类把实例化推迟到子类。
+	
+	
+	
+	
 	
 	
