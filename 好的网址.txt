@@ -77,3 +77,6 @@ https://www.iconfont.cn/			图标库
 https://js.ifeng.com/a/20191223/8040707_0.shtml
 
 https://how2j.cn/k/springcloud/springcloud-intro/2035.html   springcloud教程
+
+
+java 基础知识点  http://tieba.baidu.com/p/5878742312

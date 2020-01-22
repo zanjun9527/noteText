@@ -1573,9 +1573,157 @@ netty内容：
 	工厂模式
 			用来封装对象的创建，让子类决定该创建的对象时什么。
 			定义了一个创建对象的接口，由子类决定要实例化的接口是哪一个。工厂方法让类把实例化推迟到子类。
+			将对象创建的方法封装起来
+		没有细细研究
+		
 	
 	
 	
+spring实战			296
+	创建bean的几种方式,注入属性等			@autowire等
+	所有的spring bean都是单例的，默认单例 ，也可以指定多例
+	最少xml配置
+		
+	<context:component-scan>
+	
+	@configuration等价xml配置中的<beans>元素
+	
+	
+	@bean				---- 向spring注册了一个bean。方法名作为bean的id
+	public Performer duke(){
+		return nre Juggler()
+	}
+	
+	--引用创建bean
+	@bean			
+	public Performer duke2(){
+		return nre Juggler(duke())					---并不是调用，spring拦截找到该bean
+	}
+	
+	aop中的概念：
+	通知  切面（通知和切点的结合）的工作
+	切点 
+	连接点  
+	
+	aspect 是区别于spring aop的
+	
+	全有或全无的操作称为事务
+	将几个操作组合成一个全有或全无的工作单元，这个工作单元也是事务
+	
+	一致性是对数据可见性的约束，保证在一个事务中的多次操作的数据中间状态对其他事务不可见的。
+	因为这些中间状态，是一个过渡状态，与事务的开始状态和事务的结束状态是不一致的.
+	
+	一致性是事务的最终目的，原子性、隔离性、持久性都是为了实现一致性。数据一致性啊等等
+	
+	事务的隔离级别：脏读 幻读 不可重复读
+	
+	<tx:annotation-driven>配合注解使用更加快捷
+	
+	Spring的TransactionTemplate就是一种编码式事务，注入容器 或者启动初始化，在支付系统中就是这种方式
+	
+	contextloaderlistener是servlet的监听器，用来加载除dispatcherservlet创建的上下文以外，加载其他的配置
+	文件到spring应用的上下文中，
+	<listener>
+		<description>spring监听器</description>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	默认加载  /WEB-INF/applicationContext.xml这个配置文件。
+	一般我们人工指定，
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>	
+				classpath:config/spring.xml,
+				classpath:config/spring-mybatis.xml,
+				classpath:config/spring-dubbo.xml,
+				classpath:config/spring-threadpool.xml
+		</param-value>
+	</context-param>
+	
+	前段传参数到controller
+		@requestParam不是必须的，默认是绑定到同名查询参数上
+		
+		
+	通过重定向到另一个页面我们能够避免表单的重复提交
+	
+	
+	
+	文件功能  apachecommonsIo的fileUtils操作工具类，写到本地服务器或者上云
+	
+	soa的核心理念是，应用程序可以并应该被设计成依赖于一组公共的核心服务，而不是每个应用都重新实现相同的功能
+		
+	rpc是面向服务的，并关注行为和动作；rest是面向资源的，强调描述应用程序的事务和名词
+	
+	rest就是将资源的状态以最合适的形式从服务器端转移到客户端
+	
+	就简单理解：基于url的web服务
+	@responsebody注解完全绕过视图解析，返回显示
+	
+	
+精通Spring 4.x  企业应用开发实战		119
+	spring 主要分为5个模块：
+		1.IOC	依赖注入
+			BeanFactory接口是spring框架的核心，实现了容器许多核心的功能
+			Context模块构建于核心模块之上，其中applicationcontext是该模块的核心接口，扩展了BeanFactory，添加了bean生命周期控制，jndi获取，资源加载等。
+		2.AOP
+			区别于aspect框架，不是同一个事物框架
+			借助该功能，实现了声明式事务的功能
+		3.数据可访问和集成
+		4.web及远程操作
+			可通过listener或Servlet初始化Spring容器，将其注册到web容器中 
+		5.测试框架
+
+	repository 一般有中央仓库，公共仓库，私有仓库以及本地仓库
+	
+	ant 风格资源地址匹配：
+	?: 匹配文件名中的一个字符
+	*：匹配文件名中任意字符	
+	**：匹配多层路径
+	
+	实际上applicatincontext就叫做spring容器,是面向spring框架的开发者，这个也可以简称为spring容器
+	BeanFactory是面向spring框架的基础设施，面向spring本身。是ioc容器。
+	
+	beanfactory会缓存bean实例到ioc容器中，缓存原理是一个hashmap实现的缓存器，key是beanname，value是单例bean
+	bean的初始化动作发生在第一个调用时，
+	ApplicationContext是BeanFactory的一个不补充详细，是面向开发者的。实际开发中普遍使用前者，后者功能比较少
+
+	如果配置文件放在类路径下，则优先考虑使用classpathxmlapplication(classpath:...)
+	如果配置文件放在文件系统路径下，则考虑优先使用fileSystemXmlApplication实现类(file:...)
+
+	ApplicationContext和BeanFactory初始化不同：
+	BeanFactory：初始化容器时，没有实例化bean，第一次访问才实例化目标bean
+	ApplicationContext：在初始化应用上下文时就实例化所有的单例bean，时间稍微长点
+
+	从Spring 3起，JavaConfig功能已经包含在Spring核心模块，它允许开发者将bean定义和在Spring配置XML文件到Java类中。就是基于@configuration和@bean，区别于以往的xml配置
+	使用AnnotationConfigApplicationContext可实现基于Java的配置类加载Spring的应用上下文。手工注册配置类。避免使用application.xml进行配置。相比XML配置，更加便捷。
+	
+	webapplicationcontext可以获得servletcontext引用,（扩展了applictioncontext,可以通过contextloaderlistener初始化）整个web上下文将作为属性放置到servletcontext中，这样web应用就可以访问spring应用上下文。
+	
+	父子容器，子容器可以访问父容器中的bean，反之不行，在容器内bean id唯一，但子容器可以有一个和父容器id相同的bean
+
+	BeanPostProcessor接口的作用是：
+	我们可以通过该接口中的方法在bean实例化、配置以及其他初始化方法前后添加一些我们自己的逻辑。动态代理和aop都是通过该接口实现的
+	
+	PostConstruct也是BeanPostProcessor的一个实现类加载识别的
+	BeanPostProcessor是spring的后处理器。工厂后处理器是容器级的，仅在应用上下文初始化时调用一次，完成配置文件的加工处理工作。
+	
+	
+	该接口的实现类为“后处理器”，一般不由bean本身实现，当spring容器创建bean的时候，可以合理对bean进行加工处理。也就是代理的思想
+	
+	bean级生命周期的几个常用控制接口，
+		beannameaware：是通过set注入当前bean在容器中的bean_ID，
+		beanfactoryaware：让bean获得配置文件中对应的配置名称
+		InitializingBean
+		DisposableBean
+
+	一般情况不用上述接口，但是BeanPostProcessor很重要，
+		
+	spring是有个容器缓存池，在单例模式中是打开。
+	applicationcontext启动时，将配置文件中的<bean>生成一个beandefinition对象（是<bean>在spring容器中的内部表示）。
+	
+	
+	容器后处理器：	实现BeanFactoryPostProcessor接口，在spring容器启动之后会查找实现了BeanFactoryPostProcessor接口的bean，并实例化调用postProcessBeanFactory()方法。需加入@component。只处理实现相应接口的地方
+	bean后处理器：	实现BeanPostProcessor接口，在容器创建了bean对象实例之后，调用bean的初始化方法之前后会调用相关方法。需加入@Component。统一处理的地方
+
 	
 	
 	

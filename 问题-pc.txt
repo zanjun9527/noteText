@@ -49,11 +49,8 @@ idea target地下不自动更新
 spring-boot 热加载
 boot中使用mapperscan 代替代码配置应该也行吧，需要搭配@mapper标签。其中@select 和@results搭配使用
 
-
 数据库的死锁问题修复
 
-
 IO 和 NIO的区别
-
 
 https://developer.aliyun.com/article/715236?utm_content=g_1000072980&tdsourcetag=s_pcqq_aiomsg
