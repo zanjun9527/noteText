@@ -1451,4 +1451,279 @@ docker:《第一本docker书》 大概浏览一遍就行，先简单用用
 	为什么要用序列化？进程通信实现文本图片音频等传输外（二进制序列形式），java对象传输必须序列化
 	
 	
+缓存共享，session共享
+	1、最原始的是：直接通过tomcat自带的复制功能，即访问其中一台tomcat服务器就会在其他配置好的tomcat服务器上各复制一份session，存在一定的延迟，同时若并发量一大的话也会有网络风暴的风险
+	2、使用tomcat-redis-session-manager,使用redis同步各tomcat之间的缓存（依赖tomcat，需要修改context.xml文件），但是目前只支持到jdk1.7
+	3、更新使用spring session，存储在第三方存储容器redis的spring session，是配置在项目和代码中的
+	
+	spring session相关：使用springboot项目很简单
+		spring session在spring框架中的实现原理，其实就是在请求request上通过DelegatingFilterProxy代理过滤器封装了一层，将原来存储在容器缓存的session变成存储在redis的session，所以在web.xml中的此filter必须得是在所有filter的前面。
+		用了spring session后，web.xml中设置session过期时间是无效。因为已存储在redis的session。
+		相应的springSessionRepositoryFilter需要放在filter最前面
+		jedisPoolConfig、connectionFactory、过期时间，springSessionRepositoryFilter,组装redisTemplate
 		
+		
+job调用多个soa服务，多个微服务，只有服务端才需要暴露相应的dubbo端口，客户端只要填写zookeeper地址即可，统一在注册中心找服务
+
+
+netty内容：
+	Netty 对 JDK 自带的 NIO 的 API 进行了封装,是异步高性能的通信框架。往往作为高性能基础通信组件被这些 RPC 框架使用。
+
+	传统的i/o模式，每个请求都需要独立的线程完成数据read，业务处理，数据write的完整操作问题，容易阻塞
+	Netty 的非阻塞 I/O 的实现关键是基于 I/O 复用模型，使用了多路复用器selector，一个 I/O 线程可以并发处理 N 个客户端连接和读写操作，这从根本上解决了传统同步阻塞 I/O 一连接一线程模型，架构的性能、弹性伸缩能力和可靠性都得到了极大的提升。
+	传统的 I/O 是面向字节流或字符流的，以流式的方式顺序地从一个 Stream 中读取一个或多个字节, 因此也就不能随意改变读取指针的位置。
+
+	在 NIO 中，抛弃了传统的 I/O 流，而是引入了 Channel 和 Buffer 的概念
+	Netty 的线程模型基于主从 Reactor 多线程
+	Netty 基于 Selector 对象实现 I/O 多路复用，通过 Selector 一个线程可以监听多个连接的 Channel 事件。
+	当向一个 Selector 中注册 Channel 后，Selector 内部的机制就可以自动不断地查询(Select) 这些注册的 Channel 是否有已就绪的 I/O 事件（例如可读，可写，网络连接完成等），这样程序就可以很简单地使用一个线程高效地管理多个 Channel 
+	
+	
+	在io模型中一个连接需要开一个线程
+	NIO解决这个问题的方式是数据读写不再以字节为单位，而是以字节块为单位。每次从缓存区读取一块数据
+	
+	class java.nio.channels.Selector 是Java 的非阻塞 I/O 实现的关键。它使用了事件通知 API，可在任何的时间检查任意的读操作或者写操作的完成状态，一个单一的线程便可以处理多个并发的连接。统一处理多个socket连接
+	
+	ChannelFutureListener提供的通知机制消除了手动检查对应的操作是否完成的必要
+	Netty 完全是异步和事件驱动的。这里体现监听事件是否完成，
+	
+	编码解码的事情：这两种方向的转换的原因很简单：网络数据总是一系列的字节
+	
+	网络数据的基本单位总是字节。Java NIO 提供了 ByteBuffer 作为它的字节容器，但是这个类使用起来过于复杂，而且也有些繁琐
+	Netty 的 ByteBuffer 替代品是 ByteBuf，一个强大的实现，既解决了 JDK API 的局限性，又为网络应用程序的开发者提供了更好的 API。
+	bio，传统的一请求一应答通信模型，一请求产生一个线程，交互完成，线程销毁，线程资源不可控，会阻塞
+	后来出现了线程池，这是伪异步i/o,采用线程池和任务队列可以实现一种叫做伪异步的 I/O 通信框架，线程资源可控，但是还是会阻塞
+	
+	
+	
+	
+	Reactor模式：
+			connection per thread,早起的tomcat就是这样实现的
+			一个线程只能对应一个socket
+			改进：采用基于事件驱动的设计，当有事件触发时，才会调用处理器进行数据处理。使用Reactor模式，对线程的数量进行控制，一个线程处理大量的事件。
+			
+			实际上的Reactor模式，是基于Java NIO的，在他的基础上，抽象出来两个组件——Reactor和Handler两个组件：
+		（1）Reactor：负责响应IO事件，当检测到一个新的事件，将其发送给相应的Handler去处理；新的事件包含连接建立就绪、读就绪、写就绪等。
+
+		（2）Handler:将自身（handler）与事件绑定，负责事件的处理，完成channel的读入，完成处理业务逻辑后，负责将结果写出channel。
+
+ 
+ 
+ 序列化问题
+	jdk序列化写入不仅是完整的类名，也包含整个类的定义，包含所有被引用的类。类定义可以是相当大的，也许构成了性能和效率的问题.
+	
+	
+	序列化是输出，用out流，反序列化是输入用input流，用到的就是 ByteArrayOutputStream()，ObjectOutputStrea/ByteArrayInputStream,ObjectInputStream;	
+ 
+	使用protostuff序列化，将大大减小序列化后的数组大小，
+	需要引入的jar有protostuff-collectionschema，protostuff-core，protostuff-runtime，protostuff-api
+	
+	
+	
+
+设计模式
+	模板方法
+			模板方法中某些方法是超类处理，某些方法是子类处理。需要由子类提供的方法，必须在超类中申明为抽象。
+			
+			抽象类可以定义一些默认行为，并促使子类提供任意特殊化行为。但是接口好像是全实现。
+			抽象类是作为基类的，子类必须实现其操作
+			
+			被申明为final的方法是不能重写的，公用的实现类可以直接写在父类，特性方法的可以实现父类的抽象方法
+			子类继承抽象类必须实现其中抽象方法，除非子类为抽象类。
+			抽象类就是可以吧多个接口公用部分放在抽象类中，然后各子类在实现特性方法
+			抽象类是为了代码的复用，而使用接口的动机是为了实现多态性。复用的是公用的逻辑
+			
+			在超类中提供了基础方法，达到代码的复用，并允许子类指定行为。
+			
+			**********
+				抽象类中  抽象方法必须子类实现，普通方法可选，但是加上final就不能重写了
+				抽象实现特定，普通方法实现共性
+			**********
+	
+	单例模式		
+		*****确保一个类只有一个实例，并且提供一个全局访问点。*****分别对应构造私有和静态访问
+		确保只有一个实例会被创建
+		线程池，日志对象只能有一个实例。
+		单例实现：构造私有化，并提供static访问实例的方法即可
+		
+		典型代码：
+		这里可能会有线程问题，使用双重检查加锁，性能还可以
+		public class Singleton{
+			private static Singleton uniqueInstance;//利用一个静态变量记录该类的唯一实例
+			
+			private Singleton(){};
+			
+			public static Singleton getInstance(){
+				if(uniqueInstance==null){
+					uniqueInstance=new Singleton();
+				}
+				
+				return uniqueInstance;
+			}
+		
+		这里使用静态变量有两层意思：1.静态方法类中变量必须是静态变量。2.单例就是共享一个实例，符合静态共享
+		private static Singleton uniqueInstance=new new Singleton();  这个就是线程安全的
+		
+		}
+			
+		
+		java中实现单例模式需要：1私有构造，2静态方法 和3静态变量
+	
+	
+	工厂模式
+			用来封装对象的创建，让子类决定该创建的对象时什么。
+			定义了一个创建对象的接口，由子类决定要实例化的接口是哪一个。工厂方法让类把实例化推迟到子类。
+			将对象创建的方法封装起来
+		没有细细研究
+		
+	
+	
+	
+spring实战			296
+	创建bean的几种方式,注入属性等			@autowire等
+	所有的spring bean都是单例的，默认单例 ，也可以指定多例
+	最少xml配置
+		
+	<context:component-scan>
+	
+	@configuration等价xml配置中的<beans>元素
+	
+	
+	@bean				---- 向spring注册了一个bean。方法名作为bean的id
+	public Performer duke(){
+		return nre Juggler()
+	}
+	
+	--引用创建bean
+	@bean			
+	public Performer duke2(){
+		return nre Juggler(duke())					---并不是调用，spring拦截找到该bean
+	}
+	
+	aop中的概念：
+	通知  切面（通知和切点的结合）的工作
+	切点 
+	连接点  
+	
+	aspect 是区别于spring aop的
+	
+	全有或全无的操作称为事务
+	将几个操作组合成一个全有或全无的工作单元，这个工作单元也是事务
+	
+	一致性是对数据可见性的约束，保证在一个事务中的多次操作的数据中间状态对其他事务不可见的。
+	因为这些中间状态，是一个过渡状态，与事务的开始状态和事务的结束状态是不一致的.
+	
+	一致性是事务的最终目的，原子性、隔离性、持久性都是为了实现一致性。数据一致性啊等等
+	
+	事务的隔离级别：脏读 幻读 不可重复读
+	
+	<tx:annotation-driven>配合注解使用更加快捷
+	
+	Spring的TransactionTemplate就是一种编码式事务，注入容器 或者启动初始化，在支付系统中就是这种方式
+	
+	contextloaderlistener是servlet的监听器，用来加载除dispatcherservlet创建的上下文以外，加载其他的配置
+	文件到spring应用的上下文中，
+	<listener>
+		<description>spring监听器</description>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	默认加载  /WEB-INF/applicationContext.xml这个配置文件。
+	一般我们人工指定，
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>	
+				classpath:config/spring.xml,
+				classpath:config/spring-mybatis.xml,
+				classpath:config/spring-dubbo.xml,
+				classpath:config/spring-threadpool.xml
+		</param-value>
+	</context-param>
+	
+	前段传参数到controller
+		@requestParam不是必须的，默认是绑定到同名查询参数上
+		
+		
+	通过重定向到另一个页面我们能够避免表单的重复提交
+	
+	
+	
+	文件功能  apachecommonsIo的fileUtils操作工具类，写到本地服务器或者上云
+	
+	soa的核心理念是，应用程序可以并应该被设计成依赖于一组公共的核心服务，而不是每个应用都重新实现相同的功能
+		
+	rpc是面向服务的，并关注行为和动作；rest是面向资源的，强调描述应用程序的事务和名词
+	
+	rest就是将资源的状态以最合适的形式从服务器端转移到客户端
+	
+	就简单理解：基于url的web服务
+	@responsebody注解完全绕过视图解析，返回显示
+	
+	
+精通Spring 4.x  企业应用开发实战		119
+	spring 主要分为5个模块：
+		1.IOC	依赖注入
+			BeanFactory接口是spring框架的核心，实现了容器许多核心的功能
+			Context模块构建于核心模块之上，其中applicationcontext是该模块的核心接口，扩展了BeanFactory，添加了bean生命周期控制，jndi获取，资源加载等。
+		2.AOP
+			区别于aspect框架，不是同一个事物框架
+			借助该功能，实现了声明式事务的功能
+		3.数据可访问和集成
+		4.web及远程操作
+			可通过listener或Servlet初始化Spring容器，将其注册到web容器中 
+		5.测试框架
+
+	repository 一般有中央仓库，公共仓库，私有仓库以及本地仓库
+	
+	ant 风格资源地址匹配：
+	?: 匹配文件名中的一个字符
+	*：匹配文件名中任意字符	
+	**：匹配多层路径
+	
+	实际上applicatincontext就叫做spring容器,是面向spring框架的开发者，这个也可以简称为spring容器
+	BeanFactory是面向spring框架的基础设施，面向spring本身。是ioc容器。
+	
+	beanfactory会缓存bean实例到ioc容器中，缓存原理是一个hashmap实现的缓存器，key是beanname，value是单例bean
+	bean的初始化动作发生在第一个调用时，
+	ApplicationContext是BeanFactory的一个不补充详细，是面向开发者的。实际开发中普遍使用前者，后者功能比较少
+
+	如果配置文件放在类路径下，则优先考虑使用classpathxmlapplication(classpath:...)
+	如果配置文件放在文件系统路径下，则考虑优先使用fileSystemXmlApplication实现类(file:...)
+
+	ApplicationContext和BeanFactory初始化不同：
+	BeanFactory：初始化容器时，没有实例化bean，第一次访问才实例化目标bean
+	ApplicationContext：在初始化应用上下文时就实例化所有的单例bean，时间稍微长点
+
+	从Spring 3起，JavaConfig功能已经包含在Spring核心模块，它允许开发者将bean定义和在Spring配置XML文件到Java类中。就是基于@configuration和@bean，区别于以往的xml配置
+	使用AnnotationConfigApplicationContext可实现基于Java的配置类加载Spring的应用上下文。手工注册配置类。避免使用application.xml进行配置。相比XML配置，更加便捷。
+	
+	webapplicationcontext可以获得servletcontext引用,（扩展了applictioncontext,可以通过contextloaderlistener初始化）整个web上下文将作为属性放置到servletcontext中，这样web应用就可以访问spring应用上下文。
+	
+	父子容器，子容器可以访问父容器中的bean，反之不行，在容器内bean id唯一，但子容器可以有一个和父容器id相同的bean
+
+	BeanPostProcessor接口的作用是：
+	我们可以通过该接口中的方法在bean实例化、配置以及其他初始化方法前后添加一些我们自己的逻辑。动态代理和aop都是通过该接口实现的
+	
+	PostConstruct也是BeanPostProcessor的一个实现类加载识别的
+	BeanPostProcessor是spring的后处理器。工厂后处理器是容器级的，仅在应用上下文初始化时调用一次，完成配置文件的加工处理工作。
+	
+	
+	该接口的实现类为“后处理器”，一般不由bean本身实现，当spring容器创建bean的时候，可以合理对bean进行加工处理。也就是代理的思想
+	
+	bean级生命周期的几个常用控制接口，
+		beannameaware：是通过set注入当前bean在容器中的bean_ID，
+		beanfactoryaware：让bean获得配置文件中对应的配置名称
+		InitializingBean
+		DisposableBean
+
+	一般情况不用上述接口，但是BeanPostProcessor很重要，
+		
+	spring是有个容器缓存池，在单例模式中是打开。
+	applicationcontext启动时，将配置文件中的<bean>生成一个beandefinition对象（是<bean>在spring容器中的内部表示）。
+	
+	
+	容器后处理器：	实现BeanFactoryPostProcessor接口，在spring容器启动之后会查找实现了BeanFactoryPostProcessor接口的bean，并实例化调用postProcessBeanFactory()方法。需加入@component。只处理实现相应接口的地方
+	bean后处理器：	实现BeanPostProcessor接口，在容器创建了bean对象实例之后，调用bean的初始化方法之前后会调用相关方法。需加入@Component。统一处理的地方
+
+	
+	
+	
