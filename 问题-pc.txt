@@ -59,3 +59,8 @@ boot中使用mapperscan 代替代码配置应该也行吧，需要搭配@mapper标签。其中@select 和
 
 
 IO 和 NIO的区别
+
+蚂蚁金融云  中关于分布式事务dts的介绍
+
+
+通知消息的时间梯度
