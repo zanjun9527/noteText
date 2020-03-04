@@ -702,8 +702,7 @@ Spring 提供了对编程式事务和声明式事务的支持：
     <context:component-scan base-package="com.oumyye"/>
     <bean id="logInterceptor" class="com.oumyye.aop.LogInterceptor"></bean>
     <aop:config>
-        <aop:pointcut expression="execution(public * com.oumyye.service..*.add(..))" 
-        id="servicePointcut"/>
+        <aop:pointcut expression="execution(public * com.oumyye.service..*.add(..))" id="servicePointcut"/>
         <aop:aspect id="logAspect" ref="logInterceptor">
             <aop:before method="before"  pointcut-ref="servicePointcut" />
         </aop:aspect>
@@ -1616,6 +1615,9 @@ spring实战			296
 	一致性是事务的最终目的，原子性、隔离性、持久性都是为了实现一致性。数据一致性啊等等
 	
 	事务的隔离级别：脏读 幻读 不可重复读
+	脏读又称无效数据读出。一个事务读取另外一个事务还没有提交的数据叫脏读。
+	不可重复读是指在同一个事务内，两个相同的查询返回了不同的结果。
+	幻读，读取的记录数量前后不一致
 	
 	<tx:annotation-driven>配合注解使用更加快捷
 	
@@ -1659,7 +1661,12 @@ spring实战			296
 	@responsebody注解完全绕过视图解析，返回显示
 	
 	
-精通Spring 4.x  企业应用开发实战		119
+精通Spring 4.x  企业应用开发实战		挺好的，可以复读
+内容还可以，可以多读几遍
+quartz不是很透，简单了解了下。
+
+
+
 	spring 主要分为5个模块：
 		1.IOC	依赖注入
 			BeanFactory接口是spring框架的核心，实现了容器许多核心的功能
@@ -1718,12 +1725,198 @@ spring实战			296
 	一般情况不用上述接口，但是BeanPostProcessor很重要，
 		
 	spring是有个容器缓存池，在单例模式中是打开。
-	applicationcontext启动时，将配置文件中的<bean>生成一个beandefinition对象（是<bean>在spring容器中的内部表示）。
+	applicationcontext启动时，将配置文件中的<bean>生成一个beandefinition对象（是<bean>在spring容器中的内部表示），一个个的BeanDefinition形成了bean的注册列表。
 	
 	
 	容器后处理器：	实现BeanFactoryPostProcessor接口，在spring容器启动之后会查找实现了BeanFactoryPostProcessor接口的bean，并实例化调用postProcessBeanFactory()方法。需加入@component。只处理实现相应接口的地方
 	bean后处理器：	实现BeanPostProcessor接口，在容器创建了bean对象实例之后，调用bean的初始化方法之前后会调用相关方法。需加入@Component。统一处理的地方
 
 	
+	spring提供了用于启动webApplicationContext的web容器监听器：ContextLoaderListener,通过容器的上下文参数contextConfigLocation获取Spring配置文件的位置
 	
+	
+	xml schema 
+		bean配置信息定义了bean实现和依赖关系，spring内部建立bean注册表，根据注册表，加载相关的bean，并放在bean缓存池中，供外层的程序调用
+		
+		xml的schema中的  xmlns是默认命名空间，xmlns:xsi是标准的命名空间，xmlns:aop这种就是自定义的命名空间（1.指定命名空间的名称，2.指定命名空间的Schema文档格式文件的位置）
+		其中aop就是命名空间的别名（用以区分文档后面的元素），对应的还有权限定名和schema文件地址。
+	
+		命名空间使用全限定名，一般使用一个引用的url地址指定命名空间对应的schema文件。
+		在spring4中，配置的schema文件放置在各模块jar文件内一个名为config的目录下。作为各个依赖jar的功能单独存放。
+		
+		如果在<bean>中没有指定bean的id，那么自动将全限定类名作为bean的名称
+		<bean>中使用的<property>,就是set注入，需要在类中有对应的set方法
+	
+	
+	
+		可注入多种对象，list、map、set、实体类、property等
+		1.java中的属性命名规范：xxx属性对应setXxx()方法，但是重点是：变量的前两个字母要么全大写，要么全小写，否则xml中set注入会报错。比如iDCode和iCcard。
+		2.使用构造函数，类中必须要存在有参构造，可以显示指定入参顺序，使用index 和type配合使用，复杂属性类用ref引用
+		3.工厂方法注入  不推荐
+		
+		循环依赖问题
+			spring对构造函数配置的bean实例化前提是，入参引用需要准备就绪，如果两个bean都采用构造函数注入，会发生循环依赖，改为属性注入即可
+		
+		bean之间的可以继承，依赖(depend on)，引用(ref)
+		
+		在两个xml中有包含关系的时候，加载主动包含的那个xml即可
+		
+		因为spring利用aop和localthread功能，对非线程安全的变量特殊处理，是器变为线程安全的类，所以spring将bean默认作用域为singleton。
+		
+		spring的 applicationContext启动时，会自动实例化所有单例bean，并缓存在容器中，
+		在默认情况下，spring容器启动不实例化prototype的的bean。多例bean交给调用者后，不在管理生命周期
+		
+		FactoryBean方法在spring中挺重要的，使用getbean是调用了对应的getobject方法
+		
+		不管是xml还是注解，他们都是表达bean定义的载体，本质都是为spring容器提供bean定义的信息。
+		
+		使用autowired,如果有一个以上的bean，则可以通过@qualifier注解限定bean的名称
+		对集合类型的注入，会将符合类型的所有bean都注入到集合中，这个在注入批量插件时有用
+		
+		使用<bean>配置的时候，可通过init-method指定初始化方法，对应的注解使用@postconstruct。
+		
+		bean创建过程：
+		spring先调用bean的构造函数实例化，再执行@autowired注入，然后执行@postConstruct初始化。
+		
+		@configuration 配合@bean 替代xml中配置，并且@#configuration 注解本身也相当于标注了@component,可以其他类中直接注入（也可以被xml扫描进入）
+		*****spring会对配置类所有标注@bean的方法进行aop增强(需要使用到spring-aop和cglib)，将堆bean的生命周期管理的逻辑植入进来，即不是简单执行方法逻辑，而是从容器中返回相应的bean单例*****
+		
+		
+		xml可以扫描@configuration配置类，@configuration配置类也可以通过importResource,加载xml，这两种bean定义可以智能装配
+		
+		bean三种配置方式
+		XML配置和注解配置方式向结合的开发方式，一般不推荐使用基于Java类的配置方式(提供了bean实例化逻辑，适用复杂的bean实例化场景)
+		
+		  @Bean
+		  public Person personOne() {
+			  return new Person(); //实例化的逻辑
+		  }
+		  
+		defaultlistablebeanfactory是一个可以独立使用的ioc容器，可以编码实现动态注入bean。一般也用不到
+		
+		spring扩展自定义标签，spring中自定义组件标签(定义然后解析，了解就行，暂时用不到)
+			1.采用xsd描述自定义标签的元素属性
+			2.编写bean定义的解析器
+			3.注册自定义标签解析器
+			4.绑定命名空间解析器
+			
+		
+		spring中的beanDefinition是注册bean的定义(是配置文件中<bean>在容器内部的表示)，并在beanDefinitionRegistry中注册(相当于是spring配置信息的内存数据库，后续操作直接从中读取配置信息，一般容器启动时加载解析，除非容器刷新或者重启，信息不会发生变化，也可以编程调整)，
+		
+		cglib采用底层的字节码技术，创建一个类的子类，在子类中采用方法拦截的技术拦截所有父类方法的调用，并顺势植入横切逻辑
+		不能对目标类中的final或者private方法进行代理。
+		通过切面将切点和advice增强组装起来，aop就是负责实施切面的框架，将切面定义的逻辑织入切面指定的连接点
+		关键点 1.定位连接点   2，增强中编写切面代码 说白了就是定位切入点，将逻辑织入
+		
+		手工实现代理 ，一个个bean很麻烦，spring有自动代理的机制
+		
+		spring提供了自动代理机制，让容器自动生成代理，使用beanPostProcessor来实现（自动在容器实例化bean时为匹配的bean生成代理实例）
+		在内部调用方法的时候没有走aop代理，需要注入自身的bean才能实现aop代理的功能，事务方法调用的问题
+		
+		spring提供多种方式访问数据源，dao，jpa等，这些支持类都继承于dao.support.DaoSupport类，DaoSupport类实现了InitializingBean接口，在afterpropertiesSet接口方法中检查模板对象和数据源是否被正确设置，否则抛出异常
+		所有支持的类都是abstract的，其目的是希望被继承使用，而非直接使用。
+		
+		创建数据源的三种方式，
+		1.xml配置一个数据元
+		2.使用jndi
+		3.代码创建数据源，DriverManagerDataSource(没有提供池化连接，适合单元测试用)
+		
+		事务的四个特性中，数据"一致性"是最终目标其他特性都是为达到这个目标而采取的错失、要求或手段
+		
+		数据库中的锁
+		根据锁定对象的不同分为
+			表级锁
+			行级锁
+		从并发事务锁定的关系上看：
+			共享锁，又称为读锁，获得共享锁之后，可以查看但无法修改和删除数据。
+			排他锁，又称为写锁、独占锁，获得排他锁之后，既能读数据，又能修改数据。
+			
+		mysql默认的事务处理级别是'REPEATABLE-READ',也就是可重复读
+		
+		insert、update、delete、select for update 都会隐式采用必要的行锁定
+		
+		jdbc2.0中事务最终只能有两个操作：提交和回滚。在jdbc3.0（java1.4）后引入了新特性:保存点（savepoint），可以将事务分割多个阶段，方便指定回滚到事务的特定保存点。这个特性一般用的也不多
+		事务只能被提交或者回滚(或回滚到某个保存点后提交)
+		
+		spring通过各种模板类降低了开发者使用各种数据持久化技术的难度，模板类使用threadlocal可以在无需线程同步情况下实现线程安全。
+		
+		threadlocal，并不是一个线程，是保存线程本地化对象（即本地线程变量副本）的容器，属于当前线程的专有属性，与其他线程相隔离
+		可能被多个线程共用一个实例，但是运行时是使用各自的线程本地副本
+		这个变量一般是跟着private tatic用的，在一个共同的外部类使用threadlocal保存资源。
+		实现原理：
+			在Threadlocal类中有一个Map，用于存储每个线程的变量副本，key-线程对象，value-对应线程的变量副本
+		
+		使用同步机制要求：1.变量读写时间，2.锁定对象的时间 3.释放对象的时间
+		同步机制：		时间换空间，访问串行化，对象共享化。同一份变量，排队
+		threadlocal：	空间换时间，访问并行化，对象独享化。不同变量副本，不用排队
+		
+		spring事务管理spi的抽象层主要包括3个接口，分别是
+		platformtransactionmanager:  负责commit或者rollback事务
+		transactionDefinition: 定义了传播属性，隔离级别等
+		transactionStatus: 代表事务的具体运行状态，使得异常回滚事务的方式更具可控性，继承了savepointManager接口
+		
+		
+		spring为不同的持久化框架提供了platformtransactionmanager接口的不同实现类。 jpa、datesource等manager
+		
+		在事务的注解上，方法注解会覆盖类上的该注解。
+		
+		没有配置事务管理的情况，直接就是数据源的自动commit持久化到数据库（）。
+		没有事务管理的情况下，dao照样可以顺利进行数据操作。
+		
+		
+		分层是层次清楚，特殊的可以一个类就有三层合一，可以做到事务和dao 和controller简化，一般测试用吧
+		分层只是一种参考的开发模式，并非是事务管理工作的前提条件
+		
+		
+		spring的事务管理器是通过线程相关的threadlocal来保存数据访问基础设施(Connection)，再结合Ioc和Aop实现高级声明式事务的功能。
+		spring通过threadlocal将bean无状态话，可以运行在多线程环境中。
+		
+		只有public修饰的接口才能实现jdk动态代理，但是public static也不行
+		由于final static private 修饰方法不能被继承，所以不能ciglib动态代理
+		这两种只是不能启动事务，但是可以工作在外层的事务中
+		在一些简单的查询中jdbcTemplate也是方便使用的
+		
+		**********
+		spring事务和数据库连接：
+			当spring事务方法运行时，会产生一个事务上下文，
+			该上下文在本事务执行线程中针对同一个数据源绑定了一个唯一的数据连接，所有被该事务上下文传播的方法都共享这个数据连接
+			这个数据连接从数据源获取到返回给数据源都在spring的掌控之中。使用安全。
+			
+			
+		spring中手工获取数据库连接，有自带的工具类,dataSourceUtil,事务环境下(即有事务注解标注)通过这个获取数据连接。尽可能使用jdbctemplate等模板进行数据访问操作，避免直接获取数据连接的操作
+		
+		建议尽量少用数据库的自增键，外键，触发器，存储过程，数据库函数等高级功能，让数据库只负责数据存储和查询
+		（在进行表设计时，只应关注表空间、索引、非空限制及唯一值限制等和存储查询相关的特性），不要让它负责业务逻辑，业务逻辑处理应在应用层中进行
+		
+		场景：不但要求单个系统内表主键唯一，还要全局内是唯一，类似数据集中汇合。使用自增就不合适了。这时适合采用应用层主键方案。
+				候选的主键方案是采用分段长整型编码方案。将主键编码分段，这样可以创建一个全局唯一的整数型主键值
+		
+		每个mybatis应用程序都以一个sqlsessionfactory对象的实例为核心。
+		编写好的dao接口，1.通过sqlSessionTemplate.getMapper获取实例(需要在xml中配置好对应的sqlSessionTemplate bean)
+						 2.使用mapperscaner 扫描生成接口实例
+						 
+		mybatis-spring中mapperScannerConfigurer,可以将映射接口直接转换为spring容器中的bean，即可注入service使用。
+		扫描basepackage所指定的包下所有接口类（包括子包），如果在sql映射文件中定义过，则将他们定义为一个spring bean。
+	
+		dao的设计
+			dao基类的设计：使用通用baseDao<T>设计基类，将常用方法封装，后续子dao继承。
+			
+		缓存命中率=从缓存中读取的次数/总读取次数
+		
+		java对象的缓存和序列化是息息相关的，一般情况下，需要被缓存的实体类需要实现seralizable，这样jvm才可以对其对象进行序列化。
+		
+		job中有内存化任务（默认策略） 和 持久化任务
+		
+		spring中使用quartz, jobDetail  trigger   scheduler,schedulerFactoryBean允许用户将quartz配置文件中的信息转义到spring配置文件中
+		
+		spring api 中  requestContextHolder能在controller中获取request 和 session，但是需在web.xml中配置requestcontextlistener
+		
+		xml 和java对象关系比较近的是xstream, 是java 对象和xml之间的一个双向转换器。
+		xstream可以 别整dom xpath（复杂的xml处理模型） 啥了   费劲
+		
+		xml 和 json都是数据交换的一种规范。但是在web service中 xml用的比较多
+		
+		
+			
+		
 	
