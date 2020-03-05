@@ -236,32 +236,6 @@
 			
 		linux上的tomcat启动使用的是sit_yunwei的权限操作的，那么运行的java代码也只有运维的权限，不能在/usr/local下创建目录
 
-
-7、elipse中的常用快捷键
-		ctrl + k 和 ctrl + shift+k 快速定位
-		eclipse-project-build automatically 改代码后自动的编译运行
-		alt+↑  代码上移
-		alt+ shift+o 显示 选中的属性 高亮
-		
-		hierarchical项目分层管理，常用的操作
-		projects presentation：工程查看
-		top level elements：工程或者目录
-		package presentation：包查看
-		
-		右击class中的类名获取包名,右击文件是获取/路径的
-
-		jar包中的class中文乱码   修改workspace下的编码utf-8 和 content tyes下的text 为uf8，重开工程即可
-		
-		默认使用的target下的classpath和容器中的web-inf下的class一样的，暂不深究
-		deployment assembly 容器中指定的默认的classpath	
-		java build path java的编译路径指定classpath
-
-		
-		cmd中的常用命令
-			netstat -ano|findstr "8080"  查找系统当前端口号占用情况		a表示显示所用的连接    n表示显示出ip地址和端口号  不加n，显示是计算机的netbios名称和端口号
-			查看当前目录， dir
-			cmd输入cls清屏
-
 8、相关知识整理				
 		创建一个public static final 类型的map 并初始化赋初值 ，一个类中可以有多个静态代码块  
 		静态常量
