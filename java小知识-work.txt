@@ -1017,5 +1017,26 @@
 		a调用了b的方法，b开始执行，b执行完了，再调用a的方法，这就是回调。
 
 
+37.多个微服务的dubbo的架构问题， 可以同时为提供者和消费者	
+	不使用事务就是直接提交 没法控制
+	
+	信息的加密
+		可分为对称加密：	加密后的信息可以解密成原值	des(适用数据库密码的加密)
+		非对称加密：		无法解密还原为原值			比如 md5
+
 		
-		
+38.浏览器敲get  对应的sessionid放哪里了
+	第一次访问服务器，浏览器会带回一个sessionid，
+	并set-cookie操作：Set-Cookie: SESSION=7004b0d6-dfb0-4756-898e-60379fb8b884; Domain=xiaoyuer.com; Path=/; HttpOnly
+	当再次访问会将sessionid待入服务器，Cookie: SESSION=7004b0d6-dfb0-4756-898e-60379fb8b884; UM_distinctid=170a97fef53902-05e6115cbcea8b-4446062d-1fa400-170a97fef54e3; CNZZDATA1255347938=2105466369-1583388160-%7C1583388160
+
+	查询  map 和list<map>  一行就是一条记录，对应的是一个resultType，如果类型是map，多条记录就是list<map>
+	
+	
+39.做一个回退的merge测试，目前回退  更新   pick
+	1.A->B  同源
+	2.A回退，改动提交
+	3.B cherry pick A,这时会有冲突，因为改动已经不是基于B一开始的源头了,B的源头已经改变了。
+
+	同源测试更新是可以的，同源就是在原文件上，没有改动，单一改动，merge过来。
+

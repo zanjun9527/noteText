@@ -79,6 +79,8 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 16¡¢ËäÈ»bootÌá³«ÁãÅäÖÃ£¬µ«ÊÇÄ³Çé¿öÏÂĞèÒªÊ¹ÓÃµ½xmlÎÄ¼ş£¬@ImportResource({"classpath:spring-dubbo.xml"£¬"classpath:spring.xml"})
 
 17¡¢	bootÖĞÒ²¿ÉÒÔÊ¹ÓÃ@configurationproperties£¬Ö¸¶¨Ç°×ºprefix£¨±ØĞëÖ¸¶¨µ½¸ù½Úµã,server.tomcat.uriEncoding,Ç°½ÚµãÊµ¼ÊÊÇ¾²Ì¬µÄÄÚ²¿Àà£©ºÍlocation£¨1.4°æ±¾ºóÈ¡ÏûÁË£¬Ä¬ÈÏÔ­Ê¼µÄapplications£©£¬½«ÊôĞÔÎÄ¼şºÍbeanµÄÊôĞÔ¹ØÁªÆğÀ´£¬ÔÚ½«¸Ã¶ÔÏó×¢ÈëÈİÆ÷Ê¹ÓÃ¼´¿É£¬±ÜÃâ@value¶à´Î£¬µ«Ä¿Ç°¿´²»ÔõÃ´ÊµÓÃ
+	@EnableConfigurationProperties ÔÚÃ»ÓĞÊ¹ÓÃ@ComponentµÈ×¢½âÊ±Ê¹ÓÃ@ConfigurationProperties,ÕâÊ±ĞèÒª¿ªÆôÅäÖÃ
+
 
 18¡¢	bootµÄ¶à»·¾³	application-dev.properties   ÔÚapplication.propertiesÖĞÖ¸¶¨spring.profile.active=dev¾ßÌåµÄÊôĞÔÎÄ¼ş
 
@@ -299,3 +301,27 @@ ideaÎÄ¼şÂÒÂë£¬ÏÈÇĞ»»µ½¶ÔÓ¦µÄ±àÂë£¬ÔÙconvert(Ó¦¸ÃÊÇ¶ÁÈ¡ÎÄ¼şÄÚÈİ£¬²¢ÒÔIDE±¾ÉíÖ¸¶¨µ
 
 ¿ªÆôjob£¬Æô¶¯Àà@EnableScheduling£¬ service·½·¨ÉÏ@Scheduled(cron="*/6 * * * * ?")  ºÜ·½±ã
 
+
+
+spring-boot ÈÈ¼ÓÔØ
+
+ÈÈ²¿Êğ£º¶¯Ì¬Ìæ»»ÄãĞŞ¸ÄµÄclass£¬Ğ§ÂÊ»á¸ü¸ß¡£
+ÈÈÆô¶¯£ºĞŞ¸Ä´úÂë±£´æÊ±»á×Ô¶¯ÖØĞÂÆô¶¯ÏîÄ¿
+
+ÈÈ²¿Êğ
+Ê¹ÓÃ Spring Loaded
+µ±ÏµÍ³Í¨¹ı mvn spring-boot:runÆô¶¯»òÕß ÓÒ¼üapplication debug Æô¶¯
+£¨ÏµÍ³¼àÊÓclassesÎÄ¼ş£¬µ±ÓĞclassesÎÄ¼ş±»¸Ä¶¯Ê±£¬ÏµÍ³»áÖØĞÂ¼ÓÔØÀàÎÄ¼ş£¬²»ÓÃÖØÆôÆô¶¯·şÎñ£©
+Ê¹ÓÃ spring-boot-devtools
+
+
+Spring bootÏîÄ¿Í¨³£Çé¿öÏÂÓĞÈçÏÂ¼¸ÖÖÆô¶¯·½Ê½£ºÍ³Ò»µÄÈë¿Ú¾ÍÊÇÆô¶¯Àà
+	Í¨¹ıÖ÷ÀàÆô¶¯¡£
+	Í¨¹ıspring-bootµÄmaven²å¼şspring-boot-maven-plugin·½Ê½Æô¶¯¡£   		spring-boot:run
+	Í¨¹ı¿ÉÖ´ĞĞjar/war°ü·½Ê½Æô¶¯¡£						jarÆô¶¯				
+	Í¨¹ıServletÈİÆ÷Æô¶¯£¬ÈçTomcat¡¢JettyµÈ¡£
+
+
+jasypt¼ÓÃÜÓÃ
+@Scheduled  Ã»ÓĞ³Ö¾Ã»¯¹¦ÄÜ 
+@Async¾ÍÊÇÊµÏÖÁËÒì²½¿ªÏß³ÌÖ´ĞĞ

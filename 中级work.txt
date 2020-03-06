@@ -1665,8 +1665,6 @@ spring实战			296
 内容还可以，可以多读几遍
 quartz不是很透，简单了解了下。
 
-
-
 	spring 主要分为5个模块：
 		1.IOC	依赖注入
 			BeanFactory接口是spring框架的核心，实现了容器许多核心的功能
@@ -1917,6 +1915,16 @@ quartz不是很透，简单了解了下。
 		xml 和 json都是数据交换的一种规范。但是在web service中 xml用的比较多
 		
 		
+-- 临时记录		
+	编程式手工回滚  TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+	从上面可以看出主要检查一下几个属性，是否都有：
+		transactionAttributeSource 事物属性源，我们所有的method对应的事物配置都在这里
+		transactionManager 我们执行的方法要使用的transactionManager
+		beanFactory 从spring中找到配置
+		如果这些都有值的话，那么就完成了我们的这个类基本功能的所有属性要求，就可以使用TransactionAspectSupport(手工回滚)。
+		这里暂定是需要加上事务注解支持的，不然缺少transactionAttributeSource。
+
+	
 			
 		
 	
