@@ -85,3 +85,10 @@ https://how2j.cn/k/springcloud/springcloud-intro/2035.html   springcloud教程
 java 基础知识点  http://tieba.baidu.com/p/5878742312
 
 建站 		 http://ajz.xhgmy.com/pro8.html
+
+
+
+https://www.sohu.com/a/277162682_463994  tcc事务介绍
+
+
+https://swenfang.github.io/2018/06/03/Maven-Priority/  maven的介绍，挺详细的

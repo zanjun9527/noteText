@@ -1040,3 +1040,47 @@
 
 	同源测试更新是可以的，同源就是在原文件上，没有改动，单一改动，merge过来。
 
+	
+40.spring的启动后创建自动代理类，
+	aspectj支持编译期织入且不需生成代理类。spring 集成了aspectj,但其不属于spring aop的范围。
+	实现了pojo级别的代理实现
+	aspectj中  切点直接声明在增强方法出，叫做匿名切点。想要复用就使用@Pointcut命名一个(目前系统再用的方式)。
+
+
+	aop和aspectj是建立在动态代理的基础上实现的
+	aop:advisor 与 aop:aspect都可以配置aop
+	advisor只持有一个Pointcut和一个advice，而aspect可以多个pointcut和多个advice
+	
+	mybatis构造方法必须要有无参的构造方法
+	
+41.查看进程 和端口号    kill进程
+	ps -ef | grep java	ps 静态的进程统计信息    e：所有   f:完整格式显示   grep  搜索
+	netstat -ano | findstr "8080"
+	kill -9  pid
+	
+42.针对post url中需要转义的， 转义param中的value即可，对整个param转义 会将&也转义了，这样request接收到的只有作为整个key="",
+
+43.jar包中日志logger需要和项目中的log.xml匹配，统一logback，不然没有日志	
+	每次重启solr后，admin控制台的日志会清除
+	
+	
+44.maven配置
+	远程仓库：中央仓库+私服+其他公共库，maven使用的默认是中央仓库，私服和阿里云镜像可以同时使用
+	依赖的优先级：本地仓库 > 私服（profile）> 远程仓库（repository）。全局和pom中的优先，局部配置优先于全局配置
+
+	mirror：拥有远程仓库的所有 jar，包括远程仓库没有的 jar，定义了两个Repository之间的镜像关系（大部分jar包都可以在阿里镜像中找到，部分jar包在阿里镜像中没有，需要单独配置镜像）
+	配置多个mirror，默认只有第一生效（只有当第一个无法连接的时候才会接着往下匹配，但是注意第一个中a.jar没有是不会接着往下面的mirror中找的），可以都放着不影响，择优第一个就行。
+	mirror相当于一个拦截器，将远程库的地址重定向到mirror里配置的地址。每个仓库只能使用一个镜像。
+	mirrorOf配置了*，相当于代理所有的远程仓库，就只能去该镜像中下载，其他配置的多个库就失效了（因为拦截机制）。可以用来私服下载特定的jar
+
+	全局多仓库设置，是通过修改maven的setting文件实现的。可以将常用的公共库，私服库配置进去。不建议在项目pom配置
+	  在setting文件中添加多个profile（也可以在一个profile中包含很多个仓库），并激活（即使是只有一个可用的profile，也需要激活）。
+		<activeProfiles>
+		<activeProfile>myRepository1</activeProfile>
+		<activeProfile>myRepository2</activeProfile>
+	  </activeProfiles>
+
+	setting.xml中的<server>，是pom中<distributionManagement>上传的认证配置，server元素的id必须与pom.xml中需要认证的repository元素的id完全一致。正是这个id将认证信息与仓库配置联系在了一起。
+	配置多个远程仓库时，如果在一个远程找不到，依次从下一个仓库里找，在activeProfiles设置启用的仓库。默认会有一个ID是central的官方远程仓库。
+		
+	
