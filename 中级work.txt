@@ -1925,6 +1925,52 @@ quartz不是很透，简单了解了下。
 		这里暂定是需要加上事务注解支持的，不然缺少transactionAttributeSource。
 
 	
-			
+springsession
+	cookie中的sessionid是真正维系客户端和服务端的桥梁
+	session是存在服务器端的，那么以前是tomcat内存中，现在放在redis中
+	chrome 插件 Edit this Cookie，将 chrome 浏览器中的 JSESSIONID 修改为 360 ，浏览器的cookie是可以编辑的
+	使用redis替换应用容器（tomcat的额session容器）
+	原先的tomcat管理内存，Cookie 中记录的 Key 值是 JSESSIONID，而替换成 RedisHttpSession 之后变成了 SESSION。
+	spring session 中 每次request请求都会刷新Session，重置原先的过期时间
+
+
+	1.配置redis连接工厂(factory:poolconfig)
+	2.RedisHttpSessionConfiguration
+	3.springSessionRepositoryFilter
+		spring:session 是默认的 Redis HttpSession 前缀(redis中，常用 ‘:’ 分割),
+		Spring Session 之所以能够替换默认的 tomcat httpSession  因为配置了springSessionRepositoryFilter
+  
+		--结构
+			3(A).spring:session::sessions:77112-sdd12-....					对应的是 hash 数据结构			默认35分钟
+			2(B).spring:session:expiretions:123123123						set 结构(存储系列1类型键)		默认30分钟			存放着这一分钟(当前时间+过期时间)应当过期的 session 的 key。
+			1(C).spring:session:sessions:expires:77112-sdd12-....			对应一个空值,String				默认30分钟			手动改redis无效，有自己的预先缓存机制吧。
+  
+			每一个 session 都会有三个相关的 key	，第三个 key 最为重要，它是一个 HASH 数据结构，将内存中的 session 信息序列化到了 redis 中,形如sessionAttr:browser=chrome
+			另外两个过期时间，因为redis 清除过期 key 的行为是一个异步行为且是一个低优先级的行为，用文档中的原话来说便是，可能会导致 session 不被清除。于是引入了专门的 expiresKey，来专门负责 session 的清除，包括我们自己在使用 redis 时也需要关注这一点
+  
+			C 类型键存在的意义便是解耦 session 的存储和 session 的过期，并且使得 server 获取到过期通知后可以访问到 session 真实的值。
+			对于用户来说，C 类型键过期后，意味着登录失效，而对于服务端而言，真正的过期其实是 A 类型键过期，这中间会有 5 分钟的误差。
 		
-	
+			cookieSerializer 可以配置cookie相关，包括setCookieName("JSESSIONID") 还原sessionid的name.
+			 
+			redis的key过期具有一定延迟性：
+			1.redis 在键实际过期之后不一定会被删除，可能会继续存留，但具体存留的时间我没有做过研究，可能是 1~2 分钟，可能会更久。
+			2.具有过期时间的 key 有两种方式来保证过期，一是这个键在过期的时候被访问了，二是后台运行一个定时任务自己删除过期的 key。划重点： 这启发我们在 key 到期后只需要访问一下 key 就可以确保 redis 删除该过期键
+			3.如果没有指令持续关注 key，并且 redis 中存在许多与 TTL 关联的 key，则 key 真正被删除的时间将会有显著的延迟！显著的延迟！显著的延迟！
+			  
+			每次 session 的续签，需要将旧桶中的数据移除，放到新桶中。验证这一点很容易。
+			this.redis.hasKey(key)可以触发将 redis过期键删除
+	  
+			Session的一致性问题，在昨天的课堂中讲解了四种方法，
+			(1)基于IP机制的负载均衡，各自维护自己的session.
+			(2)服务器session复制，可以通过Tomact配置集群的方式配置同步session。
+			(3)Session 统一缓存，这个就是spring seesion解决方案。
+			(4)客户端缓存，也就是token机制关于APP token验证的疑问?。
+  
+			maxInactiveIntervalInSeconds(session中的数据的过期时间(不是session在redis中的过期时间))     配置有时无效
+			
+			springboot中开启			
+				spring.session.store-type=redis		//第一种方式：修改application.properties，添加
+				@EnableRedisHttpSession				//第二种方式：启用注解
+			  	
+		

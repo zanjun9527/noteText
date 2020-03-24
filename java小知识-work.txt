@@ -1059,12 +1059,16 @@
 	kill -9  pid
 	
 42.针对post url中需要转义的， 转义param中的value即可，对整个param转义 会将&也转义了，这样request接收到的只有作为整个key="",
+	method=”post”:这是传递大量数据时用的，传递之前会先将数据打包，数据能正确解析，传中文不会有乱码。 
+	method=”get”：以URL传递的，地址栏长度有限，对数据量是有限制的，因此，传中文会有乱码，需特殊处理。
 
 43.jar包中日志logger需要和项目中的log.xml匹配，统一logback，不然没有日志	
 	每次重启solr后，admin控制台的日志会清除
 	
 	
 44.maven配置
+
+	实际使用的时候，一般配置一个私有库，然后用阿里云镜像代理中央库
 	远程仓库：中央仓库+私服+其他公共库，maven使用的默认是中央仓库，私服和阿里云镜像可以同时使用
 	依赖的优先级：本地仓库 > 私服（profile）> 远程仓库（repository）。全局和pom中的优先，局部配置优先于全局配置
 
@@ -1083,4 +1087,88 @@
 	setting.xml中的<server>，是pom中<distributionManagement>上传的认证配置，server元素的id必须与pom.xml中需要认证的repository元素的id完全一致。正是这个id将认证信息与仓库配置联系在了一起。
 	配置多个远程仓库时，如果在一个远程找不到，依次从下一个仓库里找，在activeProfiles设置启用的仓库。默认会有一个ID是central的官方远程仓库。
 		
+45.cmd 不识别mysql命令的时候，需要在环境变量中的path中添加mysql对应的bin目录
+
+46.fork：在github页面，点击fork按钮，将别人的仓库复制一份到自己的仓库。
+	clone：直接将github中的仓库克隆到自己本地电脑中						clone别人是无法改动提交的，因为没有权限
+	pull request的作用
+	在A的仓库中fork项目B （此时我们自己的github就有一个一模一样的仓库B，但是URL不同）将我们修改的代码push到自己github中的仓库B中pull request ，源头url仓库就会收到请求，并决定要不要接受你的代码
+		
 	
+47.js中的多个ajax异步请求的执行时并行，不会等待操作。执行的快与慢，要看响应的数据量的大小及后台逻辑的复杂程度。
+	cookie.setMaxAge();pc中设置的是-1。默认值是-1，表示关闭浏览器，cookie就会消失。如果是正数，表示从现在开始，即将过期的seconds。
+	
+	Cookie newCookie=new Cookie("SESSION",null); 
+	newCookie.setMaxAge(0);    
+	ids页面刷新sessionid，当前request带进的session，response时候删除对应session，那么这过程中的设值无效
+		
+	就是不同的domain域对应不同的cookie，比如http 和https,重定向和浏览器直接敲，会把相应的sessionid带到后台，这样是共用一个sessionid
+	但是http后台请求每次都会产生一个新的sessionid
+		
+		
+		
+	
+48.	<filter-name>userInfoFilter</filter-name>  这个对应的是spring中的bean
+	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	是对一个filter的代理，通过Spring容器来管理servlet filter的生命周期。为什么不用原始的filter？
+	***是因为filter的类里面使用了Spring的注解，所以也必须也使用Spring的DelegatingFilterProxy
+	
+48.*拦截器和servlet
+	Filter -> Servlet -> Interceptor
+	过滤前-拦截前-action执行-拦截后-过滤后
+
+	filter是Servlet规定规范规定的(针对URL地址)，只能用于web程序中，
+	过滤器的运行是依赖于servlet容器，拦截器是依赖Spring框架(针对action,可使用Spring的依赖注入,无法处理静态资源)
+
+	任何Spring Web的entry point，都是servlet(用于处理请求(service方法),请求给与响应)。Springmvc的核心是一个DispatcherServlet
+	filter 是预处理，与Servlet的区别在于：它不能直接向用户生成响应
+	spring mvc 是对于Servlet的再包装，单纯的使用Servlet，你需要考虑线程安全
+
+	拦截器可以获取IOC容器中的各个bean，而过滤器就不行，这点很重要，这个情况就需要使用filter代理	
+	
+	
+49.可以直接使用redisTemplate，也可以bean中创建一个jedispool操作。pc中是重复了一个redis操作
+	
+50.RedirectView     都可以重定向
+	return  new ModelAndView("redirect:/my_requires.htm");
+	
+	
+51.这种注解其实没有必要，分层太细了
+	@Repository
+	public class ShopRepository {
+		@Autowired
+		ShopDao shopDao;
+		public Shop findById(long id) {
+			return shopDao.findById(id);
+		}
+	}
+
+	
+52.一个dubbo的服务启动需要一个端口，同一台机器上
+dubbo.port=2881
+
+53.我们看到InnoDB默认的行锁可以使得操作不同行时不会产生相互影响、不会阻塞，从而很好的解决了多事务和并发的问题。但是，那得基于一个前提，即 Where 条件中使用上了索引；反之，如果没有使用上索引，则是全表扫描、全部阻塞
+
+54.
+	boot中使用jsp
+	https://www.cnblogs.com/zs-notes/p/9365705.html
+	需要这三个依赖，更重要的是必须将创建webapp目录，下面创建WEB-INF,然后放文件进去使用，还是使用老板的webapp结构
+	若不借助任何模板引擎的话，JSP页面放在resources目录下（包括缺省的几个子目录）是访问不到的！
+	<artifactId>javax.servlet-api</artifactId>    
+	<artifactId>jstl</artifactId>
+	<artifactId>tomcat-embed-jasper</artifactId>***
+	
+	
+	jsp视图文件应该放在webapps下，使用模板引擎，js、图片等静态资源文件才是放resources
+	1.想放到resource下必须使用模板引擎，	
+	1.直接放在webapp下，以前的使用方法
+	2.可以借助模板引擎，或者META-INF实现，路子比较野，不常用
+
+	
+
+
+
+
+
+
+

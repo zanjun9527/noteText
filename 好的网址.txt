@@ -92,3 +92,9 @@ https://www.sohu.com/a/277162682_463994  tcc事务介绍
 
 
 https://swenfang.github.io/2018/06/03/Maven-Priority/  maven的介绍，挺详细的
+
+
+https://www.cnkirito.moe/  技术博客
+
+https://blog.csdn.net/qq_42046105/article/details/90627176  	手写分布式事务
+

@@ -110,6 +110,9 @@ git£¬mavenÏà¹Ø
 		¿ÉÒÔ²é¿´Ä³¸ö¸Ä¶¯µÄ·ÖÖ§ºÅ£¬revision number £¬ÓÒ±ßÊÇµ±Ç°£¬×ó±ßÊÇÖ®Ç°µÄ°æ±¾
 
 
+	ideaÔÚ´ò°üµÄÊ±ºò£¬Ê¹ÓÃmavenÖĞµÄlifecycleÖĞµÄinstall,²»ÒªÓÃpluginÏÂµÄ
+
+
 ´úÂëÏà¹Ø
 	µã»÷½øÈë½Ó¿ÚµÄÊµÏÖÀà£¬Ñ¡ÖĞ·½·¨ÓÒ»÷goto£¬²é¿´ÊµÏÖÀàµÄ·½·¨
 	Ê¹ÓÃeclipseÄ£Ê½   Ê¹ÓÃctrl+alt+shift+j  ËõĞ´ÌáÊ¾ ÉèÖÃÍê±³¾°É«Ò²²î²»¶à 
@@ -176,6 +179,27 @@ idea ÖĞjdkµÄ±àÒë°æ±¾£¬³ıÁËÔÚÏîÄ¿µÄÊôĞÔÖĞ£¬»¹ÓĞÔÚÉèÖÃÖĞµÄjava compile ÖĞÒ²Òª×¢ÒâÏ
 Default changelist  ÀàËÆeclipseÖĞµÄ¶îignoreÎÊÌâ
 
 
+tomcat
+	ideaÖĞ¿ÉÒÔÅäÖÃ¶à¸ö²»Í¬µÄtomcatÅÜÆğÀ´£¬µ«ÅäÖÃ²»ÄÜÒ»Ñù£¬ĞèÒªÌí¼ÓÈı¸ötomcat
+	war(exploded):ÈÈ²¿ÊğÄ£Ê½	·¢²¼µ½IDEA µÄ¹¤×÷¿Õ¼ä£¬target µÄÄ¿Â¼ÏÂ£¬Ö§³ÖÈÈ²¿Êğ£¨Ñ§Ï°Ê±ÓÃ£©
+	war   : ·¢²¼Ä£Ê½  			´ò³Éwar°ü£¬·¢²¼µ½tomcat·şÎñÆ÷£¬²»Ö§³ÖÈÈ²¿Êğ£¨ÕæÕı·¢²¼Ê±ÓÃ£©
+	ÏîÄ¿µÄÎ»ÖÃ£¬ÆäÊµ¾ÍÊÇÕâ¸öÏîÄ¿targetµÄÎ»ÖÃ(ÓÉoutput directory¾ö¶¨)
+
+	Õû¸öÏîÄ¿ÔËĞĞ¹ı³ÌÎª£ºÊ×ÏÈmaven buildÏîÄ¿£¬½«¹¹½¨½á¹ûĞ´µ½ÏîÄ¿µÄtargetÄ¿Â¼ÏÂ£¬È»ºóidea¸´ÖÆÒ»·İtomcatµÄÅäÖÃÎÄ¼şµ½${user.home}/.IntelliJIdea/system/tomcatÖĞ£¬
+	Ö®ºóÆô¶¯tomcat°²×°Ä¿Â¼ÏÂµÄcatalina.batÎÄ¼ş£¬tomcat¶ÁÈ¡ÅäÖÃÎÄ¼ş£¬ÕÒµ½ÏîÄ¿Î»ÖÃ£¬È»ºó¾ÍÔËĞĞÆğÀ´ÁË¡£
+
+
+
+  	idea ÖĞµÄÓÒÉÏ½Çedit configuration ÖĞ running application update policies ÉèÖÃÈÈ²¿Êğ   Õâ¸öÊµÏÖÁËjava¼´Ê±±àÒë(ÕâÊÇµ¥¶ÀµÄÈİÆ÷µÄÉèÖÃ)
+  	ÏÂÃæÊµÏÖÁËjsp±àÒëÎÊÌâ£¬ÕâÊÇÏµÍ³µÄÉèÖÃ£¬
+  	1£© ¡°File¡± -> ¡°Settings¡± -> ¡°Build,Execution,Deplyment¡± -> ¡°Compiler¡±£¬Ñ¡ÖĞ´ò¹´ ¡°Build project automatically¡± ¡£
+¡¡	2£© ×éºÏ¼ü£º¡°Shift+Ctrl+Alt+/¡± £¬Ñ¡Ôñ ¡°Registry¡± £¬Ñ¡ÖĞ´ò¹´ ¡°compiler.automake.allow.when.app.running¡± 
+
+
+
+ideaÖĞevent_logÔÚ´íÎóÊ±ºòÒ²ÓĞÌáÊ¾
+
+
 =========================================================================================================================
 eclipse
 	java -editor-content assist-advanced  java proposals  alt+/¶à´ÎÇĞ»»
@@ -208,6 +232,7 @@ cmdÖĞµÄ³£ÓÃÃüÁî
 	netstat -ano|findstr "8080"  ²éÕÒÏµÍ³µ±Ç°¶Ë¿ÚºÅÕ¼ÓÃÇé¿ö		a±íÊ¾ÏÔÊ¾ËùÓÃµÄÁ¬½Ó    n±íÊ¾ÏÔÊ¾³öipµØÖ·ºÍ¶Ë¿ÚºÅ  ²»¼Ón£¬ÏÔÊ¾ÊÇ¼ÆËã»úµÄnetbiosÃû³ÆºÍ¶Ë¿ÚºÅ
 	²é¿´µ±Ç°Ä¿Â¼£¬ dir
 	cmdÊäÈëclsÇåÆÁ
+
 
 
 
