@@ -1461,7 +1461,14 @@ docker:《第一本docker书》 大概浏览一遍就行，先简单用用
 		相应的springSessionRepositoryFilter需要放在filter最前面
 		jedisPoolConfig、connectionFactory、过期时间，springSessionRepositoryFilter,组装redisTemplate
 		
-		
+		**********
+			对于后端的请求创建了无效的session，可以在filter的FilterChain.doFilter之后删除session
+			arg2.doFilter(request, response);
+			if(request.getRequestURL().toString().contains("systemGateWay.htm")){
+				request.getSession().invalidate();
+			}
+		**********
+
 job调用多个soa服务，多个微服务，只有服务端才需要暴露相应的dubbo端口，客户端只要填写zookeeper地址即可，统一在注册中心找服务
 
 
@@ -1575,6 +1582,7 @@ netty内容：
 			将对象创建的方法封装起来
 		没有细细研究
 		
+	
 	
 	
 	
@@ -1932,7 +1940,45 @@ springsession
 	使用redis替换应用容器（tomcat的额session容器）
 	原先的tomcat管理内存，Cookie 中记录的 Key 值是 JSESSIONID，而替换成 RedisHttpSession 之后变成了 SESSION。
 	spring session 中 每次request请求都会刷新Session，重置原先的过期时间
+	
+	
+	默认设置是session 和 domain当前域名 www.yu.com.
+	如果不设置domain(默认是当前域名)，那么访问其他站，cookie中就会出现两个session，但是domain不一样，一个是www.yu.com 一个是yu.com
+	也可以通过namesapce  区别不同登录系统的账户
+	
+	boot1.5.3启动没问题
+	Spring Boot2搭建，其中Redis的支持不仅仅是丰富了它的API，更是替换掉底层Jedis的依赖，取而代之换成了Lettuce(生菜)
 
+	spring2.0 整合spring session  先检查boot自带的相关依赖，然后移除spring-session的旧版本jar的依赖：
+		spring5（springboot2.x）只支持spring-session-core了。
+		最高版本的spring-session:1.3.5已经不再更新，而且支持到spring-session-data-redis:1.8。
+		官方文档上写了，spring-session-data-redis2.x后只能搭配spring-session-core2.x，
+		
+	
+
+	***************这个要设置，否则可能跨站sessionid会有问题，写的时候进行base64编码，读的时候进行base64解码
+		cookieSerializer.setUseBase64Encoding(false)
+		
+		
+		
+	实际配置
+	@Bean
+    public HttpSessionIdResolver httpSessionIdResolver() {
+        CookieHttpSessionIdResolver cookieHttpSessionIdResolver = new CookieHttpSessionIdResolver();
+        DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
+//	        cookieSerializer.setCookieName(redisProperty.getCookieName());//cookies名称 默认是session
+        cookieSerializer.setUseBase64Encoding(false);//这个要关闭，否则sessionid会在浏览器编码显示，导致跨手机 和pc的sessionid变化
+        cookieSerializer.setDomainName(domainName);
+        cookieSerializer.setCookiePath("/");
+        cookieHttpSessionIdResolver.setCookieSerializer(cookieSerializer);
+        return cookieHttpSessionIdResolver;
+    }
+		
+		
+		
+		
+		
+	***************
 
 	1.配置redis连接工厂(factory:poolconfig)
 	2.RedisHttpSessionConfiguration
@@ -1950,6 +1996,56 @@ springsession
   
 			C 类型键存在的意义便是解耦 session 的存储和 session 的过期，并且使得 server 获取到过期通知后可以访问到 session 真实的值。
 			对于用户来说，C 类型键过期后，意味着登录失效，而对于服务端而言，真正的过期其实是 A 类型键过期，这中间会有 5 分钟的误差。
+		
+		A.存储Session的详细信息，包括Session的过期时间间隔、最近的访问时间、attributes等等。这个k的过期时间为Session的最大过期时间 + 5分钟。如果默认的最大过期时间为30分钟，则这个k的过期时间为35分钟
+		B.存储这个Session的id，是一个Set类型的Redis数据结构。这个k中的最后的1439245080000值是一个时间戳，根据这个Session过期时刻滚动至下一分钟而计算得出。
+		C.表示Session在Redis中的过期，这个k-v不存储任何有用数据，只是表示Session过期而设置。这个k在Redis中的过期时间即为Session的过期时间间隔
+		
+		request.getSession().invalidate(),会将c类型的立刻删除，然后B类型的还会多保留5分钟在服务器上。
+		在调用request.getSession().invalidate()会销毁当前的session，后续再调用request.getSession()会重新创建一个session
+		
+		*****对于多余的无用sessioin，一般在filter中的chain.dofilter之后清除当前无用的session*****
+		
+		request.getSession().invalidate();  会删除当前的session， 对应springsession中是spring:session:sessions:expires:77112-sdd12-....  这种类型的过期，但是主sessionid还在服务端存放一定时间
+		request.getSession().invalidate()   可以测试ok  会保留5分钟的时间后自动删除
+		
+		boot使用的就是本身的SessionRepositoryFilter，自动配置了spring-session，一般不建议改动默认配置
+		
+		
+		我们只需要告诉spring开启redis方式的session存储即可，这里有两种方式可以实现
+		方式1、在配置文件中添加一行配置
+		spring.session.store-type=redis
+
+		方式2、在程序启动类上添加注解
+		@EnableRedisHttpSession
+		
+		
+		
+		
+		
+		boot中是自动高配置的
+		@Configuration
+		@ConditionalOnBean(SessionRepositoryFilter.class)
+		@EnableConfigurationProperties(SessionProperties.class)
+		class SessionRepositoryFilterConfiguration {
+
+			@Bean
+			public FilterRegistrationBean<SessionRepositoryFilter<?>> sessionRepositoryFilterRegistration(
+					SessionProperties sessionProperties, SessionRepositoryFilter<?> filter) {
+				FilterRegistrationBean<SessionRepositoryFilter<?>> registration = new FilterRegistrationBean<>(
+						filter);
+				registration.setDispatcherTypes(getDispatcherTypes(sessionProperties));
+				registration.setOrder(sessionProperties.getServlet().getFilterOrder());
+				return registration;
+			}
+				
+		
+		
+		后台提供了定时任务去“删除”过期的 key，来补偿 redis 到期未删除的 key。方案再描述下，方便大家理解：取得当前时间的时间戳作为 key，
+		去 redis 中定位到 spring:session:expirations:{当前时间戳} ，这个 set 里面存放的便是所有过期的 key 了。
+		
+			spring-session中有个定时任务，每个整分钟都会查询相应的spring:session:expirations:整分钟的时间戳中的过期SessionId，然后再访问一次这个SessionId，
+			即spring:session:sessions:expires:SessionId，以便能够让Redis及时的产生key过期事件——即Session过期事件。
 		
 			cookieSerializer 可以配置cookie相关，包括setCookieName("JSESSIONID") 还原sessionid的name.
 			 
@@ -1974,3 +2070,113 @@ springsession
 				@EnableRedisHttpSession				//第二种方式：启用注解
 			  	
 		
+		
+		配置多个dispatcherservlet
+			DispatcherServlet之间的上下文是分离的，势必会出现多个dataSource的情况，
+			由contextConfigLocation统一制定上下问，即可共享
+			原先的hessian是自己的dispatcherservlet 加载自己的 beancontext
+			 
+			后续应该可以设定自己的context
+
+			在Spring MVC中，每个DispatcherServlet拥有其独立的WebApplicationContext，继承了root/global WebApplicationContext中所定义的所有的bean。这些继承的bean可以在DispatcherServlet中被重写；DispatcherServlet也可以定义自己特有的benas。
+
+			可以在web.xml中为DispatcherServlet指定一个对应的配置文件，当然也可以选择不指定，那么Servlet的WebApplicationContext将没有特定的benas。
+			
+			WebApplicationContext被包含到ServletContext中；
+			使用RequestContextUtils中的方法获得DispatcherServlet特定的WebApplicationContext；
+			使用WebApplicationContextUtils中的方法获得root WebApplicationContext for this application；
+			
+			
+			
+			
+			
+*****tcc-transaction*****
+	TCC解决分布式事物的思路是，一个大事务拆解成多个小事务。
+	https://my.oschina.net/sword4j?tab=newest&catalogId=5734750		整体详细的文档
+
+	Try 阶段 创建root事务，添加参与者	
+	全部try完再决定是confirm还是cancel
+
+	1  TCC的主要优点有
+	因为Try阶段检查并预留了资源，所以confirm阶段一般都可以执行成功。（why不直接将三个事务放一起,还要分两阶段，资源不预留，等着冲突?）
+	资源锁定都是在业务代码中完成，不会block住DB，可以做到对db性能无影响。
+	2.TCC的实时性较高，所有的DB写操作都集中在confirm中，写操作的结果实时返回（失败,因定时job，略有延迟）
+		
+		根事务(root)----对应-----分支事务(branch)	
+		
+		all branch 事务成功，则修改all branch事务状态为confirm，并执行confirm逻辑
+		如果某个分支业务逻辑成功，则删除对应的事务记录；(有一个失败，所有事务状态是cancel，执行cancel逻辑)
+		如果业务逻辑执行成功，则删除对应的事务记录。(all branch ok，执行root 的confirm或者cancel逻辑),执行成功后，然后删除事务记录。
+		
+		每个线程绑定了一个线程变量，存放的是一个事务队列(peek()返回队列的头元素)。
+		
+		*********
+		主try-两次dubbotry(各有两次，一次代理(supports)，一次实际调用)-主confirm-两个dubbo的confirm(各两次，一次代理(supports)，一次实际)
+		拦截两次，第一次的代理拦截是在主线程中添加dubbo的两个confirm动作
+		子事务的执行是在主conmit中调用的，其中有参与者列表participants，这样第二次进拦截器走的是provide操作，就是commit操作
+		
+		transaction的xid通过dubbo隐式传参获取，两次 一次是try阶段  还有一次是confirm阶段
+		
+		
+	主线程会注册一次代理的接口，然后资源拦截器会拦截，添加进参与者（封装的是原接口的方法和参数，添加进当前线程队列，使用的是全局id和分支id），将事务id-上下文注册到缓存中，
+	然后进入远程调用，根据传递过来的txid，将confirm等上下文存入缓存
+
+	在接口上也需要实现Compensable，这样才会代理，但是注册参与者的时候是注册的接口(commit生成实例是通过工厂类绑定的代理类)
+	创建dubbo代理接口的时候，注解中添加了DubboTransactionContextEditor  事务编辑器
+
+
+	**********实现原理**********：
+	所有的create 和update 都会进缓存，绑定对应的事务txid和当前事务
+	两个拦截器；主try包含两个从try，主事务ommit包含三个参与者信息；
+
+	try执行ok，主事务执行confirm(包含了远程两个参与者)（封装的是dubbo 原try方法的调用，但是状态是confirming,会走provider，走confirm）
+
+	dubbo代理接口--->实现类，RpcContext.getContext() 实现隐式传入了2的事务txid，和3共用，然后3中存入缓存的是xid-branch 事务(包含confirm等参与者的信息)， putToCache(transaction)
+
+		1.root进第一拦截器(root事务入库，事务进线程变量),进资源拦截器(创建参与者，branchid自建，将参与者加入根事务，然后更新根事务到数据库，其中事务序列化后存入了content字段)
+		2.dubbo代理接口，进第一拦截器(supports,没有事务上下文，直接放行)，进资源拦截器(创建参与者，branchid自建，使用全局事务id，封装的本身的调用record方法，同上，主要是根事务新增了参与者)
+		3.dubbo代理接口的实现类，进入第一拦截器(带了上下文[是2中dubbo context中存的xid]，进入provider事务，新建了branch事务，入库，事务进线程)
+			进入资源拦截器(创建参与者，branchid自建，使用全局事务id，封装confirm等方法进入上下文，数据库更新branch事务，进缓存[使用的也是2中的xid-事务]，主要是更新参与者)
+		4.root的confirm,正常。dubbo的代理confim进第一拦截(supports放过)，第二拦截(不是trying 放过)
+		5.dubbo  confirm service，进第一拦截器(带上下文,进provider事务，根据txid从缓存中找到步骤3存的调用上下文，实现事务中的参与者反射调用)，进入第二拦截器(不是trying,放过)
+
+	RpcContext.getContext()
+
+		相当于将在调用前将存放的参数封装传到服务端，是跟着这个方法走的，是一次调用适用
+
+		客户端：RpcContext.getContext().setAttachment("sourceid", "15700007");--A
+		???????????? 调dubbo接口：smsService.smsSend();
+		服务端：RpcContext.getContext().getAttachment("sourceid");--B
+		一定要注意，调接口时，必须是A直接到B，如果A没有直接到B，而是先到C，再由C到B，那么在B里getAttachment()，就获取不到值了。
+
+		RpcContext对象是绑定在线程临时变量LOCAL上，所以可以通过线程临时变量来获取到RpcContext的相关参数值
+		在调用提供者之前，在源码“41处”，会获取当前线程临时变量里的RpcContext对象，再将RpcContext对象里的参数设置到Invocation对象，最后调用doInvoke(Invocation invocation)方法，就会发送参数给提供者。
+
+		
+		这里远离是将设置放在了线程变量中然后添加进dubbo的参数中传过去
+		RpcContext.getContext().setAttachment
+			这里会消费端将参数传入dubbo参数中，传给服务端invocation.addAttachmentsIfAbsent(attachment);
+			
+		invocation.getAttachments();
+			这里服务端会从入参中获取加入到RpcContext中，invocation.getAttachments()；RpcContext.getContext().setAttachments(attachments);
+
+		dubbo接口直接从工厂类中获取（使用的还是spring的单例）
+		
+		confirm中 dubbo接口调用，会从容器中拿到代理类代理执行。  静态map后面继续使用
+		
+		
+	创建job也很简单，定义一个启动类，
+	1.初始化的时候  scheduler.scheduleJob(jobDetail.getObject(), cronTrigger.getObject());
+	定义好jobdetail 和触发策略cronTrigger
+	2.启动scheduler.start();
+		public class DefaultRecoverConfig implements RecoverConfig {
+			public static final RecoverConfig INSTANCE = new DefaultRecoverConfig();
+		
+		}
+		recovery job 中
+			就是从数据库中读取事务(封装了事务的上下文)到缓存中，然后重新执行
+			异常出现的时候，有一个confrim异常
+			主order  分支cap 和red
+			在cap的confirm中抛异常，会返回消费者拿到异常，然后直接结束，这样 order和cap是confirming，red是trying
+			事务信息被持久化到外部的存储器中。事务存储是事务恢复的基础。通过读取外部存储器中的异常事务，定时任务会按照一定频率对事务进行重试，直到事务完成或超过最大重试次数。
+			实际分支事务对应的应用服务器也可以重试分支事务，不是必须根事务发起重试，从而一起重试分支事务。			

@@ -79,6 +79,7 @@ idea 安装 破解版：
 	idea 中不能自动编译的问题（实测html）
 	在edit-macros-start macros recording中录制Ctrl + s ，Ctrl +f9的组合键，（Ctrl +f9实时编译）
 	然后在keymap中macros中添加宏add keyboard Shortcut，使用Ctrl + s 即可
+	idea 中更新项目的编译jdk，在java compile中
 	
 	未保存文件提示
 	Settings -> Editor -> General -> Editor Tabs: Check "Mark modified tabs with asterisk"
@@ -200,6 +201,9 @@ tomcat
 idea中event_log在错误时候也有提示
 
 
+jsp 实时编译
+	server.servlet.jsp.init-parameters.development=true   idea  中 jsp实时编译
+
 =========================================================================================================================
 eclipse
 	java -editor-content assist-advanced  java proposals  alt+/多次切换
@@ -235,21 +239,28 @@ cmd中的常用命令
 
 
 
+git 
+	countnot lock local trackin ref  fot update   重启elipse
+
+
+
+package  Presentation     Hierarchical分层
+
+
+folder变package
+将/src/main/resources里的Excluded修改为“”**
+选中Excluded → Edit → Add → 编辑“**”→ OK 
+
+
+eclipse下的resource目录不存在，在java build path中添加即可
+
+
+idea中的 package.package连起来显示问题
+	1.点击com的上一级包（这里就是java包），然后新建包为com.Dao
+	2.在com包下新建一个package-info.java，然后再新建其他的包
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+elcipse下ctrl + shift + t 快捷键，就可以查看其源码文件了。
 

@@ -98,3 +98,7 @@ https://www.cnkirito.moe/  技术博客
 
 https://blog.csdn.net/qq_42046105/article/details/90627176  	手写分布式事务
 
+
+多个dispatcer设置
+https://stackoverflow.com/questions/30670327/spring-boot-with-multiple-dispatcherservlet-each-having-their-own-controllers#
+
