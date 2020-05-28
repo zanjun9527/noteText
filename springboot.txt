@@ -130,6 +130,11 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 	¾²Ì¬×ÊÔ´Ó³Éä£ºÍ¬ÉÏ
 
 24¡¢	mybaisµÄÅäÖÃ»¹ÊÇ½¨ÒéÊ¹ÓÃ´úÂëÅäÖÃ£¬Êı¾İÔ´ jndiºÍjdbcµÄÅäÖÃ¿ÉÒÔ²Î¿¼Ğ¡ÃØÊéµÄÅäÖÃ
+	spring.datasource.type Á¬½Ó³ØÀàĞÍ boot Ä¬ÈÏÊÇ  HikariDataSource
+
+	JDBCÁ¬½ÓÊı¾İ¿âµÄÁ½ÖÖ·½Ê½£ºDriverManager¼°DataSource     ¿ÉÒÔÊ¹ÓÃÈı·½Êı¾İ¿âÁ¬½Ó±ÈÈçdruidµÈ
+
+
 
 24¡¢	@Component¿ÉÅäºÏCommandLineRunnerÊ¹ÓÃ£¬ÔÚ³ÌĞòÆô¶¯ºóÖ´ĞĞÒ»Ğ©»ù´¡ÈÎÎñ¡£³ÌĞò³õÊ¼»¯Ïà¹Ø
 		ApplicationRunnerÒ²¿ÉÒÔ£¬Õâ¸ö¿ÉÒÔ»ñÈ¡¸üÏêÏ¸µÄÃüÁîĞĞ²ÎÊı
@@ -253,11 +258,18 @@ new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ
 	spring-boot-starter-web °üº¬ÁË Spring MVC µÄÏà¹ØÒÀÀµ£¨°üÀ¨ Json Ö§³ÖµÄ Jackson ºÍÊı¾İĞ£ÑéµÄ Hibernate Validator£©ºÍÒ»¸öÄÚÖÃµÄ Tomcat ÈİÆ÷£¬ÕâÊ¹µÃÔÚ¿ª·¢½×¶Î¿ÉÒÔÖ±½ÓÍ¨¹ı main ·½·¨»òÊÇ JAR °ü¶ÀÁ¢ÔËĞĞÒ»¸ö WEB ÏîÄ¿¡£
 	¶øÔÚ²¿Êğ½×¶ÎÒ²¿ÉÒÔ´ò³É WAR °ü·Åµ½Éú²ú»·¾³ÔËĞĞ¡£
 	
-	
-	
-	
-	
 	Êµ¼Ê²¿Êğ£¬½«warÍÏµ½webappsÏÂ£¬Ö»±£ÁôÒ»¸örootµÄ¿ÕÄ¿Â¼£¬½âÑ¹µ½rootÏÂ£¬É¾³ıwar¼´¿É
+
+
+	====================netpay boot ==========================
+	ÆÕÍ¨µÄÊÇÔÚwebappÏÂ²¿ÊğµÄ£¬µ«ÊÇbootµÄ±¾µØÊÇÖ±½ÓÔÚxye-netpay-boot/target/classes/ÏÂÔËĞĞµÄ
+	file:/C:/Users/xiaoyuer/git/xye-netpay/xye-netpay-pom/xye-netpay-boot/target/classes/
+
+	È»ºólib ºÍweb-infÏÂµÄÎÄ¼şÃ²ËÆÊÇÈ¡µÄwebappÏÂµÄ¹¤³ÌÄ¿Â¼£¬±ÈÈçjar ºÍ¾²Ì¬ÎÄ¼ş¡£
+
+	====================netpay war ==========================
+	Ê¹ÓÃµÄParallelWebappClassLoader£¬context: xye-netpay
+	file:/D:/apache-tomcat-8.5-pay/webapps/xye-netpay-war/WEB-INF/classes/
 
 springbootÖĞµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôĞÔ½øĞĞ¾«Ï¸»¯ÅäÖÃ
@@ -320,6 +332,10 @@ bootÖĞµÄyml¸ñÊ½Ò²Í¦ºÃÓÃµÄÓĞÌáÊ¾£¬¿Õ¸ñÇø·Ö£¬:ºóÃæĞèÒª¼ÓÉÏ¿Õ¸ñ£¬ÅäÖÃmybatisÒ²¿ÉÒÔ£
 
 freemarkerºÍThymeleafÓï·¨£¬Á½ÖÖ²»Í¬µÄÄ£°åÒıÇæ£¬Óï·¨²»Í¬£¬Ç°¶ËÏÔÊ¾¶øÒÑ£¬´ÓÓï·¨Ï°¹ßÉÏÀ´½²£¬¸üÍÆ¼öfreemarker
 
+
+spring.freemarker.template-loader-path=/WEB-INF/template,     ×îºó±ØĞëÒª¼Ó","  ²»È»·ÃÎÊ²»µ½   Õâ¸öĞèÒª¾«È·µ½ftlµÄÎÄ¼şÎ»ÖÃ.
+
+
 bootµÄÄ¬ÈÏµÄÅäÖÃmybatisºÍdatasource£¬»ù±¾ÅäÖÃ
 ideaÎÄ¼şÂÒÂë£¬ÏÈÇĞ»»µ½¶ÔÓ¦µÄ±àÂë£¬ÔÙconvert(Ó¦¸ÃÊÇ¶ÁÈ¡ÎÄ¼şÄÚÈİ£¬²¢ÒÔIDE±¾ÉíÖ¸¶¨µÄencodingÀ´½øĞĞ½â¶Á)
 
@@ -367,6 +383,7 @@ bootÖĞÊ¹ÓÃjsp
 	2.¿ÉÒÔ½èÖúÄ£°åÒıÇæ£¬»òÕßMETA-INFÊµÏÖ£¬Â·×Ó±È½ÏÒ°£¬²»³£ÓÃ
 
 
+	server.servlet.jsp.init-parameters.development=true  ÊµÊ±¸üĞÂ
 
 
 bootÖĞÊ¹ÓÃhttps
@@ -378,6 +395,12 @@ bootÖĞÊ¹ÓÃhttps
 	server.error.path=/error.htm   ÕâÊÇÄ¬ÈÏµÄÒì³£Â·¾¶
 
 	boot freemarkerÖĞÄ¬ÈÏÇ°×ºÊÇ/£¬ËùÒÔ×ÊÔ´Â·¾¶ÒªÉèÖÃµ½¾«È·µÄÎ»ÖÃ¡£¿ÉÒÔserver.error.path=/error.htm ¿ØÖÆÒì³£Â·¾¶ £¬´îÅäErrorControllerÊ¹ÓÃ
+
+	ErrorController¿É¶ÔÈ«¾Ö´íÎó½øĞĞ´¦Àí£¬µ«ÊÇÆä»ñÈ¡²»µ½Òì³£µÄ¾ßÌåĞÅÏ¢£¬ÀıÈç¶Ô×Ô¶¨ÒåÒì³£µÄ´¦Àí
+
+	@ControllerAdvice¿É¶ÔÈ«¾ÖÒì³£½øĞĞ²¶»ñ£¬¶ø404ÕâÑù²»»á½øÈë¿ØÖÆÆ÷´¦ÀíµÄÒì³£²»Æğ×÷ÓÃ£¬¿É´îÅä@ExceptionHandlerÊ¹ÓÃ
+
+	RestControllerAdvice	  Ïà±ÈÔö¼ÓÁËjson·µ»Ø
 
 
 

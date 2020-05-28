@@ -166,8 +166,11 @@
 	继承arraylist后，数据都是放在elementData数组中的
 	返回的page<e>就是一个数组，元素在elementData中（list中的数据组），
 
+	mybatis 分页插件
+		MyBatis 3.4.1或者其以上版本(使用MyBatis 3.4.1(不包含)以下没有Integer.class)
+		@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class，Interger.class}) })
+	
 		
-
 12、Java泛型中的标记符含义： 
 	 E - Element (在集合中使用，因为集合中存放的是元素)
 	 T - Type（Java 类）
@@ -359,6 +362,10 @@
 	也可每个detail都定义实现job统一接口，完成触发也行
 	jobDetail.getJobDataMap().增加参数		
 
+	
+	quartz这个就是qrtz_cron_triggers  系统默认的存放路径，系统源码存放表名
+	
+	
 	session和缓存相关
 			查看唯一登录的情况，登录踢出的功能，就是实现用户信息和session绑定的情况，
 
@@ -1161,7 +1168,23 @@
 	配置多个远程仓库时，如果在一个远程找不到，依次从下一个仓库里找，在activeProfiles设置启用的仓库。默认会有一个ID是central的官方远程仓库。
 	
 	发布机的sit仓库引用，发布机只配置了251的public(默认激活该配置)，实际-p 又激活了setting.xml对应环境的jar仓库，这样就就会去这两个私服库去拉取jar
+	
+	
+	Invalid keystore format   因为maven中开启了filter过滤  证书相关不能开启  filter=false
+	
+	<resource>同目录下还是可以覆盖的，但是webresource不是同一目录所以不能覆盖。webresource只针对tomcat部署，boot还是用的target/classes下的
+	
+	jenkins插件配置使用的是jenkins的maven_setting.xml文件，
+	pipeline使用了sh脚本。sh 'mvn clean install -P sit -Dmaven.test.skip=true -Dmaven.javadoc.skip=true'   这里使用的系统默认的setting.xml,有点不一样。
 
+	多环境
+		sit环境真正执行的也就是打成war的不是resource下的，因为有webresouce在
+		以webresouce为优先覆盖，如果resource下有就会覆盖。resource有，webresource没有,resource中的这样也会打包到web-inf下，这样就解释通了，最好不要用webresouce，直接用resource即可
+		默认使用resource，如果webresource有重的就优先覆盖。	
+				
+		
+		
+		
 		
 45.cmd 不识别mysql命令的时候，需要在环境变量中的path中添加mysql对应的bin目录
 
@@ -1401,7 +1424,12 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 	测试步骤：结论，普通接口可以，hessian的暴露类需要引在注入的service工程中
 	1.service中放普通接口，war中实现类，在service中可以注入
 	2.service中放hessian接口，war中配置代理类，在service中无法注入
+	
+	在boot 的配置中client 和server的配置文件尽量要分开，放一起会冲突
 
+	之前netpay的hessian接口代理是remoting/aaa    发送到netpay匹配剩下的aaa即可。
+	
+	
 
 61.filter，servlet，interceptor
 	filter
@@ -1417,7 +1445,7 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		如果不配置DelegatingFilterProxy，则由于filter比bean先加载，也就是容器或者Tomcat会先加载filter指定的类到container中，
 		这样filter中注入的spring bean就为null了，
 		
-		
+		filter中没有		chain.doFilter(httpRequest, httpResponse);//go   没有就不会进controller
 
 	servlet
 	*************
@@ -1636,4 +1664,328 @@ InputStream is = item.getInputStream();
 
 79.servlet API不支持“排除”URL模式 典型的就是filter等url的配置，是不支持正则的表达的
 
+80.配置数据库连接的时候只有在xml中&才需要转义成&amp;,在properties中不需要转义
+	配置数据源
+	com.mysql.jdbc.Driver 是 mysql-connector-java 5中的，
+	com.mysql.cj.jdbc.Driver 是 mysql-connector-java 6以后的
+
+	使用springboot 整合spring-redis  ERROR redis.clients.jedis.HostAndPort-cant resolve localhost address    需要将hostname加到hosts文件中
+
 	
+81. 类加载路径
+	Test.class.getClassLoader().getResource("")=Test.class.getResource("/")
+	ClassLoader.getResource的path中不能以/开头，path是默认是从ClassPath根目录下进行读取的
+	否则读取为null
+	
+	getResourceAsStream  这个读取的是流文件
+	
+	
+	Class.getResource(String path)
+	path不以’/'开头时，默认是从此类所在的包下取资源；
+	path  以’/'开头时，则是从ClassPath根下获取；
+	
+	
+	boot本地运行
+		ROOTPATH = System.getProperty("user.dir");
+		C:\Users\xiaoyuer\git\xye-netpay\xye-netpay-pom\xye-netpay-boot
+		之前是获取类加载路径
+		
+	
+82.普通文件的读取
+	InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("cer/nihao_dev.txt");
+		      InputStreamReader isr = new InputStreamReader(resourceAsStream);
+		      BufferedReader br = new BufferedReader(isr);
+		      String lineTxt = null;
+		      while ((lineTxt = br.readLine()) != null) {
+		        System.out.println(lineTxt);
+		      }
+		      br.close();
+	}
+	
+	
+	
+83.日志路径
+	这里是工程中以war工程为目录起点，后面可以单独测试下
+	<property name="logbackpath" value="../logs/"></property>  作为一个jar包执行的话就是  jar的上级目录
+	String path = System.getProperty("user.dir").replace("\\", "/");//获取当前应用所在目录
+	path = path.substring(0, path.lastIndexOf("/"));			这里jar目录截取到d盘
+	path = path + "/conf/xye-datasource.properties";
+	logger.info("datasource-path:{}",path);
+		
+		
+		
+84.	Collections.sort(obj,new Comparator(){})实现排序
+
+
+85.	@RunWith(SpringRunner.class)
+	@springbootTest，这样能识别依赖注入的特性，有一些测试属性可以配置
+	
+	
+
+	
+86.	shiro
+		*****
+		主要的就是shirofilter  securitymanager，和realm(AuthorizingRealm )。
+		*****
+
+		https://www.cnblogs.com/yoohot/p/6085830.html   讲解的是shiro的各filter用法
+			 
+		一般通过继承EnterpriseCacheSessionDAO实现sessiondao的操作，这个是用来实现session的持久化。用来自定义session处理的，也可以用默认的
+		有doCreate”、“doReadSession”、“doUpdate”和“doDelete”。其中只有doCreate是实现的，其它的都是没有实现的方法。
+		
+		单体的建议使用ecache的，redis适用于分布式的架构
+		
+
+		
+		不过作为前后端分离项目,用户的信息及过期权限等信息依然是靠后端存储,以上依然涉及session,只不过是将产生的jsessionid当作token使用,使用redis存储而已.可以考虑使用jwt,彻底是后端无状态化;
+
+		ThreadPoolExecutor是jdk中的线程池类
+		ThreadPoolTaskExecutor这个类则是spring包下的，是sring为我们提供的线程池类
+		
+		
+
+		@Override
+		protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+		…
+		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(loginUser,password,salt,getName());
+		return authenticationInfo;  //这里返回的就是shiro中的principal
+
+		也可以使用filterChainDefinitionMap配置权限
+		
+
+		
+		shiro注解
+			ShiroFilterFactoryBean 中配置相关的拦截配置(但如果接口多，每个接口url都要写一遍太麻烦。所以采用注解的方式，在每个controller方法上加注解。)
+
+		
+			/**
+			 * 开启Shiro的注解(如@RequiresRoles,@RequiresPermissions),需借助SpringAOP扫描使用Shiro注解的类,并在必要时进行安全逻辑验证
+			 * 配置以下两个bean(DefaultAdvisorAutoProxyCreator(可选 depends-on="lifecycleBeanPostProcessor" )和AuthorizationAttributeSourceAdvisor)即可实现此功能
+			 * @return
+
+			 
+			 开启注解 DefaultAdvisorAutoProxyCreator 和 AuthorizationAttributeSourceAdvisor
+
+		shiro——rememberme	 
+			 
+			shiro中使用remenberme中 boolen类型，true会在页面写一个cookie(remenberme)，value是经过加密存放的是用户的信息
+			cookieRememberMeManager.setCipherKey(Base64.decode("fCq+/xW488hMTCD+cmJ3aQ=="));这个是内部加密用的key，会用这个key加密principal(SimpleAuthenticationInfo),回写到cookie中
+
+
+			shiro会在每一次访问时都会创建一个subject
+			DefaultSecurityManager.createSubject在创建subejct的时候就会调用resolvrPrincipals方法，
+			这个当前方法内部会先从当前的session中获得的subject的principal，如果没有找到再从cookie找，调用的方法是getRememberedInedtity
+
+	 
+		 
+		必须全部符合（默认不写或者在后面添加logical = Logical.AND）
+		@RequiresPermissions(value={“stuMan:find_record_list”,“tea:find_record_list”})
+		上面这种情况是默认当前对象必须同时全部拥有指定权限
+		符合其中一个即可(logical = Logical.OR)    
+		 
+		 
+		doGetAuthorizationInfo方法(封装了对应的权限内容)
+		System.out.println("经试验：并不是每次调用接口就会执行，而是调用需要操作码（permission）的接口就会执行");
+		
+		shiro的菜单通配部分
+		shiro的注解配置
+
+		Subject currentUser = SecurityUtils.getSubject();
+		
+		currentUser.getprincipal实际上就是当时 SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(user, password, getName());  中的这个存入的user对象
+		
+		try {
+			//在调用了login方法后,SecurityManager会收到AuthenticationToken,并将其发送给已配置的Realm执行必须的认证检查
+			//每个Realm都能在必要时对提交的AuthenticationTokens作出反应
+			//所以这一步在调用login(token)方法时,它会走到MyRealm.doGetAuthenticationInfo()
+		
+		
+		shiro强大的自定义访问控制拦截器：AccessControlFilter，
+		isAccessAllowed：表示是否允许访问；mappedValue就是[urls]配置中拦截器参数部分，如果允许访问返回true，否则false；
+		onAccessDenied：表示当访问拒绝时是否已经处理了；如果返回true表示需要继续处理；如果返回false表示该拦截器实例已经处理了，将直接返回即可。基本上到这就重定向
+		onPreHandle：会自动调用这两个方法决定是否继续处理；
+
+		isAccessAllowed和onAccessDenied方法会影响到onPreHandle方法，而onPreHandle方法会影响到preHandle方法，而preHandle方法会达到控制filter链是否执行下去的效果。
+		
+		如果使用PathMatchingFilter就是接是onPreHandle方法走。
+		
+		WebUtils.issueRedirect(request, response, loginUrl)
+		
+		onlineSessionfilter 可以用来判断是否满足登录，syncOnlineSessionfilter用来接着同步操作
+		
+	 
+		AuthorizingRealm 中的ispermitted方法可以debug一下
+	 
+	 
+		 @RequiresPermissions  会拦截标签，分发到对应的PermissionAnnotationHandler。
+		 
+		 shiro:hasPermission  是好像直接访问到了AuthorizingRealm中的isPermitted，没有走controller的拦截handler
+		 
+	 真正的拦截规则是AuthorizingRealm.isPermitted>>>>>>>>>>org.apache.shiro.authz.permission.WildcardPermission#implies
+	 
+	 
+	*****shiro的核心匹配机制*****
+	public boolean implies(Permission p) {
+			if (!(p instanceof WildcardPermission)) {
+				return false;
+			} else {
+				WildcardPermission wp = (WildcardPermission)p;
+				List<Set<String>> otherParts = wp.getParts();
+				int i = 0;
+
+				for(Iterator var5 = otherParts.iterator(); var5.hasNext(); ++i) {
+				同级别比完，拥有的权限短路径，后面全匹配    用的的是a/c  两级权限，访问的是的三级路径,直接过？不是直接过，前面需要都匹配上才行
+					Set<String> otherPart = (Set)var5.next();
+					if (this.getParts().size() - 1 < i) {
+						return true;
+					}
+
+					//同级别比较
+					Set<String> part = (Set)this.getParts().get(i);
+					if (!part.contains("*") && !part.containsAll(otherPart)) {
+						return false;
+					}
+				}
+
+				比完之后，拥有的路径长，待匹配的短，那么后一位需要时*
+				while(i < this.getParts().size()) {
+					Set<String> part = (Set)this.getParts().get(i);
+					if (!part.contains("*")) {
+						return false;
+					}
+					++i;
+				}
+				return true;
+			}
+		}
+	 
+			权限鉴权
+				 
+				只有第一次会将信息存入缓存，通过权限过滤，
+				 
+				其中的路径匹配可以再看看  在org.apache.shiro.authz.permission.WildcardPermission#implies 方法中
+				 
+				 权限的分隔划分，以:划分一个权限的匹配，源码操作
+				 
+	 
+	shiro-页面标签
+
+		使用shiro注解，会还是会使用securityManager.isPermitted方法，最终进入AuthorizingRealm.isPermitted方法，执行同controller进入的匹配方法
+
+		延伸到时html页面
+			 thymeleaf中使用shiro:hasPermission标签控制页面显示需要：
+			 thymeleaf-extras-shiro
+			 或者命名空间  xmlns:shiro="http://www.thymeleaf.org/thymeleaf-extras-shiro"
+			 
+			 配置一个ShiroDialect的bean
+		在freemarker中
+			引入shiro-freemarker-tags，页面 使用<@shiro.hasPermission name="权限添加">  
+		 
+		在jsp中
+
+			在页面顶部引用<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags" %> 标签库，
+			页面使用<shiro:hasPermission name="1111">  
+			 
+	 
+		shiro-session
+			sessionFactory是创建会话的工厂，根据相应的Subject上下文信息来创建会话；默认提供了SimpleSessionFactory用来创建SimpleSession会话。
+			更具需要也可以自钉子新的OnlineSession，搭配自定义 OnlineSessionFactory。实现session的内容增加
+
+			其实这两个都可以使用默认的配置，即不持久化session也不自定义session
+			SessionFactory中创建的session实体，Sessiondao操作中是创建了一个sessionid并赋值给当前的session
+			 
+			顺序是先实例化自定义的session，然后通过sessiondao创建sessionid赋值给对应的session
+
+	ehcache(单体) 和redis(分布式)
+		ehcache直接在jvm虚拟机中缓存，速度快，效率高；但是缓存共享麻烦，集群分布式应用不方便。是可以做集群缓存共享的，但是做服务话不适用，这个是跟着java内存走的
+		redis是通过socket访问到缓存服务，效率比ecache低，比数据库要快很多，处理集群和分布式缓存方便，有成熟的方案。
+
+		如果是单个应用或者对缓存访问要求很高的应用，用ehcache。
+		如果是大型系统，存在缓存共享、分布式部署、缓存内容很大的，建议用redis。
+		
+		主站关闭浏览器后的cookie还在吗  rememberme的操作，测试主站的记住我
+		
+		kickout使用了cache和Deque队列实现，返回subject.logout退出，然后重定向登录
+		WebUtils.issueRedirect(request, response, kickoutUrl);
+		deque.push(sessionId);
+					// 将用户的sessionId队列缓存
+					cache.put(loginName, deque);
+					
+		kickoutSession.setAttribute("kickout", true);设置踢出属性，然后判断当前的session，重定向			
+		
+		这个也可以
+		   public RedisCacheManager cacheManager() {
+			RedisCacheManager redisCacheManager = new RedisCacheManager();
+			redisCacheManager.setRedisManager(redisManager());
+			return redisCacheManager;
+		}		
+
+87.redis持久化
+		方案：相对来说使用aof的sec足够了
+		rdb:在指定的时间间隔内将内存中的数据集快照写入磁盘
+			数据集快照dump到dump.rdb中，可以修改dump的频率。快照文件总是完整可用的
+			频率比如:300秒内，如果超过10个key被修改，则发起快照保存 ；
+			
+			
+			fork一个子进程来进行持久化，不影响主进程的io操作
+			
+		aof:每次写指令操作，进入aof记录文件。
+			三种策略：每次修改，每秒同步，从不同步
+		数据恢复时按照丛前到后的顺序再将指令执行一遍
+		
+		其中包含重写机制，一条 incr*100，最后可以合成一条incr100
+		
+		默认是rdb模式
+
+		
+88.//外部tomcat——web.xml 默认 <welcome-file>index.htm</welcome-file>,boot 默认是/
+
+89.前端相关
+	thymeleaf
+		th:text中的thymeleaf并不会被认为是变量，而是一个字符串
+		<h2 th:object="${user}">
+			<p>Name: <span th:text="*{name}">Jack</span>.</p>
+		</h2>
+			
+		超链接url表达式。
+		thymeleaf使用（,,）的形式解析多个参数,结合${}放置变量十分方便：
+		<a th:href="@{/teacherShowMember(class_id=${class.classId}，class_name=${class.className})}"></a>
+		传统URL传递多参数使用？&拼接：
+		<a th:href="/teacherShowMember?class_id=123&class_name=XXX"></a>	
+			
+		但是在开发过程中，jsp的缺点是什么呢？
+		<% %>等等jsp标签，java代码块与html静态文件元素来回穿插，导致页面可读性差。
+		如果在使用each迭代时，更是要使用到c标签库
+		<c:forEach var="user" items="${user}"> <c:forEach>
+		而thymeleaf则使用th:each="user:${user}",不需要像jsp一样引入很多标签库
+		而thymele拥有强大的内置工具，只要使用th:text="#dates.format(date,"yyyy-MM-dd")"即可获取时间
+		再比如：jsp页面，无法进行选择操作，而thymeleaf可以使用th:switch="${sex}" th:case="0"
+
+		
+90.为什么有了@Compent,还需要@Bean呢？?
+	如果想将第三方的类变成组件，你又没有没有源代码，也就没办法使用@Component进行自动配置，这种时候使用@Bean就比较合适了。不过同样的也可以通过xml方式来定义。
+	Spring的Starter机制，就是通过@Bean注解来定义bean。
+	可以搭配@ConditionalOnMissingBean注解?@ConditionalOnMissingClass注解，如果本项目中没有定义该类型的bean则会生效。避免在某个项目中定义或者通过congfig注解来声明大量重复的bean。
+
+	
+91.	常用的工具类，工具接口
+		Kaptcha  一个可配置的实用验证码生成工具
+		联系我们中的地图   使用的是百度地图的开放api
+		Pattern类  url路径匹配工具类
+		
+		
+92. 在notepad++中勾选正则表达式，替换首尾字符，     ^/$->'/',
+	主站加载很慢直至超时，除了看console，还要看network中的加载情况
+
+
+
+93.实现job接口或者继承QuartzJobBean，系统job自动执行。
+		context.getMergedJobDataMap().get(ScheduleConstants.TASK_PROPERTIES));
+		可以使用这个属性将当前系统job绑定一个自定义的job，当系统执行的时候，然后通过绑定的job信息，执行对应的逻辑。支付中是直接将路劲放在库的trigger_name中的
+		意思是通过绑定参数，封装执行的方法
+
+		
+93.不从controller传request，RequestContextHolder的使用
+	HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+	但是，如果service层的函数是异步的话，是获取不到request的。
+	通常RequestContextHolder.getRequestAttributes()无法在子线程等异步情况下使用，

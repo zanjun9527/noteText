@@ -264,3 +264,5 @@ idea中的 package.package连起来显示问题
 
 elcipse下ctrl + shift + t 快捷键，就可以查看其源码文件了。
 
+netpay  vars下面的文件夹显示不出来，在properties-resource filter中清除过滤规则
+
