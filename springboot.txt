@@ -22,6 +22,7 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 6¡¢springÖĞµÄ×÷ÓÃÓò scope      singleton ¹ÜÀíµÄÍ¬Ò»¸öbeanÊµÀı
 
 7¡¢springbootÖĞ¿ÉÒÔµ¼ÈëxmlÎÄ¼ş£¬Ò²¿ÉÒÔ×¢ÈëÊôĞÔÎÄ¼ş @propertySource  µ«ÊÇ»¹ÒªÅäÖÃ¸öpropertySourceplaceholderµÄbean
+   @PropertySourceÖ±½Ó×¢ÈëÊôĞÔÎÄ¼ş£¬Ö±½Ó×¢ÈëÊôĞÔÎÄ¼ş£¬±ğµÄµØ·½¿ÉÒÔÖ±½Ó@value
 
 8¡¢ApplicationContextAware£¬Ê¹bean¿ÉÒÔ»ñµÃspringÈİÆ÷ÖĞµÄ·şÎñ
 
@@ -128,6 +129,8 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 	
 	
 	¾²Ì¬×ÊÔ´Ó³Éä£ºÍ¬ÉÏ
+
+	bootÖĞÅäÖÃ¾²Ì¬×ÊÔ´ResourceHandlerºó£¬¾²Ì¬×ÊÔ´Â·¾¶²»»áÔÙ½øÈëÀ¹½ØÆ÷ÁË¡£
 
 24¡¢	mybaisµÄÅäÖÃ»¹ÊÇ½¨ÒéÊ¹ÓÃ´úÂëÅäÖÃ£¬Êı¾İÔ´ jndiºÍjdbcµÄÅäÖÃ¿ÉÒÔ²Î¿¼Ğ¡ÃØÊéµÄÅäÖÃ
 	spring.datasource.type Á¬½Ó³ØÀàĞÍ boot Ä¬ÈÏÊÇ  HikariDataSource
@@ -271,6 +274,11 @@ new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ
 	Ê¹ÓÃµÄParallelWebappClassLoader£¬context: xye-netpay
 	file:/D:/apache-tomcat-8.5-pay/webapps/xye-netpay-war/WEB-INF/classes/
 
+
+	<!-- ±¾µØbootÔËĞĞ»·¾³ ,Éú²úÊÇwar£¬ÔÚtomcatÏÂÔËĞĞ£¬Ê¹ÓÃµÄÊÇÒÔÉÏµÄ×ÊÔ´ÎÄ¼ş£¬boot±¾µØÖ±½ÓÔËĞĞtarget/classes-->
+	<!-- µ¼ÖÂbootÔÚtargetÏÂ¼ÓÔØ²»µ½ÎÄ¼ş  Ô­ÏÈÊÇtomcatÆô¶¯Ã»ÓĞÓ°Ïì¡£¼ÇµÃ²âÊÔwarºóÕæÊµ¼ÓÔØµÄÄ¿Â¼ -->
+
+
 springbootÖĞµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôĞÔ½øĞĞ¾«Ï¸»¯ÅäÖÃ
 	  @ConditionalOnMissingBean£¬ÊÇ¸²¸Ç×Ô¶¯ÅäÖÃµÄ¹Ø¼ü£¬´æÔÚÏàÓ¦µÄ¾Í»á½µµÍ×Ô¶¯ÅäÖÃµÄÓÅÏÈ¼¶¡£
@@ -353,7 +361,23 @@ spring-boot ÈÈ¼ÓÔØ
 Ê¹ÓÃ Spring Loaded
 µ±ÏµÍ³Í¨¹ı mvn spring-boot:runÆô¶¯»òÕß ÓÒ¼üapplication debug Æô¶¯
 £¨ÏµÍ³¼àÊÓclassesÎÄ¼ş£¬µ±ÓĞclassesÎÄ¼ş±»¸Ä¶¯Ê±£¬ÏµÍ³»áÖØĞÂ¼ÓÔØÀàÎÄ¼ş£¬²»ÓÃÖØÆôÆô¶¯·şÎñ£©
+
+
+
 Ê¹ÓÃ spring-boot-devtools
+1.Ôö¼ÓÒÀÀµ£¬
+2.pluginÖĞÌí¼Ó
+<configuration>
+	<fork>true</fork> <!-- Èç¹ûÃ»ÓĞ¸ÃÅäÖÃ£¬devtools²»»áÉúĞ§ -->£¿
+</configuration>
+3.File -> Settings -> Compiler£¬¹´Ñ¡ Build Project automatically
+4.°´¿ì½İ¼üCtrl+Shift+Alt+/£¬Ñ¡Ôñ1.Registry..---->¹´Ñ¡ compiler.automake.allow.when.app.running ¼´¿É
+
+scheduledExecutorService  ¶ÔÓ¦µÄ¼¸¸öjob¶¨Ê±ÕûÀí
+
+
+
+
 
 
 Spring bootÏîÄ¿Í¨³£Çé¿öÏÂÓĞÈçÏÂ¼¸ÖÖÆô¶¯·½Ê½£ºÍ³Ò»µÄÈë¿Ú¾ÍÊÇÆô¶¯Àà
@@ -361,6 +385,12 @@ Spring bootÏîÄ¿Í¨³£Çé¿öÏÂÓĞÈçÏÂ¼¸ÖÖÆô¶¯·½Ê½£ºÍ³Ò»µÄÈë¿Ú¾ÍÊÇÆô¶¯Àà
 	Í¨¹ıspring-bootµÄmaven²å¼şspring-boot-maven-plugin·½Ê½Æô¶¯¡£   		spring-boot:run
 	Í¨¹ı¿ÉÖ´ĞĞjar/war°ü·½Ê½Æô¶¯¡£						jarÆô¶¯				
 	Í¨¹ıServletÈİÆ÷Æô¶¯£¬ÈçTomcat¡¢JettyµÈ¡£
+
+
+
+
+
+
 
 
 jasypt¼ÓÃÜÓÃ
@@ -454,3 +484,8 @@ SpringBoot ÄÚÇ¶ Tomcat µÄ½â¾ö·½Ê½
 				.profiles("prod")
 				.headless(true)
 				.run(args);
+
+
+¾²Ì¬×ÊÔ´
+	1.ËäÈ»SpringBootÄ¬ÈÏµÄ¾²Ì¬×ÊÔ´µØÖ·ÊÇresourcesÏÂµÄstatic£¬µ«ÊÇËûÖ»ÏŞ´æ·ÅÎÄ¼ş£¬¼´Èç¹ûÄãÔÚstaticÏÂÖ±½Ó·ÅcssÑùÊ½ÊÇ¿ÉÒÔ·ÃÎÊµÄ£¬
+	µ«ÊÇÎªÁË¹ÜÀí£¬ÎÒÃÇÒ»°ã¶¼»áÔÚstaticÏÂĞÂ½¨ÎÄ¼ş¼Ğ£¬Èçcss£¬jsµÈ·ÖÀà¡£ÕâÑùµÄ»°¾Í»á³ö´íÁË£¬ÒòÎªSpringBoot²»»á·ÃÎÊµ½staticÎÄ¼ş¼ĞÏÂµÄ×ÓÎÄ¼ş¼Ğ¡£

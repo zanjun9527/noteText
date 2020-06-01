@@ -1967,17 +1967,13 @@ InputStream is = item.getInputStream();
 	Spring的Starter机制，就是通过@Bean注解来定义bean。
 	可以搭配@ConditionalOnMissingBean注解?@ConditionalOnMissingClass注解，如果本项目中没有定义该类型的bean则会生效。避免在某个项目中定义或者通过congfig注解来声明大量重复的bean。
 
-	
 91.	常用的工具类，工具接口
 		Kaptcha  一个可配置的实用验证码生成工具
 		联系我们中的地图   使用的是百度地图的开放api
 		Pattern类  url路径匹配工具类
 		
-		
 92. 在notepad++中勾选正则表达式，替换首尾字符，     ^/$->'/',
 	主站加载很慢直至超时，除了看console，还要看network中的加载情况
-
-
 
 93.实现job接口或者继承QuartzJobBean，系统job自动执行。
 		context.getMergedJobDataMap().get(ScheduleConstants.TASK_PROPERTIES));
@@ -1989,3 +1985,103 @@ InputStream is = item.getInputStream();
 	HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 	但是，如果service层的函数是异步的话，是获取不到request的。
 	通常RequestContextHolder.getRequestAttributes()无法在子线程等异步情况下使用，
+	
+94.	return null;  和	return;
+	一个是有返回值的return  还有一个是void的返回结束
+	
+95.	栈溢出场景	
+	public String getJsonString(){return JSON.toJSONString(this);}
+	JSON.toJSONString(userInfo)
+				
+96.总结：对比RPC和http的区别
+	1.RPC要求服务提供方和服务调用方都需要使用相同的技术，要么都hessian，要么都dubbo，而http无需关注语言的实现，只需要遵循rest规范
+	2.RPC主要是基于TCP/IP协议的，而HTTP服务主要是基于HTTP协议的，HTTP协议是在传输层协议TCP之上的，所以效率来看的话，RPC当然是要更胜一筹啦
+	4.rpc框架，有服务治理，自带负载均衡(http需借助nginx)，传输效率rpc要高，使用接口开发
+	
+	TCP 是传输层协议，HTTP 是应用层协议，而传输层较应用层更加底层，在数据传输方面，越底层越快，因此，在一般情况下，TCP 一定比 HTTP 快
+
+97.dubbo的创建
+	使用自定义的schema，实现命名空间自定义配置
+		1.设计配置属性和JavaBean 
+		2.编写XSD文件 													
+		3.编写NamespaceHandler和BeanDefinitionParser完成解析工作，串联所有部件 		(Spring提供了默认实现类NamespaceHandlerSupport和AbstractSingleBeanDefinitionParser)
+		4.编写spring.handlers和spring.schemas串联起所有部件 						META-INF/spring.handlers和META-INF/spring.schemas  分别定义处理类 和xsd文件    spring默认载入
+
+		<xsi:schemaLocation=" http://blog.csdn.net/cutesource/schema/people  http://blog.csdn.net/cutesource/schema/people.xsd">  分别对应handler处理类和xsd文件
+		是通过统一的前者命名关联了handler和xsd解析
+		
+		Spring是怎么解析<dubbo:.../>配置的。如上
+
+		dubbo直接使用了BeanDefinitionParser，没有继承AbstractSingleBeanDefinitionParser,将xml中的注解内容parse成bean的实例到容器中
+		dubbo:service     其中service就是其中的一个配置类，对应<xsd:element name="service">对应着配置项节点的名称，因此在应用中会用 service 作为节点名来引用这个配置
+		
+		Spring容器启动的过程中，会将Bean解析成Spring内部的BeanDefinition结构，
+		
+		dubbo也是实现了InvocationHandler ，最后invoker.invoke(new RpcInvocation(method, args)).recreate(); 这里就开始进入调用远程的服务
+		
+		spi机制，配置文件发现实现类机制，优点实现三方解耦，缺点会一次性加载全付实现类
+		
+		/默认情况下如果本地有服务暴露，则引用本地服务
+		
+		// 用户指定URL，指定的URL可能是对点对直连地址，也可能是注册中心URL
+		
+		按 key=menthodName/value=invoker 缓存起来  
+		
+		注册模块dubbo-register：
+			1.构造器利用客户端创建了对zookeeper的连接，并且添加了自动回复连接的监听器。
+			2.注册url就是利用客户端在服务器端创建url的节点，默认为临时节点，客户端与服务端断开，几点自动删除
+			3.取消注册的url，就是利用zookeeper客户端删除url节点
+			4.订阅url， 功能是服务消费端订阅服务提供方在zookeeper上注册地址.
+			5 取消订阅url， 只是去掉url上的注册的监听器
+			
+			使用了zookeeper的注册中心，ZookeeperRegistryFactory,是操作zookeeper的客户端的工厂类，用来创建zookeeper客户端，ZookeeperClient
+			
+		dubbo://192.168.6.222:20881/com.xiaoyuer.soa.api.service.IRequireService?anyhost=true&application=xye-soa-core-require&default.retries=0&default.service.filter=xyeProviderExceptionFilter&default.timeout=20000&default.token=true&dispatcher=message&dubbo=2.8.4x-SNAPSHOT&generic=false&interface=com.xiaoyuer.soa.api.service.IRequireService&methods=testQueryParams,saveRequireInfo,saveRequire,getRequireInfo&organization=dubbox&owner=programmer&pid=60516&side=provider&threads=300&timestamp=1590393669112
+		/dubbo/com.xiaoyuer.soa.api.service.IRequireService/providers/dubbo%3A%2F%2F192.168.6.222%3A20881%2Fcom.xiaoyuer.soa.api.service.IRequireService%3Fanyhost%3Dtrue%26application%3Dxye-soa-core-require%26default.retries%3D0%26default.service.filter%3DxyeProviderExceptionFilter%26default.timeout%3D20000%26default.token%3Dtrue%26dispatcher%3Dmessage%26dubbo%3D2.8.4x-SNAPSHOT%26generic%3Dfalse%26interface%3Dcom.xiaoyuer.soa.api.service.IRequireService%26methods%3DtestQueryParams%2CsaveRequireInfo%2CsaveRequire%2CgetRequireInfo%26organization%3Ddubbox%26owner%3Dprogrammer%26pid%3D60516%26side%3Dprovider%26threads%3D300%26timestamp%3D1590393669112	
+		
+		在zookeeper的服务端创建临时的目录节点，每一级都是节点目录
+		[zk: localhost:2181(CONNECTED) 8] ls /dubbo/com.xiaoyuer.soa.api.service.IRequireChooseService ->[consumers, configurators, routers, providers]
+		[zk: localhost:2181(CONNECTED) 10] ls /dubbo/com.xiaoyuer.soa.api.service.IRequireChooseService/providers-> 提供者列表
+		
+		
+		dubbo的container模块
+		默认只会启动dubbo-container-spring的这个container，主要负责jar启动，优雅停机
+			因为服务通常不需要Tomcat/JBoss等Web容器的特性，没必要用Web容器去加载服务，一般main加载spring启动即可
+			Dubbo是通过JDK的ShutdownHook来完成优雅停机的，所以如果用户使用”kill -9 PID”等强制关闭指令，是不会执行优雅停机的，只有通过”kill PID”时，才会执行。
+			
+		dubbo的remoting
+			dubbo底层通信模块的实现。实现对请求/应答的各种逻辑处理，包括同步，异步，心跳等逻辑，最底层的通信借助netty或者mina实现
+			
+		zkClient.createPersistent(path, true);	zookeeper递归创建目录
+		zookeeper 存储的只是目录节点，每个节点都会有自己对应的值,维护的就是目录节点
+		
+		启动开启netty服务，绑定ip和port，客户端调用使用netty访问对应的地址，这样会进入netty的对应handler
+		netty绑定地址，添加处理handler， client端使用netty访问地址，服务端接收到转给了handler处理
+		
+		netty入门学习
+			Netty封装了JDK的NIO
+			netty是封装java socket nio的。 类似的功能是 apache的mina。
+			建立在客户端和服务端之间的,服务端建立相应的规则，然后运行起来，等待客户端访问或者发送”消息“
+			
+			一个socket对应一个channel？
+			服务端
+				服务端用ServerBootstrap(netty服务端应用开发的入口)，有两个NioEventLoopGroup；
+				有两种通道需要处理， 一种是ServerSocketChannel：用于处理用户连接的accept操作， 另一种是SocketChannel，表示对应客户端连接。
+				分别用来用来接收进来的连接和用来处理已经被接收的连接，一旦‘boss’接收到连接，就会把连接信息注册到‘worker’上。
+				
+				.childHandler(),设置子通道的处理器，也就是SocketChannel的处理器，内部是实际业务开发的”主战场”，具体的业务实现。
+				
+				Channel都有且仅有一个ChannelPipeline与之对应，Channel包含了ChannelPipeline，ChannelPipeline内部包含了N个handler，每一个handler都是由一个线程去执行；
+				channel.pipeline().addLast添加处理的handler
+				
+				b.option(),.childOption()分别配置ServerSocketChannel的选项 和 子通道也就是SocketChannel选项 
+				
+				ChannelFuture f = b.bind(port).sync();//绑定端口并启动去接收进来的连接
+				f.channel().closeFuture().sync();//这里会一直等待，直到socket被关闭
+				
+			客户端
+				client用Bootstrap，只有一个NioEventLoopGroup。只有一种channel，也就是SocketChannel
+				
+			 网络传输的载体是byte，所有框架都是这个规定，JAVA的NIO提供了ByteBuffer，用来完成这项任务， Netty也提供了叫做ByteBuf
+			
+			通过合理的切分微服务变价可结局大缤纷分布式的事务问题

@@ -67,10 +67,14 @@ TCC与2PC协议比较：
 
 2PC的强一致性依赖于数据库，而TCC的强一致性依赖于应用层的Commit与cancel
 
-
-
-
 SQL Server 数据库是由两个文件组成的，一个数据库文件和一个日志文件，每次先记录操作日志，再写数据库。
+
+	使用mq解决分布式事务：
+		service-foo 和 service-bar
+		1.foo进表后，增加event表，事件进入mq(写入名为"foo-success-queue"队列)
+		2.从mq中获取event，调用bar,然后bar进表。若bar异常，就回滚，将原event写入Failure queue中，
+		3.foo将作为消费者从失败队列中找到event，根据eventId找到对应的foo，然后操作回滚
+			
 
 
 
