@@ -1,6 +1,7 @@
 
-
-这本书 文字太多，不够简洁
+一些设计思路
+	这本书 文字太多，不够简洁
+	太技术化，在HSF的阶段，出于情怀，在有一个版本里投入了非常大的精力去引进OSGi以及去做动态化，这个后来事实证明是个非常非常错误的决定，从这个点我才真正明白在设计系统时一定要想清楚目标，而目标很重要的是和公司发展阶段结合；
 
 1.sql的预编译机制，这个重要的规则是避免使用字符串串联起多个sql查询。
 
@@ -394,16 +395,15 @@
 			SnakeYAML可以加载yaml文件，存进map中使用
 
 			动态数据源，在查询的时候拦截选定指定数据源，后面执行数据操作的时候匹配相应的数据源，主要的是继承AbstractRoutingDataSource
+			
+			动态数据源，在一个事务中，只能管理对应的事务管理器的事务，属于其他事务管理器的事务，不起作用，
+			
 
 			nested exception is org.springframework.core.NestedIOException: 
 			Failed to deserialize object type; nested exception is java.lang.ClassNotFoundException: com.xiaoyuer.pay.web.SessionData
 			以redis为缓存中心，当系统需要从redis中获取缓存信息的时候，其中的类需要反序列化出来，系统中需要有相应的类
 			
 			
-			
-
-			
-
 
 21.	可以测试支付调用主站时候的"转码，url中的正常&是不能转义的
 	String param = dataForSign.replaceAll("\"", "%22").replaceAll("}", "%7d").replaceAll("\\{", "%7b").replaceAll(" ", "%20");
@@ -630,9 +630,35 @@
 		where id in
 			(reqIds)
 			
+		-- 批量更新
+		<update id="batchUpdateClose" parameterType="java.util.List">
+			update require_apply
+			<trim prefix="set" suffixOverrides=",">
+				<trim prefix="apply_status=case id" suffix="end,">
+					<foreach collection="applys" item="item">
+						when #{item.id} then #{item.applyStatus}
+					</foreach>
+				</trim>
+			</trim>
+			where id in 
+			<foreach collection="applys" item="item" separator="," open="(" close=")">
+				#{item.id}
+			</foreach>
+		</update>
 			
-					
-		
+			
+		上面简化后的sql：
+			UPDATE require_apply
+			SET
+			apply_status= CASE id  
+			WHEN 9289 THEN 2
+			WHEN 9290 THEN 4
+			WHEN 9288 THEN 6
+			END
+			WHERE id IN 
+			(9288,9289,9290)
+			
+
 25.属性文件相关
 		classpath 是xml中和属性文件中用的语言，直接属性文件加载不用，类似classpath*:a/b/c
 		
@@ -1182,17 +1208,17 @@
 		以webresouce为优先覆盖，如果resource下有就会覆盖。resource有，webresource没有,resource中的这样也会打包到web-inf下，这样就解释通了，最好不要用webresouce，直接用resource即可
 		默认使用resource，如果webresource有重的就优先覆盖。	
 				
-		
-		
-		
-		
+
 45.cmd 不识别mysql命令的时候，需要在环境变量中的path中添加mysql对应的bin目录
 
-46.fork：在github页面，点击fork按钮，将别人的仓库复制一份到自己的仓库。
-	clone：直接将github中的仓库克隆到自己本地电脑中						clone别人是无法改动提交的，因为没有权限
-	pull request的作用
-	在A的仓库中fork项目B （此时我们自己的github就有一个一模一样的仓库B，但是URL不同）将我们修改的代码push到自己github中的仓库B中pull request ，源头url仓库就会收到请求，并决定要不要接受你的代码
+46.	git
+		fork：在github页面，点击fork按钮，将别人的仓库复制一份到自己的仓库。
+		clone：直接将github中的仓库克隆到自己本地电脑中						clone别人是无法改动提交的，因为没有权限
+		pull request的作用
+		在A的仓库中fork项目B （此时我们自己的github就有一个一模一样的仓库B，但是URL不同）将我们修改的代码push到自己github中的仓库B中pull request ，源头url仓库就会收到请求，并决定要不要接受你的代码
 		
+		两个分支针对同源都做了更改，合并的时候就会出问题
+		冲突merge之后，就会标记没有变动，重复merge之后没变化
 	
 47.js中的多个ajax异步请求的执行时并行，不会等待操作。执行的快与慢，要看响应的数据量的大小及后台逻辑的复杂程度。
 	cookie.setMaxAge();pc中设置的是-1。默认值是-1，表示关闭浏览器，cookie就会消失。如果是正数，表示从现在开始，即将过期的seconds。
@@ -1502,8 +1528,34 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 
 
 63.jdk8
-	中使用defaul,即可使用默认的方法，不满足需求的时候可以覆盖，static可以直接调用
+	中使用default,即可使用默认的方法，不满足需求的时候可以覆盖，static可以直接调用
 	Lambda 表达式由参数、-> 和实现主体 三大部分组成。
+	
+	
+	*************************
+		函数式接口(Functional Interface，@FunctionalInterface)就是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。
+		函数式接口可以被隐式转换为 lambda 表达式。以前是采用匿名实现类实现的
+		
+		
+		1.一个函数式接口有且只有一个抽象方法。
+		2.默认方法不是抽象方法，因为它们已经实现了。
+		3.重写了超类Object类中任意一个public方法的方法并不算接口中的抽象方法。
+		
+		因为任何接口的实现都会从其父类Object或其它地方获得这些方法的实现。
+		
+		所以Comparator中的equals不算是接口中的抽象方法
+	*************************
+	
+	List<person> plist = ...;
+	//根据超时天数倒序排序
+	Comparator<person> comparator = (t1, t2) -> t1.getAge().compareTo(t2.getAge());
+	plist.sort(comparator.reversed());	
+	实际就是list.sort(Comparator)操作
+	
+	List.sort((o1, o2) -> flag ?a.compareTo(b) : b.compareTo(a));
+
+	
+
 	
 64.linux 命令
 		top查看系统的cpu
@@ -1720,9 +1772,7 @@ InputStream is = item.getInputStream();
 85.	@RunWith(SpringRunner.class)
 	@springbootTest，这样能识别依赖注入的特性，有一些测试属性可以配置
 	
-	
 
-	
 86.	shiro
 		*****
 		主要的就是shirofilter  securitymanager，和realm(AuthorizingRealm )。
@@ -1960,6 +2010,19 @@ InputStream is = item.getInputStream();
 		而thymeleaf则使用th:each="user:${user}",不需要像jsp一样引入很多标签库
 		而thymele拥有强大的内置工具，只要使用th:text="#dates.format(date,"yyyy-MM-dd")"即可获取时间
 		再比如：jsp页面，无法进行选择操作，而thymeleaf可以使用th:switch="${sex}" th:case="0"
+		
+		
+	编码和转义不一样
+		编码是前后端的交互，转义是前台的显示
+		就是将展示的东西，替换一些常用的特殊字符
+		margin是边框外，是盒子外的尺寸，描述div的长宽不计入
+		
+	css	
+		line-heigt 和 height实现垂直居中
+		line-heigt=font-size，上下文字是紧贴着
+		外边距重合，但是两个外边距之间有间隔内容，就不会合并
+		div的高度由height决定，和内容无关
+
 
 		
 90.为什么有了@Compent,还需要@Bean呢？?
@@ -2082,6 +2145,114 @@ InputStream is = item.getInputStream();
 			客户端
 				client用Bootstrap，只有一个NioEventLoopGroup。只有一种channel，也就是SocketChannel
 				
-			 网络传输的载体是byte，所有框架都是这个规定，JAVA的NIO提供了ByteBuffer，用来完成这项任务， Netty也提供了叫做ByteBuf
-			
+			网络传输的载体是byte，所有框架都是这个规定，JAVA的NIO提供了ByteBuffer，用来完成这项任务， Netty也提供了叫做ByteBuf
 			通过合理的切分微服务变价可结局大缤纷分布式的事务问题
+			
+98.redis hget 实例
+	hget pay:bankcard_acct 1366          pay:bankcard_acct       key-1366 value-5
+	
+99.HandlerInterceptorAdapter  在拦截器中赋值全局的静态资源路径
+
+
+100.-- js相关	
+		var smsCodeValiate;  变量要初始化 不然就是undefined
+		var smsCodeValiate = false;
+		var tip='tips';  
+
+		动态添加一个到form中
+			var cardForm=$('#cardForm'); //得到form对象
+			var options=$("#cardArea option:selected");//拿到选中的select
+			var bankNameInput=$("<input type='hidden' name='bankName'/>");
+			bankNameInput.attr("value", options.text());
+			cardForm.append(bankNameInput);
+			
+			var data = $.param({'bankName':options.text()})+'&'+$('#cardForm').serialize();  表单之后的追加  这个是&拼接 
+
+		<link rel="stylesheet" href="/css/openPayIndex.css">
+		实际测试是域名根目录下，不包括项目名，netpay测试就调到域名的根路径下。实际测试写绝对路径，全路径即可
+		url: '${ctx}/open-api/pay/withdrawSubmit/',  直接放里面
+		 
+		 
+		ajax是json串交互，无法返回页面
+		 
+		form表单序列化之后追加字段
+			var data = $.param({'state': state}) + '&' + $('#desProForm').serialize();     这里是&拼接的参数串
+
+		jquery中表单序列化方法：
+			1.serialize()  (将表单内容序列化成一个字符串。)
+			　　格式：var data = $("form").serialize();
+			　　这样在ajax提交表单数据时，就不用一一列举出每一个参数。只需将data参数设置为 $("form").serialize() 即可。
+
+			2.serializeArray()  (将页面表单序列化成一个JSON结构的对象。注意不是JSON字符串)
+			　　格式：var jsonData = $("form").serializeArray();
+			　　比如，[{"name":"lihui", "age":"20"},{...}] 获取数据为 jsonData[0].name；
+
+
+		正则校验
+			/^(?!([a-zA-Z]+|\d+)$)[a-zA-Z\d]{6,20}$/.test('123123a')
+			var rex = new RegExp(/^(?!([a-zA-Z]+|\d+)$)[a-zA-Z\d]{6,20}$/);
+			rex.test()
+
+
+			
+		实现倒数计时，这是异步执行的，不会影响到下一个语句的执行,clearInterval是停止执行，和setInterval搭配使用
+			   function timeCode(num) {
+				var textHtml = 180;
+				var timeCode = setInterval(function () {
+					textHtml--;
+					if (textHtml == 0) {
+						clearInterval(timeCode);
+						document.getElementById("codeBtn").innerHTML = '重新获取验证码';
+						getCodeFlag = true;
+					} else {
+						document.getElementById("codeBtn").innerHTML = textHtml+`s后重新发送`;
+					}
+				}, 1000)
+			}
+			
+		dl dd dt    常规用法   解释型列表
+			<dl>
+				<dd><img src=”图片路径” alt=”" /></dd>
+				<dt>图片标题</dt>
+			</dl>
+			<dl>
+				<dt>电影标题</dt>
+				<dd>主要演员：刘德华，周润发</dd>
+			</dl>
+			
+		span 元素为行内元素，没有width属性，需要转换为块级元素才可以设置width；
+					
+			
+101.BeanFactoryPostProcessor和BeanPostProcessor。两个后置处理器的区别
+		**********
+			BeanFactoryPostProcessor在bean实例化之前执行，
+			之后实例化bean（调用构造函数，并调用set方法注入属性值），
+			然后在调用两个初始化方法前后，执行了BeanPostProcessor。
+			初始化方法的执行顺序是，先执行afterPropertiesSet，再执行init-method。
+		**********
+
+		BeanPostProcessor(bean级别的处理)	
+			执行时机:	实例化之后,操作的是具体的bean
+						spring容器实例化bean之后，在执行bean的初始化方法(InitializingBean,init-method)前后
+			
+			使用案例:	@Autowired,ApplicationContextAwareProcessor	
+			
+			BeanPostProcessor的执行顺序是在BeanFactoryPostProcessor之后
+			
+		BeanFactoryPostProcessor(BeanFactory级别的处理)	,多个按优先级处理
+			
+			执行时机：	在beanDefinition加载完成，bean实例化之前执行
+			操作对象：	BeanDefinition	针对整个Bean的工厂进行处理,不能实例化操作
+			使用案例:	PropertyPlaceholderConfigurer
+			
+		java对象的创建过程往往包括 类初始化 和 类实例化 ，
+			初始化：静态的（变量，方法，代码块）会被执行，只在类加载的时候执行一次
+			实例化：创建一个类的实例对象。可多次实例化，堆中开内存
+			在Java对象初始化过程中，主要涉及三种执行对象初始化的结构，分别是 1.实例变量初始化、2.实例代码块初始化 以及 3.构造函数初始化。
+			Java要求在实例化类之前，必须先实例化其超类，以保证所创建实例的完整性			
+					
+			xml中定义的bean标签，Spring会解析成一个BeanDefinition(存储bean标签的信息，用来生成bean实例)，这个BeanDefinition就是bean标签对应的javabean。
+			
+102.open 和 netpay在同一个tomcat中 ,然后数据源出问题
+	spring.jmx.enabled=false
+	

@@ -113,6 +113,16 @@ git，maven相关
 
 	idea在打包的时候，使用maven中的lifecycle中的install,不要用plugin下的
 
+	idea git  冲突结局
+		可以打开文件，和之前的eclipse一样，改完之后add添加后提交，解决了之后,要add 和 commit 最后push
+		打开对比文件，对比merge冲突，然后commit-push即可
+
+	冲突的文件颜色有区别，标记解决之后就一致了
+
+	local changes  本地文件修改，查看有哪些文件被改动了，类似git staging
+	log就是git的变动history，各个分支改动比较全。是git-log，比较详细
+	还有个history是当前分支的变动历史
+
 
 代码相关
 	点击进入接口的实现类，选中方法右击goto，查看实现类的方法
