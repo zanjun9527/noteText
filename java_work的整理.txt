@@ -345,7 +345,8 @@
 		<url-pattern>/*</url-pattern> 会匹配所有url：路径型的和后缀型的url(包括/login,*.jsp,*.js和*.html等)
 		
 		final static常量String不能被重新赋值，只能被替换，替换不改变原来的值，而是返回这个新值，	
-
+		static方法只能访问static属性
+		private static是合法的，且有着其独到的用处：为静态方法提供私有静态属性。
 
 9.前端
 		var name=$(this).parent().siblings('input').eq(1).val(); 获取同级第二个input元素
@@ -963,6 +964,27 @@
 			注1：对于resin服务器也可以将错误跳转配置在resin-web.xml文件中，效果一样。	
 
 		在post请求中传递的参数中有带空格的，需要用url编码%20替换掉
+
+
+
+
+	路径的编码
+	
+		1.url该编码的编码一定要编码,否则如果存在空格就会报400错误,那么什么样的url是该编码的呢?
+      	1).url中有空格等特殊字符的		 2). URL中有中文的
+		2.编码要只对参数编码,不要对整个url进行编码,因为如果对整个url编码的话会把url中的"/","&"等字符也进行编码了
+		3.使用URLEncoder.encode("str","charset");方法编码
+
+		示例:String url = “http://localhost:7080/test?condition=”+URLEncoder.encode("工厂","utf-8")；
+
+
+		js中encodeURI()是Javascript中真正用来对URL编码的函数。
+			encodeURI					排除ASCII字母、数字、~!@#$&*()=:/,;?+'			需要编码整个URL，然后需要使用这个URL，那么用encodeUR
+			encodeURIComponent			排除ASCII字母、数字、~!*()'						编码URL中的参数的时候，使用encodeURIComponent，参数后面的/是需要编码的	
+			encodeURIComponent比encodeURI编码的范围更大。
+
+
+
 		
 		使用WebApplicationContextUtils在servlet中获取context
 				
@@ -1971,6 +1993,17 @@
 			新线程，则将新的connection放在threadlocal里，再get给到线程。
 			数据库连接池，是将connection放进threadlocal里的，以保证每个线程从连接池中获得的都是线程自己的connection。
 	
+		
+		private static final ThreadLocal   一般都用 private  static  final 修饰    使用完必须remove，
+		在使用ThreadLocal对象,尽量使用static,不然会使线程的ThreadLocalMap产生太多Entry,从而造成内存泄露(知道就行)
+
+
+		使用ThreadLocal最好是每次使用完就调用remove方法，将其删掉，避免先get后set的情况导致业务的错误。
+		1内存溢出，ThreadLocal依赖没有释放，无法GC。
+		2线程池的某个线程会被反复使用,ThreadLocal的生命周期不等于一次Request的生命周期，造成获取threadLocal内数据异常。
+
+
+
 30.线程的相关：
 		标记为daemon的线程是守护线程，一般查找问题定为的是主线程
 		******查看WAITING的线程，重点查看包含自己代码行的方法调用栈。******
@@ -2573,6 +2606,22 @@
 			
 			nginx是监听的本地ip，所以要改host文件域名，搭配使用，默认http是80端口，https是443端口，浏览器默认不显示端口域名，不得使用已经注册的域名。
 		
+
+			
+        location /ids {
+        proxy_pass http://192.168.6.251:8150/ids;
+ }
+		 
+				#location /login {
+       proxy_pass http://192.168.6.251:8150/ids/login;
+}
+	
+				#location /ids/login {
+     # proxy_pass http://192.168.6.251:8150/ids/login;
+}
+		
+
+
 		
 40.sso相关，单点登录相关
 		sso单点登录流程，这个是主要思想
@@ -3017,9 +3066,13 @@
 	
 	
 		dubbo在springboot中，不使用内嵌的tomcat启动，jar启动
-			//SpringApplication.run(XyeServiceCoreApplication.class, args);	//静态的run方法，使用内嵌的tomcat启动，至于能不能用在无tomcat的jar启动，暂不测试
-			new springapplicationbuilder(a.class).web(false).run(args)，jar启动其中中不使用tomcat，启动springboot工程，搭配下面的使用
-			com.alibaba.dubbo.container.Main.main(args);//dubbo的推荐的main函数启动
+			0.//SpringApplication.run(XyeServiceCoreApplication.class, args);	//静态的run方法，使用内嵌的tomcat启动，至于能不能用在无tomcat的jar启动，暂不测试.该配置会默认使用boot自带的tomcat，soa服务工程不需要
+			1.	new springapplicationbuilder(a.class).web(false).run(args)，jar启动其中中不使用tomcat，启动springboot工程，搭配下面的使用
+			2.	com.alibaba.dubbo.container.Main.main(args);//dubbo的推荐的main函数启动
+			
+			0.默认内置tomcat的web启动
+			1.非tomcat启动boot，可以自定义启动参数
+			2.启动dubbo
 
 			springapplicationbuilder.sources()在原本的流程中是用来指定外置tomcat的入口，war启动指定入口，main是java启动入口
 			@Override

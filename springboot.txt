@@ -1,5 +1,7 @@
 springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 
+https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   boot¹Ù·½ÎÄµµ
+
 
 1¡¢springbootµÄÖĞµÄÅäÖÃÎÄ¼ş£ºÄ¿Ç°¿´ @Configuration ºÍ @beanÊÇ´îÅäÊ¹ÓÃµÄ
 
@@ -20,6 +22,7 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 6¡¢springÖĞµÄ×÷ÓÃÓò scope      singleton ¹ÜÀíµÄÍ¬Ò»¸öbeanÊµÀı
 
 7¡¢springbootÖĞ¿ÉÒÔµ¼ÈëxmlÎÄ¼ş£¬Ò²¿ÉÒÔ×¢ÈëÊôĞÔÎÄ¼ş @propertySource  µ«ÊÇ»¹ÒªÅäÖÃ¸öpropertySourceplaceholderµÄbean
+   @PropertySourceÖ±½Ó×¢ÈëÊôĞÔÎÄ¼ş£¬Ö±½Ó×¢ÈëÊôĞÔÎÄ¼ş£¬±ğµÄµØ·½¿ÉÒÔÖ±½Ó@value
 
 8¡¢ApplicationContextAware£¬Ê¹bean¿ÉÒÔ»ñµÃspringÈİÆ÷ÖĞµÄ·şÎñ
 
@@ -61,6 +64,12 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	4¡¢ÏîÄ¿ÖĞĞèÒªºÜ¶àµØ·½Ê¹ÓÃ½öÒ³Ãæ×ªÏò¹¦ÄÜ£¬Ö±½ÓÊ¹ÓÃaddviewcontrollersÌí¼Ó¼´¿É
 
 	
+	spring bootÄ¬ÈÏÑ¡Ôñ½ûÓÃºó×ºÄ£Ê½Æ¥Åä
+	ĞèÒª¿ªÆôspring.mvc.pathmatch.use-suffix-pattern=true
+	ÅäÖÃ/       Â·¾¶ÊÇ /aaa      aaa.htm²»½ø
+	ÅäÖÃ*.htm   Â·¾¶ÊÇ /aaa      aaa.htm½ø
+
+
 
 13¡¢	1.http://start.spring.io/  ¿ìËÙ´´½¨¹¤³Ì   ¹ÙÍøµÄÄ£°åÏÂÔØ
 	2.×Ô¶¨ÒåbannerµÄµØÖ·£ºhttp://patorjk.com/software/taag
@@ -82,11 +91,21 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	@EnableConfigurationProperties ÔÚÃ»ÓĞÊ¹ÓÃ@ComponentµÈ×¢½âÊ±Ê¹ÓÃ@ConfigurationProperties,ÕâÊ±ĞèÒª¿ªÆôÅäÖÃ
 
 
+	@ConfigurationProperties×÷ÓÃÔÚ·½·¨ÉÏ£¬ÊôĞÔ×¢Èë£¬ĞèÒªÅäºÏ@bean	
+	@Bean
+    	@ConfigurationProperties(prefix = "account")
+    	public AccountProperties accountProperties() {
+        	return new AccountProperties();
+    	}
+
+
 18¡¢	bootµÄ¶à»·¾³	application-dev.properties   ÔÚapplication.propertiesÖĞÖ¸¶¨spring.profile.active=dev¾ßÌåµÄÊôĞÔÎÄ¼ş
 
 19¡¢	@EnableAutoConfiguration  Æô¶¯×Ô¶¯ÅäÖÃ ÔÚautoconfigure°üÏÂ  Ô­Àí¾ÍÊÇ ÆäÖĞÊ¹ÓÃÁË¶à¸öÀàËÆ@conditonalµÄ×¢½â£¬Âú×ãÌõ¼ş×Ô¶¯ÅäÖÃ£¬¿ÉÒÔ×Ô¼º½¨Á¢×Ô¶¯ÅäÖÃÊµÏÖµÄ£¬	********Ôİ²»ÑĞ¾¿£¬ºóĞøÓĞĞèÒªÔÙ¿´*******
 
 20¡¢	ÊµÏÖmvcµÄÏà¹ØÅäÖÃ,	WebMvcConfigurationSupport ÓëWebMvcConfigurerAdapter ¶¼¿ÉÒÔÅäÖÃMVC,WebMvcConfigurationSupport Ö§³ÖµÄ×Ô¶¨ÒåµÄÅäÖÃ¸ü¶à¸üÈ«£¬WebMvcConfigurerAdapterÓĞµÄWebMvcConfigurationSupport ¶¼ÓĞ
+	mvc.pathmatch.use-suffix-pattern: true #ÆôÓÃÕâ¸öÖ®ºó£¬ server.servlet.pathÅäÖÃºó×º²Å»áÉúĞ§¡£(mvcÅäÖÃÀ¹½ØÂ·¾¶)
+	  
 
 21¡¢	ÊôĞÔÎÄ¼şÖĞµÄÊôĞÔÔÚ×Ô¶¯ÅäÖÃµÄ°üÏÂÊÇÓĞ¹æ¶¨µÄ£¬ÒÔ¹æ·¶µÄÇ°×ºÎªÔ¼¶¨
 
@@ -119,7 +138,14 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	
 	¾²Ì¬×ÊÔ´Ó³Éä£ºÍ¬ÉÏ
 
+	bootÖĞÅäÖÃ¾²Ì¬×ÊÔ´ResourceHandlerºó£¬¾²Ì¬×ÊÔ´Â·¾¶²»»áÔÙ½øÈëÀ¹½ØÆ÷ÁË¡£
+
 24¡¢	mybaisµÄÅäÖÃ»¹ÊÇ½¨ÒéÊ¹ÓÃ´úÂëÅäÖÃ£¬Êı¾İÔ´ jndiºÍjdbcµÄÅäÖÃ¿ÉÒÔ²Î¿¼Ğ¡ÃØÊéµÄÅäÖÃ
+	spring.datasource.type Á¬½Ó³ØÀàĞÍ boot Ä¬ÈÏÊÇ  HikariDataSource
+
+	JDBCÁ¬½ÓÊı¾İ¿âµÄÁ½ÖÖ·½Ê½£ºDriverManager¼°DataSource     ¿ÉÒÔÊ¹ÓÃÈı·½Êı¾İ¿âÁ¬½Ó±ÈÈçdruidµÈ
+
+
 
 24¡¢	@Component¿ÉÅäºÏCommandLineRunnerÊ¹ÓÃ£¬ÔÚ³ÌĞòÆô¶¯ºóÖ´ĞĞÒ»Ğ©»ù´¡ÈÎÎñ¡£³ÌĞò³õÊ¼»¯Ïà¹Ø
 		ApplicationRunnerÒ²¿ÉÒÔ£¬Õâ¸ö¿ÉÒÔ»ñÈ¡¸üÏêÏ¸µÄÃüÁîĞĞ²ÎÊı
@@ -168,6 +194,15 @@ springboot-171 ¿ªÊ¼boot µÄweb¿ª·¢
 	
 
 32¡¢spring-boot-maven-plugin ²å¼ş¿É½«¹¤³Ì´ò³ÉÒ»¸öfat jar£¬Ö±½Ójava -jar Ö´ĞĞ¼´¿É£¬ºÍÆÕÍ¨µÄmaven´ò°üÏà±È£¬³ıÁËclassesÏÂÄÚÈİ£¬»¹°üº¬lib£¬ºÍbootµÄÒ»Ğ©jarÆô¶¯µÄÀà
+	spring-boot-maven-plugin(´òµÄjar°üÊÇ¿ÉÖ±½Ójava -jar  name.jarÖ´ĞĞ)
+		1.Ö»ÔÚ¶ÀÁ¢ÔËĞĞµÄÄ£¿é(Æô¶¯Ïî¹¤³Ì£¬Èçprovider)pomÖĞÌí¼Ó,
+		2.×÷ÎªjarÒÀÀµµÄÏîÄ¿Module²»ÒªÒıÈë¸Ã²å¼ş¡£(²»ĞèÒªÓĞÆô¶¯Àà£¬Ò²²»ĞèÒªÖ´ĞĞ)
+		3.²»Òª¶¨ÒåÔÚ¾ÛºÏ¹¤³Ì¸¸pom.xml(»òÕßÊ¹ÓÃmaven-compiler-pluginÒ²ĞĞ)£¬·ñÔòÃ¿¸ö×ÓÄ£¿é¶¼ÒªÆô¶¯main class£¬·ñÔòmvn install±¨´í¡£¸¸pom²»ĞèÒª<build>
+
+    spring-boot-maven-pluginÔ­Òò£ºÒòÎªÕâ¸ö²å¼ş»áÖØĞÂ´ò°ü(repackage),´ò°ü³Éspring-boot¿ÉÍ¨¹ı-jarĞÎÊ½ÔËĞĞµÄjar»òwar°ü£¬²¢ÇÒ°ÑÔ­À´maven´ò°üÖØÃû³Æ³É.war.original½áÎ²
+
+
+
 
 
 ----------springbootÊµÕ½----------
@@ -234,11 +269,23 @@ new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ
 	spring-boot-starter-web °üº¬ÁË Spring MVC µÄÏà¹ØÒÀÀµ£¨°üÀ¨ Json Ö§³ÖµÄ Jackson ºÍÊı¾İĞ£ÑéµÄ Hibernate Validator£©ºÍÒ»¸öÄÚÖÃµÄ Tomcat ÈİÆ÷£¬ÕâÊ¹µÃÔÚ¿ª·¢½×¶Î¿ÉÒÔÖ±½ÓÍ¨¹ı main ·½·¨»òÊÇ JAR °ü¶ÀÁ¢ÔËĞĞÒ»¸ö WEB ÏîÄ¿¡£
 	¶øÔÚ²¿Êğ½×¶ÎÒ²¿ÉÒÔ´ò³É WAR °ü·Åµ½Éú²ú»·¾³ÔËĞĞ¡£
 	
-	
-	
-	
-	
 	Êµ¼Ê²¿Êğ£¬½«warÍÏµ½webappsÏÂ£¬Ö»±£ÁôÒ»¸örootµÄ¿ÕÄ¿Â¼£¬½âÑ¹µ½rootÏÂ£¬É¾³ıwar¼´¿É
+
+
+	====================netpay boot ==========================
+	ÆÕÍ¨µÄÊÇÔÚwebappÏÂ²¿ÊğµÄ£¬µ«ÊÇbootµÄ±¾µØÊÇÖ±½ÓÔÚxye-netpay-boot/target/classes/ÏÂÔËĞĞµÄ
+	file:/C:/Users/xiaoyuer/git/xye-netpay/xye-netpay-pom/xye-netpay-boot/target/classes/
+
+	È»ºólib ºÍweb-infÏÂµÄÎÄ¼şÃ²ËÆÊÇÈ¡µÄwebappÏÂµÄ¹¤³ÌÄ¿Â¼£¬±ÈÈçjar ºÍ¾²Ì¬ÎÄ¼ş¡£
+
+	====================netpay war ==========================
+	Ê¹ÓÃµÄParallelWebappClassLoader£¬context: xye-netpay
+	file:/D:/apache-tomcat-8.5-pay/webapps/xye-netpay-war/WEB-INF/classes/
+
+
+	<!-- ±¾µØbootÔËĞĞ»·¾³ ,Éú²úÊÇwar£¬ÔÚtomcatÏÂÔËĞĞ£¬Ê¹ÓÃµÄÊÇÒÔÉÏµÄ×ÊÔ´ÎÄ¼ş£¬boot±¾µØÖ±½ÓÔËĞĞtarget/classes-->
+	<!-- µ¼ÖÂbootÔÚtargetÏÂ¼ÓÔØ²»µ½ÎÄ¼ş  Ô­ÏÈÊÇtomcatÆô¶¯Ã»ÓĞÓ°Ïì¡£¼ÇµÃ²âÊÔwarºóÕæÊµ¼ÓÔØµÄÄ¿Â¼ -->
+
 
 springbootÖĞµÄ×Ô¶¨ÒåÅäÖÃ£º
 	£¬Ó°Ïì×Ô¶¯ÅäÖÃµÄ£º1¡¢ÏÔÊ½¸²¸Ç 2Ê¹ÓÃÊôĞÔ½øĞĞ¾«Ï¸»¯ÅäÖÃ
@@ -290,10 +337,20 @@ return DataSourceBuilder.create().build();
 }
 
 
+ÔÚÍ¬Ò»¸öconfigurationÖĞ
+@beanÖĞÒıÓÃÁíÒ»¸öbean
+1.bean(),Ö±½Óµ÷ÓÃ·½·¨ÄÃµ½Ò»¸öbean£¬(±»@Bean×¢½âµÄ·½·¨»á±»SpringÖØĞ´£¬¶à´Îµ÷ÓÃ»á·µ»ØÍ¬Ò»¸öBean¶ÔÏó)
+2.ÔÚÈë²ÎÖĞÖ±½ÓÒıÈëspringbean£¬ÀàĞÍ-Ãû³Æ,Ç°ÌáÊÇÔÚÍ¬Ò»¸öconfigurationÖĞ
+
+
 
 bootÖĞµÄyml¸ñÊ½Ò²Í¦ºÃÓÃµÄÓĞÌáÊ¾£¬¿Õ¸ñÇø·Ö£¬:ºóÃæĞèÒª¼ÓÉÏ¿Õ¸ñ£¬ÅäÖÃmybatisÒ²¿ÉÒÔ£¬mvcÏà¹ØµÈ
 
 freemarkerºÍThymeleafÓï·¨£¬Á½ÖÖ²»Í¬µÄÄ£°åÒıÇæ£¬Óï·¨²»Í¬£¬Ç°¶ËÏÔÊ¾¶øÒÑ£¬´ÓÓï·¨Ï°¹ßÉÏÀ´½²£¬¸üÍÆ¼öfreemarker
+
+
+spring.freemarker.template-loader-path=/WEB-INF/template,     ×îºó±ØĞëÒª¼Ó","  ²»È»·ÃÎÊ²»µ½   Õâ¸öĞèÒª¾«È·µ½ftlµÄÎÄ¼şÎ»ÖÃ.
+
 
 bootµÄÄ¬ÈÏµÄÅäÖÃmybatisºÍdatasource£¬»ù±¾ÅäÖÃ
 ideaÎÄ¼şÂÒÂë£¬ÏÈÇĞ»»µ½¶ÔÓ¦µÄ±àÂë£¬ÔÙconvert(Ó¦¸ÃÊÇ¶ÁÈ¡ÎÄ¼şÄÚÈİ£¬²¢ÒÔIDE±¾ÉíÖ¸¶¨µÄencodingÀ´½øĞĞ½â¶Á)
@@ -312,7 +369,23 @@ spring-boot ÈÈ¼ÓÔØ
 Ê¹ÓÃ Spring Loaded
 µ±ÏµÍ³Í¨¹ı mvn spring-boot:runÆô¶¯»òÕß ÓÒ¼üapplication debug Æô¶¯
 £¨ÏµÍ³¼àÊÓclassesÎÄ¼ş£¬µ±ÓĞclassesÎÄ¼ş±»¸Ä¶¯Ê±£¬ÏµÍ³»áÖØĞÂ¼ÓÔØÀàÎÄ¼ş£¬²»ÓÃÖØÆôÆô¶¯·şÎñ£©
+
+
+
 Ê¹ÓÃ spring-boot-devtools
+1.Ôö¼ÓÒÀÀµ£¬
+2.pluginÖĞÌí¼Ó
+<configuration>
+	<fork>true</fork> <!-- Èç¹ûÃ»ÓĞ¸ÃÅäÖÃ£¬devtools²»»áÉúĞ§ -->£¿
+</configuration>
+3.File -> Settings -> Compiler£¬¹´Ñ¡ Build Project automatically
+4.°´¿ì½İ¼üCtrl+Shift+Alt+/£¬Ñ¡Ôñ1.Registry..---->¹´Ñ¡ compiler.automake.allow.when.app.running ¼´¿É
+
+scheduledExecutorService  ¶ÔÓ¦µÄ¼¸¸öjob¶¨Ê±ÕûÀí
+
+
+
+
 
 
 Spring bootÏîÄ¿Í¨³£Çé¿öÏÂÓĞÈçÏÂ¼¸ÖÖÆô¶¯·½Ê½£ºÍ³Ò»µÄÈë¿Ú¾ÍÊÇÆô¶¯Àà
@@ -322,6 +395,105 @@ Spring bootÏîÄ¿Í¨³£Çé¿öÏÂÓĞÈçÏÂ¼¸ÖÖÆô¶¯·½Ê½£ºÍ³Ò»µÄÈë¿Ú¾ÍÊÇÆô¶¯Àà
 	Í¨¹ıServletÈİÆ÷Æô¶¯£¬ÈçTomcat¡¢JettyµÈ¡£
 
 
+
+
+
+
+
+
 jasypt¼ÓÃÜÓÃ
 @Scheduled  Ã»ÓĞ³Ö¾Ã»¯¹¦ÄÜ 
 @Async¾ÍÊÇÊµÏÖÁËÒì²½¿ªÏß³ÌÖ´ĞĞ
+
+
+bootÖĞÊ¹ÓÃjsp
+	https://www.cnblogs.com/zs-notes/p/9365705.html
+	ĞèÒªÕâÈı¸öÒÀÀµ£¬¸üÖØÒªµÄÊÇ±ØĞë½«´´½¨webappÄ¿Â¼£¬ÏÂÃæ´´½¨WEB-INF,È»ºó·ÅÎÄ¼ş½øÈ¥Ê¹ÓÃ£¬»¹ÊÇÊ¹ÓÃÀÏ°åµÄwebapp½á¹¹
+	Èô²»½èÖúÈÎºÎÄ£°åÒıÇæµÄ»°£¬JSPÒ³Ãæ·ÅÔÚresourcesÄ¿Â¼ÏÂ£¨°üÀ¨È±Ê¡µÄ¼¸¸ö×ÓÄ¿Â¼£©ÊÇ·ÃÎÊ²»µ½µÄ£¡
+	<artifactId>javax.servlet-api</artifactId>    
+	<artifactId>jstl</artifactId>
+	<artifactId>tomcat-embed-jasper</artifactId>***
+	
+	
+	jspÊÓÍ¼ÎÄ¼şÓ¦¸Ã·ÅÔÚwebappsÏÂ£¬Ê¹ÓÃÄ£°åÒıÇæ£¬js¡¢Í¼Æ¬µÈ¾²Ì¬×ÊÔ´ÎÄ¼ş²ÅÊÇ·Åresources
+	1.Ïë·Åµ½resourceÏÂ±ØĞëÊ¹ÓÃÄ£°åÒıÇæ£¬	
+	1.Ö±½Ó·ÅÔÚwebappÏÂ£¬ÒÔÇ°µÄÊ¹ÓÃ·½·¨
+	2.¿ÉÒÔ½èÖúÄ£°åÒıÇæ£¬»òÕßMETA-INFÊµÏÖ£¬Â·×Ó±È½ÏÒ°£¬²»³£ÓÃ
+
+
+	server.servlet.jsp.init-parameters.development=true  ÊµÊ±¸üĞÂ
+
+
+bootÖĞÊ¹ÓÃhttps
+	springboot https http   Õâ¸öÒ²Ã»É¶ Ö±½ÓËÑË÷ÅäÖÃ¼´¿É£¬Éú²úÍ¨¹ınginxÊµÏÖhttpsµ½httpµÄ×ª·¢,Ê¹ÓÃµ½TomcatServletWebServerFactory¿ªÆôhttp
+	±¾ÉíÊôĞÔÎÄ¼şÖĞÌí¼ÓsslÖ¤ÊéÏà¹Ø
+	
+
+Òì³£ĞÅÏ¢
+	server.error.path=/error.htm   ÕâÊÇÄ¬ÈÏµÄÒì³£Â·¾¶
+
+	boot freemarkerÖĞÄ¬ÈÏÇ°×ºÊÇ/£¬ËùÒÔ×ÊÔ´Â·¾¶ÒªÉèÖÃµ½¾«È·µÄÎ»ÖÃ¡£¿ÉÒÔserver.error.path=/error.htm ¿ØÖÆÒì³£Â·¾¶ £¬´îÅäErrorControllerÊ¹ÓÃ
+
+	ErrorController¿É¶ÔÈ«¾Ö´íÎó½øĞĞ´¦Àí£¬µ«ÊÇÆä»ñÈ¡²»µ½Òì³£µÄ¾ßÌåĞÅÏ¢£¬ÀıÈç¶Ô×Ô¶¨ÒåÒì³£µÄ´¦Àí
+
+	@ControllerAdvice¿É¶ÔÈ«¾ÖÒì³£½øĞĞ²¶»ñ£¬¶ø404ÕâÑù²»»á½øÈë¿ØÖÆÆ÷´¦ÀíµÄÒì³£²»Æğ×÷ÓÃ£¬¿É´îÅä@ExceptionHandlerÊ¹ÓÃ
+
+	RestControllerAdvice	  Ïà±ÈÔö¼ÓÁËjson·µ»Ø
+
+
+
+cookietÏà¹Ø
+	¶ÀÁ¢µÄ Tomcat
+ĞŞ¸ÄÅäÖÃÎÄ¼ş context.xml £¬Ö¸¶¨ CookieProcessor Îª org.apache.tomcat.util.http.LegacyCookieProcessor£¬¾ßÌåÅäÖÃÈçÏÂ£º
+	<CookieProcessor className="org.apache.tomcat.util.http.LegacyCookieProcessor" /> 
+	<Context>
+
+SpringBoot ÄÚÇ¶ Tomcat µÄ½â¾ö·½Ê½
+ÔÚ springboot Æô¶¯ÀàÖĞÔö¼ÓÄÚÇ¶ Tomcat µÄÅäÖÃ Bean£¬ÈçÏÂ´úÂë£º
+	//tomcat°æ±¾Éı¼¶£¬An invalid domain [] was specified for this cookie
+	@Bean
+	public WebServerFactoryCustomizer<TomcatServletWebServerFactory> cookieProcessorCustomizer() {
+		// lambdaĞ´·¨,ÔİÊ±²»ÓÃ
+//		return (factory) -> factory.addContextCustomizers((context) -> context.setCookieProcessor(new LegacyCookieProcessor()));
+
+		return new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
+			@Override
+			public void customize(TomcatServletWebServerFactory factory) {
+				factory.addContextCustomizers(new TomcatContextCustomizer() {
+					@Override
+					public void customize(Context context) {
+						context.setCookieProcessor(new LegacyCookieProcessor());
+					}
+				});
+			}
+		};
+	}
+
+
+
+
+
+Æô¶¯·½Ê½
+		»ù±¾³£¹æÊ¹ÓÃ,
+		SpringApplication.run(SpringBootApplication.class, args)
+
+		×Ô¶¨ÒåSpringApplication
+		Í¨¹ıSpringApplication APIµ÷Õû
+			SpringApplication springApplication = new SpringApplication(SpringBootApplication.class);
+			springApplication.setBannerMode(Banner.Mode.CONSOLE);
+			springApplication.setWebApplicationType(WebApplicationType.NONE);
+			springApplication.setAdditionalProfiles("prod");
+			springApplication.setHeadless(true);
+
+		Í¨¹ı SpringApplicationBuilder APIµ÷Õû
+				new SpringApplicationBuilder(SpringBootApplication.class)
+				.bannerMode(Banner.Mode.CONSOLE)
+				.web(WebApplicationType.NONE)
+				.profiles("prod")
+				.headless(true)
+				.run(args);
+
+
+¾²Ì¬×ÊÔ´
+	1.ËäÈ»SpringBootÄ¬ÈÏµÄ¾²Ì¬×ÊÔ´µØÖ·ÊÇresourcesÏÂµÄstatic£¬µ«ÊÇËûÖ»ÏŞ´æ·ÅÎÄ¼ş£¬¼´Èç¹ûÄãÔÚstaticÏÂÖ±½Ó·ÅcssÑùÊ½ÊÇ¿ÉÒÔ·ÃÎÊµÄ£¬
+	µ«ÊÇÎªÁË¹ÜÀí£¬ÎÒÃÇÒ»°ã¶¼»áÔÚstaticÏÂĞÂ½¨ÎÄ¼ş¼Ğ£¬Èçcss£¬jsµÈ·ÖÀà¡£ÕâÑùµÄ»°¾Í»á³ö´íÁË£¬ÒòÎªSpringBoot²»»á·ÃÎÊµ½staticÎÄ¼ş¼ĞÏÂµÄ×ÓÎÄ¼ş¼Ğ¡£

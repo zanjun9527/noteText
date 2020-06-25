@@ -1,0 +1,26 @@
+盒模型的应用
+	1.改变宽高范围
+		默认情况下。width和height设置的是内容盒宽高。但是设计的时候往往是边框盒
+			1.精确计算，计算好精确数值
+			2.css3：box-sizing,指定是边框盒尺寸，现在用这个多点
+			
+	2.改变背景覆盖范围
+		默认情况下，背景覆盖边框盒，可以通过background-clip进行修改
+		
+	3.溢出处理
+		overflow，控制内容溢出边框盒后的处理方式
+		
+	4.断词规则
+		word-break,会影响文字在什么位置被截断换行
+		
+		normal：cjk字符，文字阶段，非cjk，单词位置截断		默认
+		break-all，截断所有，所有字符都在文字处截断
+		keep-all，保持所有，所有文字都在单词之间截断
+		
+	5.空白处理
+	
+	单行文本文字省略号处理
+		wihte-space:nowrap,空白位置处理时不换行
+		overflow：hidden
+		text-overflow：ellipsis
+		

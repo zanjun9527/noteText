@@ -79,6 +79,7 @@ idea °²×° ÆÆ½â°æ£º
 	idea ÖĞ²»ÄÜ×Ô¶¯±àÒëµÄÎÊÌâ£¨Êµ²âhtml£©
 	ÔÚedit-macros-start macros recordingÖĞÂ¼ÖÆCtrl + s £¬Ctrl +f9µÄ×éºÏ¼ü£¬£¨Ctrl +f9ÊµÊ±±àÒë£©
 	È»ºóÔÚkeymapÖĞmacrosÖĞÌí¼Óºêadd keyboard Shortcut£¬Ê¹ÓÃCtrl + s ¼´¿É
+	idea ÖĞ¸üĞÂÏîÄ¿µÄ±àÒëjdk£¬ÔÚjava compileÖĞ
 	
 	Î´±£´æÎÄ¼şÌáÊ¾
 	Settings -> Editor -> General -> Editor Tabs: Check "Mark modified tabs with asterisk"
@@ -108,6 +109,19 @@ git£¬mavenÏà¹Ø
 		ËùÓĞµÄgitÏîÄ¿¶¼ÊÇÌáÏÖcommitºó£¬ÔÙpushµÄ£¬ideaÖĞµÄÔÚmergeµÄÊ±ºò×¢ÒâÒªpushÍêÖ®ºóÔÙmergeÔ¶³Ì
 			
 		¿ÉÒÔ²é¿´Ä³¸ö¸Ä¶¯µÄ·ÖÖ§ºÅ£¬revision number £¬ÓÒ±ßÊÇµ±Ç°£¬×ó±ßÊÇÖ®Ç°µÄ°æ±¾
+
+
+	ideaÔÚ´ò°üµÄÊ±ºò£¬Ê¹ÓÃmavenÖĞµÄlifecycleÖĞµÄinstall,²»ÒªÓÃpluginÏÂµÄ
+
+	idea git  ³åÍ»½á¾Ö
+		¿ÉÒÔ´ò¿ªÎÄ¼ş£¬ºÍÖ®Ç°µÄeclipseÒ»Ñù£¬¸ÄÍêÖ®ºóaddÌí¼ÓºóÌá½»£¬½â¾öÁËÖ®ºó,Òªadd ºÍ commit ×îºópush
+		´ò¿ª¶Ô±ÈÎÄ¼ş£¬¶Ô±Èmerge³åÍ»£¬È»ºócommit-push¼´¿É
+
+	³åÍ»µÄÎÄ¼şÑÕÉ«ÓĞÇø±ğ£¬±ê¼Ç½â¾öÖ®ºó¾ÍÒ»ÖÂÁË
+
+	local changes  ±¾µØÎÄ¼şĞŞ¸Ä£¬²é¿´ÓĞÄÄĞ©ÎÄ¼ş±»¸Ä¶¯ÁË£¬ÀàËÆgit staging
+	log¾ÍÊÇgitµÄ±ä¶¯history£¬¸÷¸ö·ÖÖ§¸Ä¶¯±È½ÏÈ«¡£ÊÇgit-log£¬±È½ÏÏêÏ¸
+	»¹ÓĞ¸öhistoryÊÇµ±Ç°·ÖÖ§µÄ±ä¶¯ÀúÊ·
 
 
 ´úÂëÏà¹Ø
@@ -176,6 +190,30 @@ idea ÖĞjdkµÄ±àÒë°æ±¾£¬³ıÁËÔÚÏîÄ¿µÄÊôĞÔÖĞ£¬»¹ÓĞÔÚÉèÖÃÖĞµÄjava compile ÖĞÒ²Òª×¢ÒâÏ
 Default changelist  ÀàËÆeclipseÖĞµÄ¶îignoreÎÊÌâ
 
 
+tomcat
+	ideaÖĞ¿ÉÒÔÅäÖÃ¶à¸ö²»Í¬µÄtomcatÅÜÆğÀ´£¬µ«ÅäÖÃ²»ÄÜÒ»Ñù£¬ĞèÒªÌí¼ÓÈı¸ötomcat
+	war(exploded):ÈÈ²¿ÊğÄ£Ê½	·¢²¼µ½IDEA µÄ¹¤×÷¿Õ¼ä£¬target µÄÄ¿Â¼ÏÂ£¬Ö§³ÖÈÈ²¿Êğ£¨Ñ§Ï°Ê±ÓÃ£©
+	war   : ·¢²¼Ä£Ê½  			´ò³Éwar°ü£¬·¢²¼µ½tomcat·şÎñÆ÷£¬²»Ö§³ÖÈÈ²¿Êğ£¨ÕæÕı·¢²¼Ê±ÓÃ£©
+	ÏîÄ¿µÄÎ»ÖÃ£¬ÆäÊµ¾ÍÊÇÕâ¸öÏîÄ¿targetµÄÎ»ÖÃ(ÓÉoutput directory¾ö¶¨)
+
+	Õû¸öÏîÄ¿ÔËĞĞ¹ı³ÌÎª£ºÊ×ÏÈmaven buildÏîÄ¿£¬½«¹¹½¨½á¹ûĞ´µ½ÏîÄ¿µÄtargetÄ¿Â¼ÏÂ£¬È»ºóidea¸´ÖÆÒ»·İtomcatµÄÅäÖÃÎÄ¼şµ½${user.home}/.IntelliJIdea/system/tomcatÖĞ£¬
+	Ö®ºóÆô¶¯tomcat°²×°Ä¿Â¼ÏÂµÄcatalina.batÎÄ¼ş£¬tomcat¶ÁÈ¡ÅäÖÃÎÄ¼ş£¬ÕÒµ½ÏîÄ¿Î»ÖÃ£¬È»ºó¾ÍÔËĞĞÆğÀ´ÁË¡£
+
+
+
+  	idea ÖĞµÄÓÒÉÏ½Çedit configuration ÖĞ running application update policies ÉèÖÃÈÈ²¿Êğ   Õâ¸öÊµÏÖÁËjava¼´Ê±±àÒë(ÕâÊÇµ¥¶ÀµÄÈİÆ÷µÄÉèÖÃ)
+  	ÏÂÃæÊµÏÖÁËjsp±àÒëÎÊÌâ£¬ÕâÊÇÏµÍ³µÄÉèÖÃ£¬
+  	1£© ¡°File¡± -> ¡°Settings¡± -> ¡°Build,Execution,Deplyment¡± -> ¡°Compiler¡±£¬Ñ¡ÖĞ´ò¹´ ¡°Build project automatically¡± ¡£
+¡¡	2£© ×éºÏ¼ü£º¡°Shift+Ctrl+Alt+/¡± £¬Ñ¡Ôñ ¡°Registry¡± £¬Ñ¡ÖĞ´ò¹´ ¡°compiler.automake.allow.when.app.running¡± 
+
+
+
+ideaÖĞevent_logÔÚ´íÎóÊ±ºòÒ²ÓĞÌáÊ¾
+
+
+jsp ÊµÊ±±àÒë
+	server.servlet.jsp.init-parameters.development=true   idea  ÖĞ jspÊµÊ±±àÒë
+
 =========================================================================================================================
 eclipse
 	java -editor-content assist-advanced  java proposals  alt+/¶à´ÎÇĞ»»
@@ -211,20 +249,30 @@ cmdÖĞµÄ³£ÓÃÃüÁî
 
 
 
+git 
+	countnot lock local trackin ref  fot update   ÖØÆôelipse
+
+
+
+package  Presentation     Hierarchical·Ö²ã
+
+
+folder±äpackage
+½«/src/main/resourcesÀïµÄExcludedĞŞ¸ÄÎª¡°¡±**
+Ñ¡ÖĞExcluded ¡ú Edit ¡ú Add ¡ú ±à¼­¡°**¡±¡ú OK 
+
+
+eclipseÏÂµÄresourceÄ¿Â¼²»´æÔÚ£¬ÔÚjava build pathÖĞÌí¼Ó¼´¿É
+
+
+ideaÖĞµÄ package.packageÁ¬ÆğÀ´ÏÔÊ¾ÎÊÌâ
+	1.µã»÷comµÄÉÏÒ»¼¶°ü£¨ÕâÀï¾ÍÊÇjava°ü£©£¬È»ºóĞÂ½¨°üÎªcom.Dao
+	2.ÔÚcom°üÏÂĞÂ½¨Ò»¸öpackage-info.java£¬È»ºóÔÙĞÂ½¨ÆäËûµÄ°ü
 
 
 
 
+elcipseÏÂctrl + shift + t ¿ì½İ¼ü£¬¾Í¿ÉÒÔ²é¿´ÆäÔ´ÂëÎÄ¼şÁË¡£
 
-
-
-
-
-
-
-
-
-
-
-
+netpay  varsÏÂÃæµÄÎÄ¼ş¼ĞÏÔÊ¾²»³öÀ´£¬ÔÚproperties-resource filterÖĞÇå³ı¹ıÂË¹æÔò
 
