@@ -206,13 +206,22 @@ tomcat
   	1） “File” -> “Settings” -> “Build,Execution,Deplyment” -> “Compiler”，选中打勾 “Build project automatically” 。
 　	2） 组合键：“Shift+Ctrl+Alt+/” ，选择 “Registry” ，选中打勾 “compiler.automake.allow.when.app.running” 
 
-
-
 idea中event_log在错误时候也有提示
 
 
 jsp 实时编译
 	server.servlet.jsp.init-parameters.development=true   idea  中 jsp实时编译
+
+
+创建工程
+	idea创建项目直接newproject即可
+	创建boot聚合工程，先创建只带pom.xml的boot父工程，然后创建boot子module(更改下pom配置即可)，其他jar的可以创建普通的maven的module
+
+	现在idea对目录结构的存放文件类型有要求，mapper文件必须放入到resources中，可以手动将<directory>src/main/java</directory>添加到<resource>下。
+	**/*.xml 代表src/main/java底下全部目录下的全部xml文件
+	
+
+
 
 =========================================================================================================================
 eclipse
@@ -275,4 +284,9 @@ idea中的 package.package连起来显示问题
 elcipse下ctrl + shift + t 快捷键，就可以查看其源码文件了。
 
 netpay  vars下面的文件夹显示不出来，在properties-resource filter中清除过滤规则
+
+
+
+===================vscode==================
+查看-终端，执行git命令操作
 

@@ -1986,7 +1986,6 @@ InputStream is = item.getInputStream();
 		其中包含重写机制，一条 incr*100，最后可以合成一条incr100
 		
 		默认是rdb模式
-
 		
 88.//外部tomcat——web.xml 默认 <welcome-file>index.htm</welcome-file>,boot 默认是/
 
@@ -2011,7 +2010,6 @@ InputStream is = item.getInputStream();
 		而thymele拥有强大的内置工具，只要使用th:text="#dates.format(date,"yyyy-MM-dd")"即可获取时间
 		再比如：jsp页面，无法进行选择操作，而thymeleaf可以使用th:switch="${sex}" th:case="0"
 		
-		
 	编码和转义不一样
 		编码是前后端的交互，转义是前台的显示
 		就是将展示的东西，替换一些常用的特殊字符
@@ -2023,6 +2021,13 @@ InputStream is = item.getInputStream();
 		外边距重合，但是两个外边距之间有间隔内容，就不会合并
 		div的高度由height决定，和内容无关
 
+	ftl  模板操作方便，各种遍历，和判断操作直接使用
+	html 单纯的html只能展示，遍历操作，一般通过js操作	
+	
+	css制作三角箭头，可以配置after伪类使用
+	用下面连个属性，加上color中的transparent可以做一个箭头，原理是四个方向不同尺寸和颜色会对角线分割，隐藏部分就会是一个箭头.border边框不会重合
+	border-width
+	border-color
 
 		
 90.为什么有了@Compent,还需要@Bean呢？?
@@ -2042,7 +2047,6 @@ InputStream is = item.getInputStream();
 		context.getMergedJobDataMap().get(ScheduleConstants.TASK_PROPERTIES));
 		可以使用这个属性将当前系统job绑定一个自定义的job，当系统执行的时候，然后通过绑定的job信息，执行对应的逻辑。支付中是直接将路劲放在库的trigger_name中的
 		意思是通过绑定参数，封装执行的方法
-
 		
 93.不从controller传request，RequestContextHolder的使用
 	HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();

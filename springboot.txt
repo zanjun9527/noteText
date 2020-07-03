@@ -420,8 +420,12 @@ boot中使用jsp
 	1.直接放在webapp下，以前的使用方法
 	2.可以借助模板引擎，或者META-INF实现，路子比较野，不常用
 
-
 	server.servlet.jsp.init-parameters.development=true  实时更新
+
+	普通的mvc配置，一般用来配置jsp 
+	#spring.mvc.view.prefix=/templates/
+	#spring.mvc.view.suffix=.html
+	需要在webapp下建WEB-INF等常规的web目录
 
 
 boot中使用https
