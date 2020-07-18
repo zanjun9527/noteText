@@ -7,13 +7,33 @@
 觉得写div复杂吗？  觉得复杂就检讨一下心情是不是浮躁了
 嵌套就够不够，css写的会麻烦
 
-前端文档   w3c  和mdn
-目录  准备看	常规流练习
+div-div(宽度不设置，后子元素是图片定宽)
 
+问题   
+	1.并列div float    第二div中含有li，之后不对齐 (浮动练习）  
+			可以用padding修饰
+	2.文字高度超过限定的div的height	
+			
+			
+			hover不好测试就将浏览器的hover功能打开
+			
+			
+			div中上下两个，其中有个中的a变成了行块，样式异常
+
+前端文档   w3c  和mdn
+目录  准备看	表单练习    39:54
+
+
+雪碧图能缩放裁剪吗
+1em  和1
 
 腾讯课堂html和css
 
 
+div 的自适应和宽度超出  图片等
+浮动元素宽度适应内容
+
+行内元素可以设置margin\padding的左右，对margin的上下不生效
 
 问题记录
 	line-height和height具体的尺寸图，区别
@@ -260,8 +280,10 @@
 					
 					letter-spacing；文字间隔
 					
-					text-align：元素内部文字的水平排列方式  
-				
+					*****
+					text-align：元素内部文字的水平排列方式,设置行盒对齐方式(包括行块盒  文字、图片等)
+					*****
+					
 				选择器
 					通配符选择器
 						*，选中所有元素
@@ -477,7 +499,7 @@
 								width吸收能力强于margin
 				
 								计算完之后，最后的剩余空间被margin-right吸收
-								常规流块盒居中，盒子定宽，margin-right  和 margin-right   都为auto，就水平居中了
+								常规流块盒居中，盒子定宽，margin-right  和 margin-right   都为auto，就水平居中了( margin: 0 auto;)
 				
 							2.每个块盒垂直方向上的auto值
 								height：auto     适应内容的高度
@@ -499,6 +521,9 @@
 						应用场景：	
 							1.文字环绕
 							2.横向排列
+							
+							
+							*****浮动元素,宽度auto，适应内容，内容过多会撑开，样式混乱，最好设置宽度*****
 					
 						基本特点：display会强制变为block，块盒
 							1.修改float属性：	left(左浮动，元素靠上靠左)  right(右浮动，元素靠上靠右)  默认是none
@@ -567,3 +592,375 @@
 				补充：
 					绝对、固定定位元素一定是块盒，一定不是浮动，没有外边距合并
 					
+					
+					
+					
+					
+	常规流练习
+			复杂的页面，一块区域的写，html和css写完一个区域再写另一个
+			body中的article body宽度就不要设置了，article设置百分比就可以了，父元素的内容盒是其包含块
+			尽量将行高等属性往上提，整体把控，默认浏览器字号是16px
+			子元素的外边距可以超出
+			div不写宽度适应内容
+			
+			两个初始的父子元素紧靠，没有border宽度的情况下，可能会出现外边距(外边距为0也合并)合并，解决方案：设置父的padding
+			
+			中间隔着border就不会合并了
+			
+			选择器尽量精确的查找
+			
+			段落之间空一行 一般是1em，行号是字体的大小，上下段落，自动合并外边距
+			
+			min-width    最小宽度  保证最小显示宽度，再小就滚动条
+			
+			section*5>(h2>{章节$}+(p*3>lorem))
+			
+	浮动练习
+		1.横向排列   2.文字环绕      li也可以横向排列
+		
+		只在需要横向排列的元素上使用浮动
+		
+		浮动元素自适应超范围问题
+			浮动元素宽度会默认被内容撑开，所以一般设置子元素的宽度，这样不会影响浮动显示
+			浮动元素默认宽度不能超过父元素的宽度范围，否则换行排列，设置宽度即可换行
+		浮动元素宽度适应内容
+			单行文本垂直居中：line-height=父盒子height
+			行盒上下设置margin无效
+			
+			**********
+				尽量写的精确些，后面好补充
+				写样式的，范围从上到下，依次缩小范围，实现层叠覆盖.main{}--->.main .nav{}--->.main .nav a{}
+			**********
+			
+			
+			制作一个三角符号(注意这里width不写就是默认铺满，为0就指定了属性)
+				.ddd{
+					    border: 15px solid;
+						width: 0px;
+						height: 0px;
+						border-color: transparent transparent pink transparent;
+				}
+				//注意这里的伪类位置，不能写成 .main .nav a.selected a::after  空格是代表子类
+				//注意这里相对的是上个定位元素，.main .nav a.selected{position: relative}
+				.main .nav a.selected::after{
+					content: "";
+					display: inline-block;
+					border: 5px solid;
+					width: 0px;
+					height: 0px;
+					border-color: transparent transparent pink transparent;
+					position: absolute;
+					left: 27px;
+					top: 16px;
+				}
+	
+		一般div的宽度设定，高度自动撑开
+		这种常规的通用设置一般放再reset.css中
+			ol,ul{
+			list-style: none;
+		}
+		
+		浮动都要解决高度坍塌的问题，否则会依次影响上级的高度坍塌，在浮动元素的父元素加上样式即可
+				.clearfix::after{
+						clear: both;
+						display:block;
+						content: "";
+				}
+				
+		 border-radius:   倒角处理
+		 nth-child(),选中第几个元素
+		 
+		 浮动元素不设置宽度就会铺满父级元素，最好是给父级设置宽度，这样控制显示
+		 *****只要使用浮动，父元素建议加上clearfix*****
+		 高度为0，高度坍塌,该元素需要加上clearfix样式
+		 
+		 text-align: center;是相对包含块而言的，，行盒居中都可用这个
+		 
+		 浮动哪个就加上float，整体浮动，和分开浮动不一样
+		 
+	定位练习
+			单行文本水平居中，line-height=包含块height
+			li中还可以包含div等元素
+			指定box-sizing: border-box; 这样调整样式不会影响其他的元素，居中，border宽度可能要微调line-height
+			
+			捕捉移入动作的样式显示 追加的方式定位
+			.header .topnav>li:hover .submenu{
+				display: block;
+			}
+			
+			常用在设置一体色
+			.header .topnav>li:hover::after{} 追加选择
+			
+			div紧临浮动会环绕，如果是隔着一个块盒会换行
+			
+			弹出层
+				主div作为透明背景(fix 铺满视口定位)，中间的居中定位
+				宽高定好就好居中了， left，top，bottom，right 都设置为0(这是冲突的)，然后margin设置auto自动吸收居中
+				.tanchu{
+					position: fixed;;
+					width: 100%;
+					height: 100%;
+					background: rgba(0, 0, 0, 0.5);
+					left: 0;
+					top: 0;
+
+				}
+				.container .main{
+					width: 404px;
+					height: 521px;
+					margin: auto;
+					background-color: #fff;
+					position: absolute;
+					left: 0;
+					top: 0;
+					bottom: 0;
+					right: 0;
+					box-sizing: border-box;
+					padding: 1em;
+					border-radius: 6px;
+				}
+				
+			轮播图
+			
+			
+				div宽度=图片的宽度
+			   宽度不够就会换行  float 是仅靠的，没有空隙， 常规流可能会空白折叠然后导致换行
+			   
+			   文字是可能超过div宽度的，图片也是
+			   
+			   div宽度的是可能被内部元素超过宽的，典型的就是文字...处理，图片也可以
+			   
+			   单行文本垂直居中：line-height=高度
+			   
+			   有重叠的元素基本使用绝对定位，找到希望参照的元素设置成相对定位(第一个有效)
+			   float时候，高度为auto可能会坍塌，定高了一般不会，ul li 是自动高度
+			   
+			  行块盒适应行高，将li排列显示
+			   
+			   
+			   想要不撑开父显示，使用边框盒子，超过margin为负数
+			   
+			   ******点可以ul-li  也可以backgroud变为圆，是元素画成小点，可以float也可以行块盒显示******
+			   
+			   
+			   
+			   
+			   *****绝对定位中，垂直方向居中  上下为0  margin 左右为auto*****
+			   做蒙层，使用rgba实现半透明，
+			   
+			   步骤：1.根据图片显示宽度，将元素宽度都计算好，定好banner(宽度为图片宽度)，img元素float处理，然后主banner的div溢出隐藏。
+					 2.切换图片，切换-margin-left的图片宽度，就相当于向左移动位置了，相当于定banner宽度显示，图片左右拉动切换
+					 3.左右使用 &lt;  &gt; 文字输入就可以了
+					 4.到边停止，每次移动一个图片宽度
+					 5.点点可以li浮动，也可以行块盒
+					
+				实例：
+					<script type="text/javascript">
+						function rightaa(){
+							var leftvalue=document.getElementById("imgsaa").style.marginLeft;
+							if(leftvalue==''){leftvalue=0;}
+							if( parseInt(leftvalue)==-1040){return;//到边停止}
+							document.getElementById("imgsaa").style.marginLeft = parseInt(leftvalue)-520+'px';
+						}
+						function leftaa(){
+							var leftvalue=document.getElementById("imgsaa").style.marginLeft;
+							if(leftvalue==''){leftvalue=0;}
+							if(parseInt(leftvalue)==0){return;//到边停止}
+							document.getElementById("imgsaa").style.marginLeft = parseInt(leftvalue)+520+'px';
+						}
+					</script>
+										 
+					 
+					 
+			更多的选择器
+				更多的伪类选择器
+					first-child		选中第一个元素   比如li:first-child    必须是li元素，且是第一个子元素
+					first-of-type		li:first-of-type  选中子元素中第一个li元素
+					last-child
+					nth-child			a:nth-child(5)   必须是a元素，且是第五个元素
+					nth-of-type
+				
+				更多的伪元素选择器
+					first-letter		选中元素中第一个字母
+					first-line
+					selection			框选文字
+					
+			更多的样式
+			
+				独立css文件中，相对路径 是相对css文件而言的
+				
+				背景默认覆盖边框盒
+					透明度
+						1.opacity   整个元素的透明度(包含了子元素)    值0-1
+						2.颜色位置  设置alpha通道(rgba)  比较常用
+					
+					鼠标
+						cursor 设置样式
+					
+					盒子隐藏
+						1.display:none   不生成盒子   可能会影响其他盒子的样式
+						2.visibility：hidden   生成盒子，任然占据空间，只是视觉上不显示
+					
+					背景图
+						img 是 html的概念/背景图是css的概念
+						
+						1.当图片是网页内容，必须使用img元素
+						2.图片仅用于美化页面，必须使用背景图
+						
+					
+					
+						涉及的css属性
+							background是速写属性
+							
+							background-imgage   	图片地址     :url("pic_path")	
+							background-repeat		默认repeat  可no-repeat
+							background-size			contain-保持比例，完整显示  cover  还可以百分比、数值等
+							background-position 	设置图片位置，还可以预设值(left...),数值，百分比
+							background-attachment	控制背景图是否固定，可以相对于视口
+						雪碧图(spirit)
+							使用background-position移动到左上角，然后窗口缩小到相同大小显示，截取出图片
+						
+							
+				
+					 
+					背景图练习	
+						量图工具：pxcook
+					
+						ul-li 或者nav-a
+						位置/横 纵撑满
+						***速写属性 background: url("../pic/war_nav-bg.jpg") no-repeat 0 0 /100% 100%;***
+						速写属性  border: 1px solid #red
+						float元素最好定宽高，这种一般设置边框盒，防止超尺寸.也防止高度坍塌，ui一般容易坍塌
+						
+						绝对定位时：水平居中 left: 0;right: 0;margin: auto;
+						
+						a标签变成inline-block后可以设置宽高，a元素也可以设置背景图的
+						加上边框后的尺寸变化 可以使用边框盒，使用outline 是外边框，不占据尺寸
+			
+
+						******margin 0 auto  这是常规流******
+						
+						行盒居中：设置外部text-align:centre   设置margin属性需要转为行块盒(会有空白折叠)
+						
+						背景图，定长宽div，然后移动到区域再微调
+					 
+					 
+					 父 height为自动 子元素浮动会有高度坍塌
+					 
+					 浮动要浮动精确的位置，尽量细，浮动的参考是其包含块。所以浮动同一<div class="item"> 不要太细，意思就是浮动同级元素，实现横向排列
+			   
+					像 .menu a  这种就选的太广了，导致后面使用a出现了样式问题，所以些样式除非通用的，其他要尽量精确选中范围
+			   
+			   
+			iframe元素	
+				通常用于再网页中嵌入另外一个页面
+				
+				使用iframe的name属性关联，在<a>中的target属性跳转	、
+				是将a跳转到iframe页面进行展示，不同的a定向同一个iframe元素
+					
+				可嵌入元素
+					1.通常是行盒
+					2.通常显示的内容取决于元素的属性
+					3，css不能完全控制其中的样式
+					4.具有行块盒的
+					
+			flash
+				object元素引入
+				embed
+				都是可替换元素
+				
+				MIME:一般用来标记网络资源类型
+			
+		*****表单元素*****
+			是一系列元素，用于手机用户数据
+				
+			input元素
+				type属性
+					type:text
+					type:password
+					type:date 日期选择框，兼容性问题
+					type:search,搜索框，兼容性问题
+					type:number 数字输入框
+					type:checkbox 多选框
+					type:radio 单选框
+					
+				value:输入框的值
+				placeholder：提示，文本框没内容时显示
+				单选多选框使用name分组
+				
+				
+				input元素可以制作按钮
+				当type值为reset、button、submit，input表示按钮
+			
+			select元素
+				搭配子属性option使用，可以使用
+				optgroup分组显示，label属性显示名字
+				
+			textarea元素
+				文本域，多行文本框
+				有placeholder属性
+				
+			button元素
+				<button>中可以写文字 图片等元素，比input灵活
+					type:   button/submit/reset  默认submit
+				
+			配合表单元素的其他元素
+				label 
+					通常配置单/多选框使用  for属性定位id  或者整个包起来
+					用的还可以
+					
+					
+				datalist
+					不常用，也有兼容性问题
+					数据列表
+						不会显示到页面，通常用于和普通文本框配合
+					
+					datalist>option   使用i-input>list关联
+					
+			
+			*****form*****
+				整个表单元素，name绑定提交
+				只绑定元素的name提交
+				
+				
+			fieldset元素
+				表单分组显示
+				使用legend显示标题
+				
+			表单状态
+				readonly，
+				disabled	这个值是不会传递的
+		
+		美化表单元素
+			使用span或者div做圆
+			outline 不会象border那样影响元素的尺寸或者位置
+			outline是不占空间的，既不会增加额外的width或者height
+			outline 的效果将随元素的 focus 而自动出现
+			
+			不同浏览器可能默认outline样式不一样，所以一般手动重置下，需要将outline-offset重置为0
+			
+			tableindex 实现tab切换顺序
+			新伪类
+				:focus		聚焦样式
+				:checked	框的选中样式       input:checked+label  选中下一个兄弟元素
+				
+			重置表单元素样式  就常规的input等初始样式
+				
+				
+			
+			textarea	resize 调整外部尺寸
+
+				调整文本框到内容的距离
+					1.padding
+					2.text-indent  首行缩进
+				
+			
+			单选，多选样式
+				.classa.classb  且样式
+				label中能加span input 不能加div
+				行盒不能设置宽高，块盒独占一行
+				
+				改变选中样式
+					增加span，选中的的下一个元素(input:checked+label)，使用after添加自定义选中样式。最后在隐藏原样式               ~是所有
+			
+			
