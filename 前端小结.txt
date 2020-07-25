@@ -19,9 +19,18 @@ div-div(宽度不设置，后子元素是图片定宽)
 			
 			
 			div中上下两个，其中有个中的a变成了行块，样式异常
+			
+			 z-index: 1;
+			
+			div>ul>li   中ul00%宽度问题
+			
+			button的上级div都多个共同存在，能同意设置绝对定位吗?还是分开比较好
+			
+			多个公用的class  绝对定位其中一个下面的样式
+			
 
 前端文档   w3c  和mdn
-目录  准备看	表单练习    39:54
+目录  准备看	css进阶  
 
 
 雪碧图能缩放裁剪吗
@@ -777,7 +786,7 @@ div 的自适应和宽度超出  图片等
 					first-child		选中第一个元素   比如li:first-child    必须是li元素，且是第一个子元素
 					first-of-type		li:first-of-type  选中子元素中第一个li元素
 					last-child
-					nth-child			a:nth-child(5)   必须是a元素，且是第五个元素
+					nth-child			a:nth-child(5)   必须是a元素，且是第五个元素    2n偶数even   2n+1奇数odd
 					nth-of-type
 				
 				更多的伪元素选择器
@@ -964,3 +973,85 @@ div 的自适应和宽度超出  图片等
 					增加span，选中的的下一个元素(input:checked+label)，使用after添加自定义选中样式。最后在隐藏原样式               ~是所有
 			
 			
+			
+			表单练习	
+				划分尽量细点
+				默认文字超出h2是显示的  设置h2高度，搭配下边框实现文字中间划线的效果
+				
+				input 铺满父div 使用100%，文本框可以用设置高度
+				
+				浮动元素最好设置好宽高
+				
+				下拉框的样式，可以用div显示
+				
+				两个计算好的宽度，撑满，增加border后可能导致换行，需要指定边框盒
+				
+				边框圆角 四个角都可以设置
+				
+				position: absolute;
+				z-index: 1;
+				
+				 max-height: 150px;  搭配 overflow: auto;  实现溢出滚动条
+				 
+				 想要同意设置按钮样式就已开始就设置好
+				margin上下为负数 可以缩短两个div之间的距离
+				
+				
+				label中不能有div
+				
+				为了设置span的宽高，需要转为行块盒
+				
+				********
+				想要自定义选框的样式，在框元素同级后面再添加一个元素即可，然后用after去添加样式
+				 .form .readme  input:checked+.checkbox::after
+				********
+				
+				width:100%  撑满包含块
+				
+				
+				*****
+				可以先将 .a>.error样式隐藏，当.a.b同时出现将.error样式显示
+				.a.b .error{display:block}快速切换  这样可以操作.a.b下的多个错误样式
+				*****
+				
+				disabled  也是一个伪类
+				
+				input  button 是inline-block
+				
+			
+			
+		表格元素
+			一般用在后台管理系统
+			前后台应该是分开的，用户和管理员，一般不要混在一起
+			表格不再使用网页布局，嵌套多，渲染速度过慢
+			 <table>
+				 <caption></caption>			标题
+				 <thead>						表头
+					<tr><th></th></tr>
+				 </thead>					
+				 <tbody>						表格主体
+					<tr><td></td></tr>
+				 </tbody>				
+				 <tfoot></tfoot>				表尾
+			 </table>
+			 
+			 每行就是一个<tr>,tr-th 是标题单元格，tr-td是普通单元格
+			 
+			 table中的单元格间隙(边框折叠方式)：border-collapse:collapse    取消边框间隙
+			 
+			 合并单元格
+			 被跨的那个单元格要删除
+				跨列 	<td colspan="5">	向右跨
+				跨行	<td rowspan="5">  	向下跨
+			
+		其他元素
+			元素周期表
+			<b>			加粗  一般用css实现
+			<br>		文本中换行，纯文本换行
+			<meta>		description、keywords等网站基本说明
+			<link>		链接外部资源(css 图标)
+				rel 	链接资源和当前网页的关系
+				type   	mime类型，链接资源的mime类型  可以不写
+				
+				
+			其他的不常用，后面用到再说
