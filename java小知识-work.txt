@@ -179,6 +179,8 @@
 	 V - Value（值）
 	 N - Number（数值类型）
 	
+	public static <T> T get(String key, Class<T> clazz) {}
+	T是代表任意一种类型，这是泛型里的问题，<T>是一种形式，表示你用的是泛型编程，不受类型的约束
 	
 13、ThreadPoolTaskExecutor可以配置线程池相关，是spring的线程池技术，可以配置相关参数
 	调用demo
@@ -709,6 +711,9 @@
 		几个soa问题：多级调用的延迟，调试跟踪困难，安全监测，qos支持，高了用，易伸缩
 		
 28.maven相关
+	maven依赖特性
+			1.路径最近者优先
+			2.路径相等(引入的层次相同)，先声明者优先(目前看是jar的引入层次，但是在本pom.xml中顺序靠后的优先)
 		Maven默认用的是JDK1.5去编译，使用高版本的maven需要在pom中配置
 		<build>
 		   <plugins>
@@ -723,6 +728,42 @@
 			  </plugin>
 			</plugins>
 		</build>
+	依赖中scope即约定依赖范围： 
+			compile：默认值，一直可用，最后会被打包 
+			provided：编译期间可用，不会被传递依赖，不会被打包。如tomcat相关jar，容器中有，编译期临时用，运行时由web容器提供。
+			test：执行单元测试时可用，不会被打包，不会被传递依赖 
+			runtime：运行和测试时需要，但编译时不需要 
+			system：不推荐使用 
+		
+		
+		依赖状态
+			compile									编译成功的。
+			omitted for duplicate 					jar包重复依赖(版本一样)。
+			3.4.8 omitted for conflict with 3.4.6	jar包版本冲突(此处引3.4.6)。
+			2.4 managed from 2.3  				 	使用2.4版本，拒绝使用<dependencyManagement>中声明的2.3版本
+	
+		父 pom 中的 dependencyManagement 是允许被子模块的 dependencyManagement 覆盖的。dependencies 优先级高于 dependencyManagement。
+		spring-boot-dependencies 同级别 不是子父模块关系，不受版本继承影响
+
+	dependencyManagement
+		在使用spring-boot-starter-parent(boot的两种方式，还有一个是spring-boot-dependencies) 中传递依赖无效
+		Maven 父pom中dependencyManagement版本优先级高于传递依赖版本(导致引一个jar中的传递依赖，即使指定了版本也无效)
+		解决方式两个：
+			1. 在子模块中<dependencyManagement>定义覆盖父类的申明
+			2.先exclude掉子模块间接依赖，再直接添加依赖并声明版本号
+				
+		*****maven树，查询依赖*****
+		dependency:tree -Dverbose -Dincludes=com.xiaoyuer:xye-core-dao
+		Dincludes=org.springframework:spring-tx 过滤串使用groupId:artifactId:version的方式进行过滤	
+		
+
+		
+	maven-setting.xml配置	
+		maven profile 的active 是并集   activeProfiles和之前的default的关系：激活两个     目前系统发布用的就是这个
+		maven  <relocation>:，构件的重定位信息(更换了group ID和artifact ID),这里会出现一种现象就是，依赖中的，但是pom.xml中搜索不到
+
+		在同一个 <mirrorOf>central</mirrorOf> 下，多个mirror只有第一个生效。针对的是mirrorOf拦截的。(这里是针对匹配上的代理)
+		配置多个mirror时，mirrorOf不能配置" * "，" * " 的意思就是（根据mirrorOf和repository的id）匹配所有的仓库
 		
 		
 29.事务相关
@@ -1274,6 +1315,26 @@
 	
 	
 49.可以直接使用redisTemplate，也可以bean中创建一个jedispool操作。pc中是重复了一个redis操作
+	redistemplate
+		没有设置序列化方式的时候redistemplate使用的序列化方式为JdkSerializationRedisSerializer，所以我们存入key前面会带上一串东西，而StringRedisTemplate使用的是 StringRedisSerializer，序列化的方式不一样，所以使用的时候key就不会出现一串字符串
+		
+		RedisTemplate使用的是 JdkSerializationRedisSerializer 序列化对象
+		StringRedisTemplate使用的是 StringRedisSerializer 序列化String
+		
+		RedisTemplate可以用来存储对象，但是要实现Serializable接口，以二进制数组方式存储，内容没有可读性
+
+		StringRedisTemplate和RedisTemplate。
+		两者的数据是不共通的；
+		StringRedisTemplate默认采用的是String的序列化策略，保存的key和value都是采用此策略序列化保存的。
+		RedisTemplate默认采用的是JDK的序列化策略，保存的key和value都是采用此策略序列化保存的。
+
+		
+		StringRedisTemplate，这个是官方建议的，也是最方便的，直接导入即用，无需多余配置！ 只要属性文件中配置spring.redis.pool等属性即可
+		如果k-v是Object类型，则需要自定义 RedisTemplate。
+		
+		Jackson2JsonRedisSerializer(redis客户端jason显示) 和JdkSerializationRedisSerializer() 
+		JdkSerializationRedisSerializer:    \xAC\xED\x00\x05t\x00\x0Ezheshizhendeba  取出来还是zheshizhendeba
+	
 	
 50.RedirectView     都可以重定向
 	return  new ModelAndView("redirect:/my_requires.htm");
@@ -1603,6 +1664,22 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 			select * from t where a=1 and b>1 and c =1;     #这样a,b可以用到（a,b,c），c不可以
 			
 			
+	查看表作为其他表的外键
+			SELECT
+			ke.referenced_table_name parent,
+			ke.table_name child,
+			ke.REFERENCED_COLUMN_NAME parent_column,
+			ke.column_name child_column,
+			ke.constraint_name
+			FROM
+			information_schema.KEY_COLUMN_USAGE ke
+			WHERE
+			ke.referenced_table_name IS NOT NULL
+			AND ke.referenced_table_name = 'Base_Skill_Appli;'
+			AND ke.REFERENCED_COLUMN_NAME = 'id'
+			AND ke.REFERENCED_TABLE_SCHEMA = 'db_xiaoyuer'
+			ORDER BY
+			ke.referenced_table_name;
 71.nexus 搭建
 	nexus仓库类型  
 		Group：这是一个仓库聚合的概念，访问顺序取决于配置顺序
@@ -1710,6 +1787,7 @@ InputStream is = item.getInputStream();
 	想法就是通过使用freemaker使用预先的ftl模板，然后生成静态的html文件，后面页面直接引用
 	
 77.mybatis的逆向在github的官方文档有相关的xml配置说明。
+	List<Map<String, Object>> list = ppCalendarMapper.selectCalendar();    可以对象map化  xml用map接收
 
 78.设计思想  DelegatingFilterProxy   当不改变这个类本身又需要改变部分功能的，可以使用子类继承，然后覆盖实现
 
@@ -2260,3 +2338,45 @@ InputStream is = item.getInputStream();
 102.open 和 netpay在同一个tomcat中 ,然后数据源出问题
 	spring.jmx.enabled=false
 	
+103.缓存的选择  ehcache   redis  memcached
+	memcached:	服务器端是c编写的，客户端多语言实现，相对下面，效率低
+	Ehcache:	纯java编写的,相对上面效率高，
+	综合比较，两者会选ehcache。redis另算
+	
+	ehcache看了下,就是一个框架，提供了一些缓存方案而已，底层基于jvm内部缓存开发的，大白话就是，基于jvm提前加了一些功能方便你开发，没啥太大区别。
+
+	ehcache直接在jvm虚拟机中缓存，速度快，效率高；但是缓存共享麻烦，集群分布式应用不方便。
+	redis是通过socket访问到缓存服务，效率比ecache低，比数据库要快很多，处理集群和分布式缓存方便，有成熟的方案。 
+
+	如果是单个应用或者对缓存访问要求很高的应用，用ehcache。 如果是大型系统，存在缓存共享、分布式部署、缓存内容很大的，建议用redis。
+	补充下：ehcache也有缓存共享方案，不过是通过RMI或者Jgroup多播方式进行广播缓存通知更新，缓存共享复杂，维护不方便；简单的共享可以，但是涉及到缓存恢复，大数据缓存，则不合适。
+		
+	
+104.手动获取spirngContext
+	
+	***************
+	静态方法中调用spring bean   无法注入static bean
+		原因是Spring容器的依赖注入是依赖set方法，而set方法是实例对象的方法，而静态变量属于类，因此注入依赖时无法注入静态成员变量，在调用的时候依赖的Bean才会为null。
+				
+	@Override这里个别jdk版本不一致导致的原因，一般都要加上，该类需要加入spring 容器
+	定义static变量ApplicationContext，是为了静态共享，利用容器的getBean方法获得依赖对象。
+	@Component
+	public class SpringContextUtil implements ApplicationContextAware{
+		private static ApplicationContext context;
+		
+		public static ApplicationContext getApplicationContext(){return context;}
+
+		public void setApplicationContext(ApplicationContext ctx) throws BeansException {context = ctx;}
+		
+		public static Object getBean(String beanName){return context.getBean(beanName);}
+	}
+
+	Redisclient中 初始化方法    加入spring 容器,初始化后  然后加载到静态属性中
+	public static JedisPool jedisPool;
+	
+105.有import选项 但是类一致导不进来， 查看jdk 重新install
+	maven 版本  编译 运行 不一致
+	spring-data-redis在xye-project-util中是1.8.3版本，支付中已经排除了引用，但还是方法找不到，
+			这里的原因是1.8.3版本是void delete() 编译好了,最终使用的是2.05版本是Boolean delete(),两个不是同一个方法，所以找不到方法
+			这样就是 编译是找自身的jar  运行才会找最终的依赖jar。尽量版本统一
+			方法定义了  会就近寻找jar依赖   

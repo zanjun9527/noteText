@@ -123,7 +123,10 @@ git，maven相关
 	log就是git的变动history，各个分支改动比较全。是git-log，比较详细
 	还有个history是当前分支的变动历史
 
-
+	使用mavenhelper查看maven依赖树
+	
+	
+	
 代码相关
 	点击进入接口的实现类，选中方法右击goto，查看实现类的方法
 	使用eclipse模式   使用ctrl+alt+shift+j  缩写提示 设置完背景色也差不多 
