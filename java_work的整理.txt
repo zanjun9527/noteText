@@ -1530,6 +1530,10 @@
 		1、使用@PostConstruct注解初始化，使用@PreDestroy注解销毁Bean (需要搭配@Component并被spring扫描到才行，启动时执行初始化)
 		2、实现InitializingBean, DisposableBean这两个接口，并复写afterPropertiesSet()和destroy()方法
 		3、使用init-method和destroy-method配置方法，在xml中注入时补全
+
+	boot 初始化
+		实现ApplicationRunner接口，时间run方法 
+		
 		
 	<context:annotation-config> 开启已在spring容器中注册过的bean（无论是通过xml的方式还是通过package sanning的方式）上面的注解。
 	<context:component-scan>除了具有<context:annotation-config>的功能之外，<context:component-scan>还可以在指定的package下扫描以及注册javabean ，这一个标签足够了，上面的不需要
