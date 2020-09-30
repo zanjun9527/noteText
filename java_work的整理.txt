@@ -1609,7 +1609,7 @@
 				所以会将Controller类和方法进行映射,不需要用<mvc:annotation-driven/>了	
 		
 		
-		@Autowired，据类型自动装配，首先在容器中查询对应类型的bean(加上@Qualifier则可以根据byName的方式自动装配，其中@Qualifier不能单独使用)
+		@Autowired，据类型自动装配(by type)，首先在容器中查询对应类型的bean(加上@Qualifier则可以根据byName的方式自动装配，其中@Qualifier不能单独使用)
 　　　　如果查询结果刚好为一个，就将该bean装配给@Autowired指定的数据
 　　　　如果查询的结果不止一个，那么@Autowired会根据名称来查找。
 　　　　如果查询的结果为空，那么会抛出异常。解决方法时，使用required=false

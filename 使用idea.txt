@@ -115,7 +115,7 @@ git，maven相关
 		版本回退
 			1.找到要回退的版本号(右击项目–> Git --> Show History -->选中要回退的版本–>Copy Revision Number)；
 			2.使用git中的resetHead功能然后hard指定Revision Number 回退版本
-			3. 把修改推push到远程服务器
+			3. 把修改推push到远程服务器，这步别忘了，记得用force push
 
 		冲突解决
 			idea 中冲突解决 git-resolve conflicts

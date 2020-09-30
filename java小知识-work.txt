@@ -45,6 +45,9 @@
 	（2）populateBean：填充属性，这一步主要是多bean的依赖属性进行填充
 	（3）initializeBean：调用spring xml中的init 方法。
 	从上面讲述的单例bean初始化步骤我们可以知道，循环依赖主要发生在第一、第二部。也就是构造器循环依赖和field循环依赖。
+	
+	@Bean(initMethod = "start", destroyMethod = "destroy")
+	指定对应bean中的初始化方法相关
 
 	
 	Spring容器会将每一个正在创建的Bean 标识符放在一个“当前创建Bean池”中，Bean标识符在创建过程中将一直保持在这个池中。
@@ -281,11 +284,6 @@
 	运用：生产上dubbo server可以用这种方式部署。
 	搭配boot的时候：new SpringApplicationBuilder(XyeServiceCoreApplication.class).web(false).run(args);要以非web方式进行
 
-
-	
-	
-	
-	
 
 17、在继承arraylist后，转为json对象，后面只能解析出list元素中的东西，使用fastjson是这样的
 	实际是判断list继承后解析的，只解析了list总的元素值，在eclipse中显示正常，但是在idea中显示缺少
@@ -930,6 +928,75 @@
 						
 						
 						
+		mybatis、事务相关
+				JdbcTemplate这种方式也不算成功，实际中用的也不多
+	
+				MyBatis基于SqlSessionFactory(单例)构建的框架。对于SqlSessionFactory它的作用是生成SqlSession接口对象，这个接口对象是MyBatis操作的核心
+				
+				typeHandlers，mybatis中，用来写入和读取数据库过程中不同类型的数据(java-javaType，数据库-jdbcType)进行自定义转换。
+				MyBatis 自动识别 javaType巳和 jdbcType，从而实现各类型转换。
+				
+				#MyBatis描别名包，和 主解＠Alias联用,一般也不用
+				mybatis.type-aliases-package=com.springboot.chapter5.pojo
+				<select id=” getUser ” parameterType=”long" resultType=”user” ></select>
+				
+				这的列名和 POJO 的属性名是保持一致，数据库中的字段名为user name ，而POJO 属名为 userName 这里 SQL 是通过
+				段的别名 (userName)来让它们保持一致的 在默认的情况下， MyBatis 会启动自动映射，将 SQL中的列映射到 POJO 上，有时候你也可以启动驼峰映射，这样就可以不启用别名了 
+				
+				MapperFactoryBean 和 MapperScannerConfigurer 是有区别的， 这两个需要代码开发方式(一般不是首选)。前者单个，后者集中
+				MapperFactoryBean 针对一个接口配置，而MapperScannerConfigurer 则是扫描装配，
+				实际上@mapperScan更加简便使用建议使用
+				
+				#MyBatis 配置文件，当你的配置比较复杂的时候，可使用，简单的就不用配。配置一些插件等  当然sqlSessionFactory也可代码配置addPlugin
+				mybatis.config-location= 
+				＃配置MyBaits插件（拦截器）
+				mybatis.configuration.interceptors= 
+				＃具体类商要与日MappedJdbcTypes 联合使用
+				mybatis.type-handlers-package= 
+				
+				若项目依赖了mybatis-spring-boot-starter后，SpringBoot会自动在IoC容器中创建名称为 sqlSessionFactory(可以在初始化的时候，将插件添加进其中) 和 sqlSessionTemplate的两个Bean
+				
+				//启SpringBean生命周期执行方法加入插件
+				@PostConstruct
+				
+				数据库事务也是通过aop实现的，在jdbc中大量的try catch finally，大量的冗余代码，比如打开和关闭数据库连接，以及事回滚代码，用aop都封装在了一起，只关心业务即可，将业务sql操作切入操作即可
+				
+				按照aop的设计思想，可以吧除执行sql之外的步骤抽取出来单独实现，这就是spring数据库事务编程的思想，关注业务本身，而不是数据库连接资源和事务的功能开发
+				
+				@transactional 作用范围，所有public 非静态的方法启用 ，最终生成一个TransactionDefinition
+					通过该注解属性配置去设置数据库事务，接着调用业务代码，若没有发生异常，spring数据库拦截器就会帮助我们提交事务（异常有事务定义器判断处理），最终释放数据库连接，
+					该注解标识需要启动事务，将业务方法织入约定的流程，其他的操作封装不关心。
+					
+				@transactional 可以放在接口上，也可以放在实现类上，但是推荐放在实现类上(这样可以兼容cglib动态代理)，因为放接口上使得类基于接口代理时才生效。
+				spring中事务管理是由事务管理器来完成的，最常用的是DataSourceTransactionManager，它是实现了PlatfonnTransactionManager()接口的类
+				
+				Boot中，当依赖于 mybatis-spring-boot-starter之后，它会自动创建一个 DataSourceTransactionManager事务管理器(还有MyBatis sqlSessionFactory、sqlSessionTemplate内容，自动创建，直接注入使用事务管理器即可)		
+					
+				使用@transactional标注类和方法后，spring的事务拦截器会同时使用事务管理器的方法开启事务，将代码织入spring数据库事务的流程中。(获得数据库连接，修改隔离级别，执行sql，最后自动关闭和提交数据库事务)
+					
+				*****
+				事务机制中最重要的两个配置项，隔离级别 和传播行为
+				acid 四个特性
+				*****
+				
+				这样一个事务回滚另外一个事务提交而引发的数据不一致的情况，我们称为第一类丢失更新。(现在的数据库不会再出现，效果是取消第一次事务操作，不动)。
+				把这样的多个事务都提交引发的丢失更新称为第二类丢失更新，这个是常见的
+				
+				串行化是数据库最高的隔离级别，会要求所有的sql按照顺序执行，能完成保证数据的一致性。
+				隔离级别越高，性能就越是下降。mysql默认的级别是可重复读(只有幻读的可能)。这里可重复读,使用的应该是行级锁吧，低针对单一条记录
+				
+				幻读，在一次事务中多查询，数量不对，是统计值
+				可重复读是针对数据库的单一条记录，这是数据库存储的值
+				
+				
+				传播行为
+					nested: 在当前方法调用字方法时，若字方法发生异常，只回滚子方法执行过的sql。功能，子方法回滚而当前事务不回滚
+							是使用保存点（save point）技术完成让子事务回滚而不致使当前事务回滚的工作。(若不支持保存点技术，就new 事务操作)
+							sql执行会设置标志位，后面有异常会回滚到这个标志位的数据状态
+							
+					自调用事务失效：因为自调用是类自身的调用，没有走代理对象调用，不会产生aop，这样就不会将代码织入约定流程中
+									方法：1.使用注入的service调用， 2.从springcontext中获取bean(是一个代理对象)，调用也行
+						
 		
 30.其他
 		每次request请求完成后，下一次是重新的request，不会保留上次请求的信息，这叫无状态
@@ -1090,6 +1157,7 @@
 		饿汉模式、懒汉模式、静态内部类模式、枚举模式
 
 		/**
+		 * 这里只要实现的功能就是延迟加载的单例模式。其实使用springbean初始化，也是单例，就是少了延迟
 		 * 类级的内部类，也就是静态的成员式内部类，该内部类的实例与外部类的实例
 		 * 没有绑定关系，而且只有被调用到才会装载，从而实现了延迟加载（调用时候再加载，而不是一开始就加载）
 		 */
@@ -1170,13 +1238,16 @@
 				private static class UserSingletonHolder {
 					private static final UserSingleton INSTANCE = new UserSingleton();
 				}
-
 			}
 		
+		不过spring中的bean默认是单例的，初始化配置UserSingleton的bean，其实也可以，就是不是延迟加载。
+		注意静态属性是和类绑定的，和实例无关，这样就实现了实例共享静态属性
+		spring的bean是每次注入都是同一个bean，但是还是可以new出来的。上面的方法就new不出来，限制的更严格(防止别的开发人员，new对象然后使用错误。总之就是保证绝对的唯一使用)
+		使用@Lazy，springbean也可以实现延迟加载，(减少springIOC容器启动的加载时间,不过一般没必要)
 		
-
 		这个特点是：1. 仅在需要使用单例时调用getInstance进行单例的创建。(相当于懒汉吧这个)，静态内部类调用的时候加载
-					2. JVM虚拟机保证了静态内部类SingletonHolder的类初始化只执行一次，不需要我们手动保证并发的同步。相当于将实例化的过程交给了jvm
+					2. JVM虚拟机保证了静态内部类SingletonHolder的类初始化只执行一次(单例特性，不用null判断之类的了)，不需要我们手动保证并发的同步。相当于将实例化的过程交给了jvm
+					3. 用静态的内部类实现单例模式的原理：静态内部类可以不依赖外部类的实例而被实例化(延迟特性)。
 
 34.多线程和锁相关
 			线程直接run就是普通的方法，并没有开线程。必须new Thread(Runnable target).start 才开新线程
@@ -1307,6 +1378,18 @@
 	信息的加密
 		可分为对称加密：	加密后的信息可以解密成原值	des(适用数据库密码的加密)
 		非对称加密：		无法解密还原为原值			比如 md5
+		
+		自定义md5加密工具类
+			private static final String hexDigits[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
+			系统中使用的是array[16]作为自定义，然后处理MD5加密后的byte[]。
+			private static String byteToHexString(byte b) {
+				int n = b;
+				if (n < 0)
+					n += 256;
+				int d1 = n / 16;
+				int d2 = n % 16;
+				return hexDigits[d1] + hexDigits[d2];
+			}
 
 		
 38.浏览器敲get  对应的sessionid放哪里了
@@ -1477,7 +1560,19 @@
 		filter_2_after
 		filter_1_after
 	
-	
+
+	拦截器的执行顺序
+		? 执行preHandle方法，返回一个布尔值。如果为false ，则结束所有流程：如果为 true则执行下一步。
+		? 执行处理器逻辑它包含控制器的功能 (controller执行内容)
+		. 执行 postHandle方法。
+		? 执行视图解析和视图渲染
+		. 执行 afterCompletion 方法。
+		
+		多个拦截器
+			责任链模式的规则，对于处理器前方法采用先注册先执行，而处理后法和完成方法是先注册后执行的规则 。
+			
+		处理器前(preHandle)方法会执行，一旦返回 false ，则后续的拦截器、处理器和所有拦截器的处理器后(postHandle法都不会被执行。
+		完成方法 aftercompletion不一样，它只会执行返回 true 的拦截器的完成方法，而且顺序是先注册后执行
 	
 	
 49.可以直接使用redisTemplate，也可以bean中创建一个jedispool操作。pc中是重复了一个redis操作
@@ -1521,8 +1616,14 @@
 		
 	
 	
-50.RedirectView     都可以重定向
+50.重定向
+	RedirectView
 	return  new ModelAndView("redirect:/my_requires.htm");
+
+	return "redirect:/user/show?id="+user.getId() ;
+	mv.setViewName("redirect:/user/show?id="+user.getId())
+			
+	RedirectAttributes  这个可以传递一个对象给重定向的数据(其实是存入了session中)
 	
 	
 51.这种注解其实没有必要，分层太细了
@@ -2058,6 +2159,15 @@ InputStream is = item.getInputStream();
 		[Ljava/lang/Object;"就是表示Object[]
 				
 				
+		特别简单的项目，可以@Select直接写在一起
+			@Select("select user_name from user_base_info where id=#{id}")
+			String getuserInfobyid(Integer id);
+				
+			@Select("select * from user_base_info where 1=1 and id>1625")
+			@Results({@Result(column = "user_name",property = "userName"),@Result(column = "nick_name",property = "nickName")})
+			List<UserInfo> getuserinfos();
+
+				
 78.设计思想  DelegatingFilterProxy   当不改变这个类本身又需要改变部分功能的，可以使用子类继承，然后覆盖实现
 
 
@@ -2090,6 +2200,7 @@ InputStream is = item.getInputStream();
 		
 	
 82.普通文件的读取
+	从classpath下加载
 	InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("cer/nihao_dev.txt");
 		      InputStreamReader isr = new InputStreamReader(resourceAsStream);
 		      BufferedReader br = new BufferedReader(isr);
@@ -2100,6 +2211,8 @@ InputStream is = item.getInputStream();
 		      br.close();
 	}
 	
+	
+	File in = new FileInputStream(file);  这个是直接路径加载。类似d盘某个路径
 	
 	
 83.日志路径
@@ -2675,6 +2788,8 @@ InputStream is = item.getInputStream();
 		@PropertySource(value= "classpath:test.properties")  	这是将属性文件加入到容器，后续可以直接用@value注入
 		@ConfigurationProperties(prefix = "na")					这是写在类上，省略前缀，匹配后面的名字，但是注意要有set方法
 			默认从全局配置文件中获取值,如果想加载指定属性文件，就得使用@PropertySource进行加载后再使用@ConfigurationProperties。
+			
+		使用 Configuration configs = new PropertiesConfiguration(filePath);直接临时读取属性文件，初始化
 
 		
 109.iframe 路径编码
@@ -2950,7 +3065,7 @@ InputStream is = item.getInputStream();
 		boot中
 			1. No MyBatis mapper was found in '[com.xiaoyuer.emanager.pay]' package  启动类下放一个取消警告，不影响使用。所有的waring都不影响使用
 			2.mybatis-config.xml 可以不用
-			3.boot 工程下 无需加web.xml
+			3.boot 工程下 无需加web.xml(SpringBootServletInitializer初始化servlet代替了web.xml)
 			4.日志看全，没有明显错误的时候，
 			5.javax.servlet-api   4.0.1 provided     上线使用的tomcat中的，旧版本servlet-api.jar，接口中是没有方法体的
 			
@@ -2997,15 +3112,29 @@ InputStream is = item.getInputStream();
 				
 				list<obj>对象的复制，一般是foreach中，新建copy对象。
 		
-	
+		double的保留位数和四舍五入处理
+				public static double setDifScare(double arg) {
+				BigDecimal bl = new BigDecimal(arg).setScale(2, BigDecimal.ROUND_HALF_UP);
+				return Double.parseDouble(bl.toString());}
+				
+		网银支付，网银网页跳转
+		后端生成自动跳转的Html表单串(包含验签信息),将生成的html写到浏览器中完成自动跳转打开银联支付页面；
 		
+		静态类外部访问必须是public。
+		debug调试时，类中的静态属性查看不到。
+	
+		lombok
+			1.引入lombokjar 2.ide中安装lombok插件	3.使用@data注解
+			不过一般不建议用，需要别人强制安装插件。
+			
 120.前后端分离
 		前端从后端剥离，形成一个前端工程，前端只利用Json来和后端进行交互，后端不返回页面，只返回Json数据。前后端之间完全通过public API约定
 		未分离，先后端取数据后渲染页面。需要等后端返回数据才能处理(页面跳转，值在requrest中)，/分离后，先html后向后台取数据，这个可以自己模拟Jason数据不需要等
 	
 		前后端分离这样的开发架构下，前后端的交互都是通过 JSON 来进行，没有什么服务端跳转或者客户端跳转之类。
 
-	
+		前后端分离的情况下，基本使用json交互，使用@RestController相对@responseBody更加的方便
+		这和mvc模式不一样，原:通过视图名称找到对应视图，将数据模型渲染展示
 	
 121.httpclient
 		soa调用默认就是传输的80端口
@@ -3064,7 +3193,7 @@ InputStream is = item.getInputStream();
 			//1、正常遍历		list.forEach(item->System.out.println(item));
 			//2、根据条件遍历	list.forEach(item->{if("b".equals(item)){System.out.println(item);}
 
-			Map.forEach((key, value) -> {System.out.println(key + "：" + value);});
+			Map.forEach((key, value) -> {System.out.println(key + "：" + value);});  这个遍历比较方便
 			
 			创建->转换->集合
 			List<Integer> ageList = userInfos.stream().map(userInfo -> userInfo.getAge()).collect(Collectors.toList()); // [10, 20, 10]  可以写map(UserInfo::getAge)
@@ -3077,6 +3206,49 @@ InputStream is = item.getInputStream();
 			https://www.runoob.com/java/java8-method-references.html
 			
 			
-			
 
+125.配置job
+	启动加载进入内存
+	统一的service中管理各个job，通过自定义job注解添加配置信息，然后启动加载进入系统即可。老版的是集中在xml中，新版的是集中代码注入
+	LinKunJobConfig extends SchedulerFactoryBean  实现其中的registerJobsAndTriggers方法  最终setTriggers(triggers); super.registerJobsAndTriggers();
+		//生成每个trigger，主要步骤，jobDetailFactory，cronTriggerFactory
+		private CronTrigger registerCronJobTrigger(String methodName,LinKunJob linKunJob) throws Exception {
+			String cronExpression = linKunJob.cronExpression();
+			int jobType = linKunJob.jobType();
+			String[] arguments = linKunJob.arguments();
+			MethodInvokingJobDetailFactoryBean jobDetailFactory = new MethodInvokingJobDetailFactoryBean();
+			jobDetailFactory.setTargetMethod(methodName);
+			jobDetailFactory.setConcurrent(false);
+			jobDetailFactory.setArguments(arguments);
+			jobDetailFactory.setTargetObject(applicationContext.getBean("manualJobService"));
+			jobDetailFactory.setName(methodName + "_detail_" + linKunJob.jobType());
+			jobDetailFactory.afterPropertiesSet();
+			CronTriggerFactoryBean cronTriggerFactory = new CronTriggerFactoryBean();
+			cronTriggerFactory.setJobDetail(jobDetailFactory.getObject());
+			cronTriggerFactory.setCronExpression(cronExpression);
+			cronTriggerFactory.setName(methodName + "_trigger_" + linKunJob.jobType());
+			cronTriggerFactory.afterPropertiesSet();
+			return cronTriggerFactory.getObject();
+		}
+		
+ 	cron表达式
+		0 0/3 20,23 * * ?” 	每天 20点至20:59 和 23点至 23:59分两个时间段内 每3min一次触发
+		cron中 	?  	不指定值，用于处理天和星期天配置的冲突
+				- 	指定时间区间
+				/ 	指定时间间隔执行		
 			
+126.xxl-job 
+		最重要的两个部分：	1.执行器，一般是bean执行器，分散配置在各自的服务中，在spring的基础上，@XxlJob注入任务(将执行器的name和注册地址作为一对，放入了admin的地址list中) 
+							2.统一的调度中心，就是xxl-job-admin。
+		当然可以定义一个通用的httpjobhander，然后配置多个任务附带不同的参数就可以了，也不行直接一个http的请求地址也行
+		增加执行器后，admin增加配置，会有心跳检测，间隔一段时间就能连上。
+		
+		
+127.restful
+		rest:根据三个单词缩写，资源(标识定位资源)+表现(获取资源后json等形式展示出来)+状态转换(增删改查等操作)
+
+		简单参是用@pathvariable,复杂的用@requestBody接收json绑定转换为java对象(多个参数可以用json传递)
+		
+		一般不建议在uri中有动词，比如/get/user/1   而应该用user/1     呵呵 好吧
+		
+		REST 都不推荐使用PUT users?userName=user_name&note= note, 	按rest的建议是采用PUT users/{userName}/{note}    呵呵 好吧

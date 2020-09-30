@@ -161,8 +161,12 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 
 
 
-24、	@Component可配合CommandLineRunner使用，在程序启动后执行一些基础任务。程序初始化相关
+24、	初始化
+	@Component可配合CommandLineRunner使用，在程序启动后执行一些基础任务。程序初始化相关
 			ApplicationRunner也可以，这个可以获取更详细的命令行参数
+	实现InitializingBean也可以
+	
+
 
 25、	springboot建议是用freemaker，jsp不推荐（页面可以编写java代码，前后端分离不推荐），不需要加载成class文件，技术更新
 		
