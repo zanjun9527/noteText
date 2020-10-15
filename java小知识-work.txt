@@ -93,7 +93,20 @@
 	
 	
 10、boot使用数据源或者jndi
-	JndiObjectFactoryBean，DataSourceBuilder
+	属性文件中debug=true  就可以查看详细的加载配置
+	
+	boot的启动方法SpringApplication.run(),是应用主程序开始运行的方法。
+	首先开启一个springapplicationrunlisteners监听器，然后创建一个应用上下文configurableapplicationicontext,
+	通过这个上下文加载应用所需的类和各种环境配置，最后启动一个应用实例。
+	创建上下文过程中(this.annotatedReader.register(new Class[]{source},将@SpringBootApplication加载进配置);)
+	
+	约定优先原理:自动配置加载一个类的配置时，首先读取项目中的配置，项目中没有才启用默认配置
+	enableautoconfiguration最终导入一个自动配置的类列表，引入相关的包，就会被启用
+	positive matches 就是这个应用所需加载的一些配置类
+	
+	数据源加载
+		本质上boot中的属性文件也是自动加载完成的，@configurationproperties{prefix="spring.datasource"}
+		DataSourceBuilder 和 JndiObjectFactoryBean
 	
 	
 	
@@ -199,7 +212,10 @@
 			pagehelper.params=count=countSql
 		
 		
-		
+	*********
+	dao中引入了tk-mybatis，其中使用了3.4.5的mybatis版本。然后admin中引入的pagehelper和mybatis对应的是mybatis是3.5几的版本， 
+	jar冲突，导致了spring-dubbo.xml中的${zookeeper.address}读取失败，占位符无效，少见的错误。排除方法，针对简单ok的dubbo.xml demo 逐步删除admin无效代码，缩小排查范围。
+
 	
 		
 12、Java泛型中的标记符含义： 
@@ -285,6 +301,9 @@
 	搭配boot的时候：new SpringApplicationBuilder(XyeServiceCoreApplication.class).web(false).run(args);要以非web方式进行
 
 
+	在使用spring-dubbo.xml中，service实现类 注入dubbo服务后，才会去读取配置的zookeeper地址
+	
+	
 17、在继承arraylist后，转为json对象，后面只能解析出list元素中的东西，使用fastjson是这样的
 	实际是判断list继承后解析的，只解析了list总的元素值，在eclipse中显示正常，但是在idea中显示缺少
 	
@@ -393,7 +412,25 @@
 	https://blog.csdn.net/kity9420/article/details/102530950			自定义权限标签？js组件解析权限列表
 			
 			
-			
+	**************权限设计**************
+		安全设计(核心就是用户围绕着  角色-权限)
+			1.用户的身份认证，即用户登录
+			2.用户授权，即操作权限管理。
+
+			权限管理设计一般使用角色来管理(用户-角色-权限)，用户的权限是通过角色来分配的，权限和角色有直接的关系
+			登录成功之后，可在登录成功处理器中执行相关自定义操作。
+
+			这里的登录状态，进数据库，保存的是用户名，令牌，和最后登录时间。
+
+
+			对于页面的按钮显示实现
+			后台读取当前用户的所有权限，然后针对当前页面的按钮入新增，newrole,有就返回对应的newrole=true，
+			然后页面根据自己的值判断即可，这里传到页面的是对应按钮的判断值。
+			传到页面的是按钮的判断值，至于页面，直接写路径和按钮，不必动态读按钮
+			系统中使用的，是返回所有可用的button，然后页面根据具体的位置(循环找出合适的)显示按钮
+	**************权限设计**************
+	
+	
 20、ruoyi
 	获取request的方式，	1.从controller一层层往下传，
 						2.RequestContextHolder，直接在需要用的地方使用如下方式取HttpServletRequest即可
@@ -567,7 +604,14 @@
 		logback中   appender是打印器  需要绑定到logger中  而root是根logger
 		
 	<logger name="org.springframework" level="ERROR" />
-	这个是单独配置的级别  其中的参数默认覆盖root中的，其他的按照root默认来，会优先匹配logger，匹配不到才使用root的
+	这个是单独配置的级别  其中的参数默认覆盖root中的，其他的按照root默认来，会优先匹配logger，匹配不到才使用root的。
+	***指定了详细的包的日志级别，root的不管用***
+	
+	
+	
+		
+	
+	
 	
 	案例：
 		<logger name="orderValidate" additivity="false">
@@ -627,6 +671,40 @@
 	
 24.数据库相关
 		mysql中的主从复制是基于Binary log实现的
+		
+		
+		伸缩性三个方面：功能分割，复制及分片，可以实现数据层的水平伸缩
+		mysql的伸缩性
+			还有一个是备份
+			复制(两台服务器之间同步数据)，增加备份
+				读写分离，主从备份
+				主从节点，多个节点同一数据多个备份    针对请求主服务器binlog操作，写入从服务器relay日志中，执行操作，异步复制
+			
+			分片  水平伸缩
+				目前最简单的映射分片方法是  取模
+				将数据切分多个小份，分布在各自的服务器上，不共享信息，没有数据重叠
+				数据分片,水平切分。多个机器之间通过路由查询，
+				缺点，无法联合查询，必须在各分片上查询，然后应用层合并起来
+						单个分片容易实现acid，但是多个分片从整体很难实现acid，可能某个分片会失败
+				
+				核心是分片键(根据算法分，比如取模和奇偶)，用来定位分片，访问特定的服务器
+				
+				取模是要基于服务器数量来排序的，添加服务器后就会很麻烦。再分片问题
+				重点，对于第一取模分片之后，后再添加服务器怎么处理数据的迁移。
+					*******
+					将所有的映射关系保存在一个独立的数据库中。好处是不用分片计算
+					*******
+					*****
+					还有一张方法是 预算最大的服务器数量,比如是32  先搞两台物理机，2*16个db,之后扩容每次增加一倍，这样通过扩容逐渐减小服务器压力
+					*****
+				
+				唯一id 可以使用redis的incr命令
+				
+				这里的分片不单单指数据库，也可在应用层实现，扩展到缓存，队列等，如redis分片
+						
+		任何写入主服务器的数据，需要在一秒后才能在从服务器中读到。正产复制延迟不会超过500ms
+		降低复制延迟的方法：1.写的缓存在客户端侧，2.重要读转发到主服务器上，3.减少延迟
+		将慢查询和备份查询隔离到不同的服务器上	
 		
 		分表能够解决单表数据量过大带来的查询效率下降的问题，但是，却无法给数据库的并发处理能力带来质的提升。
 		
@@ -805,13 +883,11 @@
 				</properties>
 			实际上是覆盖了parent中的属性
 		
-		
 
 		boot整合redis，使用redistemplate，再加个工具类redisutil即可
 		系统中是自己封装的jedis启动类
 		
 		配置首页addViewControllers
-		
 		
 27.dubbo相关
 		dubbo默认服务提供方的IP为内网IP，生产上需要映射成公网ip
@@ -1498,6 +1574,11 @@
 				
 		updatePolicy    setting.xml中的配置
 			该元素指定更新发生的频率。Maven会比较本地POM和远程POM的时间戳。这里的选项是：always（一直），daily（默认，每日），interval：X（这里X是以分钟为单位的时间间隔），或者never（从不）。
+						
+						
+		-D skipTests    这个更快点
+		-Dmaven.test.skip=true				
+						
 						
 45.cmd 不识别mysql命令的时候，需要在环境变量中的path中添加mysql对应的bin目录
 
@@ -2451,6 +2532,8 @@ InputStream is = item.getInputStream();
 		
 		默认是rdb模式
 		
+		redis提供了string,hash(hset),list,set(类似队列操作) 这几种数据类型可供存取
+		
 88.//外部tomcat——web.xml 默认 <welcome-file>index.htm</welcome-file>,boot 默认是/
 
 89.前端相关
@@ -2473,6 +2556,11 @@ InputStream is = item.getInputStream();
 		而thymeleaf则使用th:each="user:${user}",不需要像jsp一样引入很多标签库
 		而thymele拥有强大的内置工具，只要使用th:text="#dates.format(date,"yyyy-MM-dd")"即可获取时间
 		再比如：jsp页面，无法进行选择操作，而thymeleaf可以使用th:switch="${sex}" th:case="0"
+		
+		主要功能：
+			1.使用功能函数，如日期转换函数
+			2.使用编程语句，如条件和循环语句
+			3.使用页面框架模板，如布局显示
 		
 	编码和转义不一样
 		编码是前后端的交互，转义是前台的显示
@@ -2499,6 +2587,12 @@ InputStream is = item.getInputStream();
 	Spring的Starter机制，就是通过@Bean注解来定义bean。
 	可以搭配@ConditionalOnMissingBean注解?@ConditionalOnMissingClass注解，如果本项目中没有定义该类型的bean则会生效。避免在某个项目中定义或者通过congfig注解来声明大量重复的bean。
 
+	@Component (”user")
+	@bean(name="testBean"),如果没有配置name属性，那么将方法名作为bean的名称
+	内部时使用AnnotationConfigApplicationContext来构建ioc容器(基于注解,这个一般是测试用)
+		
+	
+	
 91.	常用的工具类，工具接口
 		Kaptcha  一个可配置的实用验证码生成工具
 		联系我们中的地图   使用的是百度地图的开放api
@@ -2623,7 +2717,26 @@ InputStream is = item.getInputStream();
 	type key	查询redis的key类型
 	
 	
-99.HandlerInterceptorAdapter  在拦截器中赋值全局的静态资源路径
+99.	静态资源加载
+		
+		这个解释的很清楚了
+		**********
+		
+			一般是建议资源加载(spring.resources.static-locations)和映射(addResourceHandler.addResourceLocations)相统一，一致。就是都写上，不写也行，不写使用boot默认。
+			资源加载，重名的相对而言 static优先。都是统一加载到一起作为资源，不会重复
+			********映射的优先级高于资源加载********
+			静态资源 js等要配置映射，否则会被拦截，这个不一定 两种选择  1映射 2默认资源路径
+
+			http://192.168.6.222:8086/static/js/runtime.6a3e6d1f.js 	走的资源映射
+			如果是 http://192.168.6.222:8086/js/runtime.6a3e6d1f.js，   走的boot静态资源加载  
+
+			对于静态映射的文件，无需资源加载
+			http://192.168.6.222:8086/templates/index.html 需配置资源映射后直接访问(因为不能直接访问WEB-INF下的文件)，不用指定加载目录，映射的优先级高。
+			
+		**********
+		
+		
+		HandlerInterceptorAdapter  在拦截器中赋值全局的静态资源路径
 
 
 100.-- js相关	
@@ -2764,8 +2877,14 @@ InputStream is = item.getInputStream();
 	Redisclient中 初始化方法    加入spring 容器,初始化后  然后加载到静态属性中
 	public static JedisPool jedisPool;
 	
-	
 	RedisUtil redisUtil = (RedisUtil)SpringContextUtil.getBean("redisUtil");//手工获取
+	
+	SpringIoC容器是一个管理springbean的容器,IoC容器都需要实现接口BeaFactory ，
+	ApplicationContext继承beanfactory接口，大部分springioc是实现applicationcontext接口的实现类。
+	
+	private static ApplicationContext applicationContext; 这个是类的属性
+	上述代码中出现了ApplicationContextAware接口的方法 setApplicationContext(),初始化的时候该方法就会被调用,从而获取 SpringIoC的上下文(applicationContext)，
+	
 	
 105.有import选项 但是类一致导不进来， 查看jdk 重新install
 	maven 版本  编译 运行 不一致
@@ -2785,12 +2904,18 @@ InputStream is = item.getInputStream();
 		在project facets 中修改jdk的版本
 		
 108.属性文件导入，属性文件加载
-		@PropertySource(value= "classpath:test.properties")  	这是将属性文件加入到容器，后续可以直接用@value注入
+		@PropertySource(value= "classpath:test.properties")  	添加自定义的属性文件进来,将属性文件加入到容器，后续可以直接用@value注入
 		@ConfigurationProperties(prefix = "na")					这是写在类上，省略前缀，匹配后面的名字，但是注意要有set方法
 			默认从全局配置文件中获取值,如果想加载指定属性文件，就得使用@PropertySource进行加载后再使用@ConfigurationProperties。
 			
 		使用 Configuration configs = new PropertiesConfiguration(filePath);直接临时读取属性文件，初始化
+		
+	@Value(”$(database.driverName)”),${}代表占位符，会读取上下文的属性值装配到属性中，这是一个最简单的spring表达式
 
+	
+		
+		
+		
 		
 109.iframe 路径编码
 		iframe嵌入的地址时候，相当于get请求，其中包含url的连接&等符号需要编码后传输
@@ -3100,7 +3225,6 @@ InputStream is = item.getInputStream();
 			curl模拟的访问请求一般直接在控制台显示，适用结果内容比较少
 			而wget则把结果保存为一个文件。适用结果比较多
 			
-			
 			引用复制
 				会出现问题，这种引用传递要注意
 				UserInfo userInfo = new UserInfo();		userInfo.setNickName("ceshi1");
@@ -3127,6 +3251,33 @@ InputStream is = item.getInputStream();
 			1.引入lombokjar 2.ide中安装lombok插件	3.使用@data注解
 			不过一般不建议用，需要别人强制安装插件。
 			
+		druid 可以开启监控功能。(开启监控后，localhost可能访问不了数据库)
+		
+		熔断的机制(断路器，故障容错)，是微服务中，调用的服务过载或者出现故障时(后续不断请求阻塞，造成系统down)，自动阻断对服务的访问和调用，转而调用备用方法
+			
+		暂停执行等待响应的模式是阻塞
+		
+		应用操作尽可能使用细粒度的锁。
+		避免过度设计，别自high，相对于一开始的大而全，更加好的方式是，快速完成一个基础的架构，后期逐渐添加新功能，版本快速迭代新功能，这样实现功能有效开发
+		简洁易扩展是比较好的方式。适合简单运行而不是复杂崩溃。
+		方法尽量private 减少其他类的使用耦合
+		
+		复制粘贴代码的后续问题是，遇到一个改动可能要改两个地方，重复的越多，改动就越多，比如主站和job的相同逻辑
+		
+		设计的时候有三种哦架构图特别的实用，用例图，类图和模块图
+		
+		开闭原则，尽量考虑的是扩展，而不是重复的修改。
+		
+		当用户访问网站时候，第一个交互的组件是dns，将域名解析成ip
+			
+		异步一般是一种发射后不用管的模型，但是异步调用的结果也可以采用回调机制被调用者消费
+		回调是一种异步处理技术，调用者等待执行结果时不会阻塞，而是提供一种操作完成后被通知的机制
+		
+		针对消息消费的无序性，可以由应用流程保证，就是确认满足消息的发送条件之后再发送。
+		
+		想要高效区分任务优先级，需要知道成本和价值，然后就有成本价值划分优先级（任务优先级=任务价值/任务成本），不要做无用功
+			
+			
 120.前后端分离
 		前端从后端剥离，形成一个前端工程，前端只利用Json来和后端进行交互，后端不返回页面，只返回Json数据。前后端之间完全通过public API约定
 		未分离，先后端取数据后渲染页面。需要等后端返回数据才能处理(页面跳转，值在requrest中)，/分离后，先html后向后台取数据，这个可以自己模拟Jason数据不需要等
@@ -3135,6 +3286,8 @@ InputStream is = item.getInputStream();
 
 		前后端分离的情况下，基本使用json交互，使用@RestController相对@responseBody更加的方便
 		这和mvc模式不一样，原:通过视图名称找到对应视图，将数据模型渲染展示
+	
+		使用jason交互，是没哟mvc这套视图配置的
 	
 121.httpclient
 		soa调用默认就是传输的80端口
