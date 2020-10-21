@@ -1,0 +1,84 @@
+伪元素是在元素中隐式地声明了一对新元素，但是其实在dom树中不存在，只是逻辑上存在，抽象出来的一个元素。
+	他们被用来创建dom树既有的元素之外的抽象元素，归根到底，伪元素只是假定dom树中有那样一个元素。
+	伪元素”和“伪类”都带一个“伪”字，那是他们的共同点，所以，他们的区别就是一个本质上是元素，另一个本质上是类。
+	h5 嵌套的限制
+	浮动是相对在父级的包含块中的
+	
+	后端接收参数绑定的是表单中的name参数
+	
+	<a href="#" >test</a>
+	<a href="javascript:;">test</a>
+	
+	<!-- 左边导航[[--> 在html中适当注释有利于阅读
+	使用disabled属性的input等元素 是不会传值到后台的
+	
+	div中定宽，子元素中img会有默认的原始尺寸，不设置会超出
+	顶宽的div限制不住img元素，这种a比里面img高可以使用边框盒处理
+	
+	a标签的高度比里面的img高度高问题
+		a元素下有一个匿名文本，这个文本外有一个匿名行级盒子，它有的默认vertical-align是baseline的，而且往往因为上文line-height的影响，使它有个line-height，从而使其有了高度，因为baseline对齐的原因，这个匿名盒子就会下沉，往下撑开一些距离，所以把a撑高了。
+		基线与底线间存在空白，这个就是多出来的宽度，行内样式基于基线对齐导致
+		这样的空白是为了：为了能使div父元素能容纳下g、j、p、y这样的元素
+		
+		解决方法:
+			1.消除掉匿名盒子的高度，也就是给a设置line-height:0或font-size:0(这样无法图文混排);
+			2.img的vertical-align:bottom，而不是baseline对齐
+			3.给img以display:block，让它和匿名行级盒子不在一个布局上下文中，也就不存在行级盒的对齐问题
+			
+	(1)那么为什么a标签嵌套img标签，结果a标签不能被img标签撑开？？ 
+	答案1：img放在了a(inline模型)内部，由于inline不是用来包含内容的，因此这需要将a标签display改为inline-block或者block，a标签就可以包含img标签了，但会引起下面问题；
+
+	(2)还有a标签嵌套img标签，a标签比img标签高？?
+	答案2： 仅仅改变display并不能解决问题，因为img在a中垂直对齐方式也就是vertical-align默认值为baseline，所以img最垂直对齐时是按照a的基线对齐而不是底线； 
+					
+	图片文字等inline元素默许是和父级元素的baseline对齐的，而baseline又和父级底边有必定间隔（这个间隔和 font-size，font-family 相关），所以设置 vertical-align:top/bottom/text-top/text-bottom 都能够防止这种状况呈现。而且不光li，其他的block元素中包括img也会有这个景象
+
+	不单单是a 还要div.img也一样，设置对齐方式就可以了，这样一般对样式影响不大
+	
+	为了防止img元素超出显示 一般需要设置宽高
+	可以根据图片的边缘色设置背景颜色，这样有一体的感觉		
+	背景图
+		cover等比例适应，直到铺满div，铺满整个容器的宽高，多余的会裁掉
+		contain等比例适应，多余的空间repeat
+	
+	spirit
+		通过调整background-size，达到缩小和放大的效果，搭配 background-position效果
+		能实现雪碧图自适应缩放效果，即根据缩放比例去设定图片的长宽，图片都可以完好的显示
+		
+		1.首先用这里的方法实现元素尺寸的自适应：(http://www.cnblogs.com/joyho/articles/4730871.html)
+
+		2.算出雪碧图和元素的尺寸比，然后在元素的background-size中设置该比例
+
+		3.根据上面的比例，设置元素的background-position值
+
+		background-size 作用于整个雪碧图，对其尺寸缩放。
+		background-position 定位。
+		
+		图片是500*300，那么    宽:高=5:3，可以计算出当宽是100%的时候，高就是宽的60% 所以padding-top应该是60%。保持一定的比列
+		
+		em相对大小，多级嵌套呢
+			默认继承上级的文字大小，最顶层浏览器是16px。多级嵌套会相对父级倍数递增
+
+		width：100%  常规流中是针对父的包含块，绝对定位，是相对参考元素的包含块
+		
+		只有css实现悬浮，只要设定 .main .select:hover .list{}，这样整个停在父元素上就可以下拉框
+		
+		使用iconfont 是unicode还是font-class都只支持单色的图
+		
+		iconfont 添加图
+		
+		绝对定位后会脱离文档流，bfc区域会避开绝对定位区域
+		
+		定高后，只要超出就有滚动条
+		
+		
+		使用overflow:hidden;这个bfc布局属性，高度自适应，设置定高超出还是会隐藏的
+		
+		MIME类型
+			
+			
+		text/javascript					传统的javascript写法，单不是真正的文本文件，过时了
+		application/x-javascript		x前缀表示这是实验性的，不是标准的类型
+		application/javascript			推荐使用，但是没有很好的支持，所以一般写上面的
+		
+		resp.setContentType("application/json;charset=utf-8");指定返回类型为jason格式

@@ -98,8 +98,8 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
         	return new AccountProperties();
     	}
 
-
 18¡¢	bootµÄ¶à»·¾³	application-dev.properties   ÔÚapplication.propertiesÖĞÖ¸¶¨spring.profile.active=dev¾ßÌåµÄÊôĞÔÎÄ¼ş
+	spring.profiles.active=${environment} ·ÅÔÚ³õÊ¼µÄÊôĞÔÎÄ¼şÖĞ£¬ºóĞøÌí¼Ósit¡¢pre¶à¸ö»·¾³µÄÅäÖÃ
 
 19¡¢	@EnableAutoConfiguration  Æô¶¯×Ô¶¯ÅäÖÃ ÔÚautoconfigure°üÏÂ  Ô­Àí¾ÍÊÇ ÆäÖĞÊ¹ÓÃÁË¶à¸öÀàËÆ@conditonalµÄ×¢½â£¬Âú×ãÌõ¼ş×Ô¶¯ÅäÖÃ£¬¿ÉÒÔ×Ô¼º½¨Á¢×Ô¶¯ÅäÖÃÊµÏÖµÄ£¬	********Ôİ²»ÑĞ¾¿£¬ºóĞøÓĞĞèÒªÔÙ¿´*******
 
@@ -140,6 +140,20 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 
 	bootÖĞÅäÖÃ¾²Ì¬×ÊÔ´ResourceHandlerºó£¬¾²Ì¬×ÊÔ´Â·¾¶²»»áÔÙ½øÈëÀ¹½ØÆ÷ÁË¡£
 
+
+	boot Ä¬ÈÏÁËÈçÏÂµÄ×ÊÔ´Ä¿Â¼£¬¿ÉÒÔÖ±½Ó·ÃÎÊµ½×ÊÔ´µÄÄ¿Â¼¡£ÀàËÆwebapp
+	1.classpath:/META-INF/resources/ 
+	2.classpath:/resources/
+	3.classpath:/static/ 
+	4.classpath:/public/
+	5./£ºµ±Ç°ÏîÄ¿µÄ¸ùÂ·¾¶
+		ÓÅÏÈ¼¶´ÓÉÏµ½ÏÂ
+		¿ÉÒÔ×ÔĞĞĞŞ¸Ä spring.resources.static-locations
+		addResourceHandler Ê±³öÁËÒÔÉÏÄ¿Â¼ÍâµÄ×ÊÔ´Ó³Éä£¬¿ÉÒÔÌø¹ımvcÀ¹½Ø
+
+
+
+
 24¡¢	mybaisµÄÅäÖÃ»¹ÊÇ½¨ÒéÊ¹ÓÃ´úÂëÅäÖÃ£¬Êı¾İÔ´ jndiºÍjdbcµÄÅäÖÃ¿ÉÒÔ²Î¿¼Ğ¡ÃØÊéµÄÅäÖÃ
 	spring.datasource.type Á¬½Ó³ØÀàĞÍ boot Ä¬ÈÏÊÇ  HikariDataSource
 
@@ -147,8 +161,12 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
 
 
 
-24¡¢	@Component¿ÉÅäºÏCommandLineRunnerÊ¹ÓÃ£¬ÔÚ³ÌĞòÆô¶¯ºóÖ´ĞĞÒ»Ğ©»ù´¡ÈÎÎñ¡£³ÌĞò³õÊ¼»¯Ïà¹Ø
-		ApplicationRunnerÒ²¿ÉÒÔ£¬Õâ¸ö¿ÉÒÔ»ñÈ¡¸üÏêÏ¸µÄÃüÁîĞĞ²ÎÊı
+24¡¢	³õÊ¼»¯
+	@Component¿ÉÅäºÏCommandLineRunnerÊ¹ÓÃ£¬ÔÚ³ÌĞòÆô¶¯ºóÖ´ĞĞÒ»Ğ©»ù´¡ÈÎÎñ¡£³ÌĞò³õÊ¼»¯Ïà¹Ø
+			ApplicationRunnerÒ²¿ÉÒÔ£¬Õâ¸ö¿ÉÒÔ»ñÈ¡¸üÏêÏ¸µÄÃüÁîĞĞ²ÎÊı
+	ÊµÏÖInitializingBeanÒ²¿ÉÒÔ
+	
+
 
 25¡¢	springboot½¨ÒéÊÇÓÃfreemaker£¬jsp²»ÍÆ¼ö£¨Ò³Ãæ¿ÉÒÔ±àĞ´java´úÂë£¬Ç°ºó¶Ë·ÖÀë²»ÍÆ¼ö£©£¬²»ĞèÒª¼ÓÔØ³ÉclassÎÄ¼ş£¬¼¼Êõ¸üĞÂ
 		
@@ -202,7 +220,8 @@ https://docs.spring.io/spring-boot/docs/2.1.1.RELEASE/reference/htmlsingle/   bo
     spring-boot-maven-pluginÔ­Òò£ºÒòÎªÕâ¸ö²å¼ş»áÖØĞÂ´ò°ü(repackage),´ò°ü³Éspring-boot¿ÉÍ¨¹ı-jarĞÎÊ½ÔËĞĞµÄjar»òwar°ü£¬²¢ÇÒ°ÑÔ­À´maven´ò°üÖØÃû³Æ³É.war.original½áÎ²
 
 
-
+33.Ê×Ò³ÅäÖÃ
+	registry.addViewController("/").setViewName("forward:" + "/index")   Ìø×ªÒ³¡£Ìø×ªµÄÊÇÂ·¾¶
 
 
 ----------springbootÊµÕ½----------
@@ -250,7 +269,11 @@ bootÄ¬ÈÏÊÇ²»ÍÆ¼öjspµÄ£¬ÄÚÇ¶µÄtomcat²»Ö§³Öjsp,¼¯³ÉjspĞèÒªÒıÈëÏà¹ØµÄmavenÒÀÀµ£¬ĞèÒ
 
 dubboµÄxmlÎÄ¼ş»¹ÊÇ@importresourceµ¼Èë
 
-@ConditionalÒâË¼ÊÇÖ»ÓĞÂú×ãÒ»Ğ©ÁĞÌõ¼şÖ®ºó´´½¨Ò»¸öbean¡£  Ìõ¼ş×¢½â
+	@EnableTransactionManagement  Õâ¸ö×¢½âÊÇspringÄ¬ÈÏÎªÎÒÃÇÅäºÏÁË£¬bootÖĞ²»ĞèÒª¼ÓÁË¡£ÊÇÔ­SSMÊ±ÆÚÊ¹ÓÃÈ«×¢½â¿ª·¢ÓÃµÄ¡£
+		@EnableDubboÊÇ@EnableDubboConfigÒÔ¼°@DubboComponentScanºÏ²¢µÄÒ»¸ö×¢½â¡£
+		EnableDubboConfig£ºÊµÏÖDubboµÄÅäÖÃ£¬¹¦ÄÜÀàËÆÓëxmlÅäÖÃÎÄ¼şÖĞµÄ¸÷ÖÖÅäÖÃ£¬ÔÚ¸Ã×¢½âÖĞ¿ÉÒÔÊµÏÖÀàËÆµÄ¹¦ÄÜ£¬Í¨¹ı°ó¶¨µÄ·½Ê½À´ÊµÏÖ¡£
+		DubboComponentScan£ºÉ¨ÃèDubboµÄ×é¼şÀà£¬½«DubboµÄ×é¼şÀà×Ô¶¯×¢Èëµ½SpringÈİÆ÷ÖĞ¡£
+	@ConditionalÒâË¼ÊÇÖ»ÓĞÂú×ãÒ»Ğ©ÁĞÌõ¼şÖ®ºó´´½¨Ò»¸öbean¡£  Ìõ¼ş×¢½â
 
 new ¶ÔÏóÖĞµÄÊôĞÔ£¬@autowireÊÇ²»ÄÜ×¢ÈëµÄ£¬ÒòÎªÃ»ÓĞ×ßÈİÆ÷»ñÈ¡£¬Ö»ÓĞ´ÓÈİÆ÷ÖĞ²ÅÄÜÄÃµ½×¢ÈëµÄ¶ÔÏó¡£±ÈÈçÔÚÀ¹½ØÆ÷ÖĞ×¢ÈëµÄservice¶ÔÏó£¬ÕâÊ±Ö»ÄÜ½«À¹½ØÆ÷¼ÓÈëÈİÆ÷£¬´ÓÈİÆ÷ÖĞ»ñÈ¡
 
@@ -370,9 +393,11 @@ spring-boot ÈÈ¼ÓÔØ
 µ±ÏµÍ³Í¨¹ı mvn spring-boot:runÆô¶¯»òÕß ÓÒ¼üapplication debug Æô¶¯
 £¨ÏµÍ³¼àÊÓclassesÎÄ¼ş£¬µ±ÓĞclassesÎÄ¼ş±»¸Ä¶¯Ê±£¬ÏµÍ³»áÖØĞÂ¼ÓÔØÀàÎÄ¼ş£¬²»ÓÃÖØÆôÆô¶¯·şÎñ£©
 
+Spring-boot 1.5.6.RELEASE°æ±¾ÔÚIntellj¿ÉÒÔ×öµ½×Ô´øÈÈ²¿Êğ(×óÏÂ½Ç»á×Ô¶¯1 class reloaded Stop debug session)
 
 
-Ê¹ÓÃ spring-boot-devtools
+
+Ê¹ÓÃ spring-boot-devtools£¨ÏîÄ¿»á×Ô¶¯ÖØÆô£¬²»ÊÇĞèÒªµÄ£©
 1.Ôö¼ÓÒÀÀµ£¬
 2.pluginÖĞÌí¼Ó
 <configuration>
@@ -474,8 +499,13 @@ SpringBoot ÄÚÇ¶ Tomcat µÄ½â¾ö·½Ê½
 	}
 
 
-
-
+	ÓÖÀ´ÁË Õâ¸öfilterÖĞµÄ·½·¨ÒªĞ´È« ÓÖÊÇÔÚlocalhostÖĞµÄÒÅÂ©µÄ´íÎó ÕÒ°ëÌì¡£filterÊôÓÚtomcat jarÖĞ,ÉÏÏßÒªÅÅ³ı£¬ÆäÖĞµÄ·½·¨ĞèÒªÊµÏÖÈ«£¬·ñÔòlinux·şÎñÆ÷ÉÏÆô¶¯²»ÁË
+	<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+		
 
 Æô¶¯·½Ê½
 		»ù±¾³£¹æÊ¹ÓÃ,
@@ -501,3 +531,72 @@ SpringBoot ÄÚÇ¶ Tomcat µÄ½â¾ö·½Ê½
 ¾²Ì¬×ÊÔ´
 	1.ËäÈ»SpringBootÄ¬ÈÏµÄ¾²Ì¬×ÊÔ´µØÖ·ÊÇresourcesÏÂµÄstatic£¬µ«ÊÇËûÖ»ÏŞ´æ·ÅÎÄ¼ş£¬¼´Èç¹ûÄãÔÚstaticÏÂÖ±½Ó·ÅcssÑùÊ½ÊÇ¿ÉÒÔ·ÃÎÊµÄ£¬
 	µ«ÊÇÎªÁË¹ÜÀí£¬ÎÒÃÇÒ»°ã¶¼»áÔÚstaticÏÂĞÂ½¨ÎÄ¼ş¼Ğ£¬Èçcss£¬jsµÈ·ÖÀà¡£ÕâÑùµÄ»°¾Í»á³ö´íÁË£¬ÒòÎªSpringBoot²»»á·ÃÎÊµ½staticÎÄ¼ş¼ĞÏÂµÄ×ÓÎÄ¼ş¼Ğ¡£
+
+
+
+**********
+boot 2.0ºó À¹½ØÆ÷¾¡Á¿²»ÒªÀ¹½Ø¾²Ì¬×ÊÔ´
+		bootËµÏÂÄ¬ÈÏÓ³ÉäµÄÎÄ¼ş¼ĞÓĞ£º
+		*****×¢ÒâÊÇclasspath! ×¢ÒâÊÇclasspath! ×¢ÒâÊÇclasspath!***** ¶¼ÔÚWEB-INFÏÂ£¬ÒÔÇ°µÄwebapp¿ÉÒÔÖ±½Ó·ÃÎÊ
+		spring boot¶Ô¾²Ì¬×ÊÔ´µÄÄ¬ÈÏÉ¨ÃèÂ·¾¶ÊÇ£º
+			classpath:/META-INF/resources
+			classpath:/resources
+			classpath:/static
+			classpath:/public
+			ÉÏÃæÕâ¼¸¸ö¶¼ÊÇ¾²Ì¬×ÊÔ´µÄÓ³ÉäÂ·¾¶£¬ÓÅÏÈ¼¶Ë³ĞòÎª£ºMETA-INF/resources > resources > static > public
+			
+			*********
+				ÎÒÃÇ¿ÉÒÔÍ¨¹ıĞŞ¸Äspring.mvc.static-path-patternÀ´ĞŞ¸ÄÄ¬ÈÏµÄÓ³Éä¹æÔò
+			*********
+			
+			ÉÏÃæÎå¸öÄ¿Â¼ÏÂ·Å¾²Ì¬×ÊÔ´£¨±ÈÈç£ºa.jsµÈ£©£¬¿ÉÒÔÖ±½Ó·ÃÎÊ£¨http://localhost:8080/a.js£©£¬ÀàËÆÓÚÒÔÇ°webÏîÄ¿µÄwebappÏÂ£»·Åµ½ÆäËûÄ¿Â¼ÏÂÎŞ·¨±»·ÃÎÊ¡£
+		WebMvcAutoConfigurationÀà×Ô¶¯ÎªÎÒÃÇ×¢²áÁËÈçÏÂÄ¿Â¼Îª¾²Ì¬×ÊÔ´Ä¿Â¼£¬Ò²¾ÍÊÇËµÖ±½Ó¿É·ÃÎÊµ½×ÊÔ´µÄÄ¿Â¼¡£
+			×Ô¶¨Òå¾²Ì¬×ÊÔ´Ó³ÉäÄ¿Â¼µÄ»°£¬Ö»ĞèÖØĞ´addResourceHandlers
+			
+			bootµÄ templatesÎÄ¼ş¼Ğ£¬ÊÇ·ÅÖÃÄ£°åÎÄ¼şµÄ£¬Òò´ËĞèÒªÊÓÍ¼½âÎöÆ÷À´½âÎöËü¡£ËùÒÔ±ØĞëÍ¨¹ı·şÎñÆ÷ÄÚ²¿½øĞĞ·ÃÎÊ£¬Ò²¾ÍÊÇÒª×ß¿ØÖÆÆ÷--·şÎñ--ÊÓÍ¼½âÎöÆ÷Õâ¸öÁ÷³Ì²ÅĞĞ¡£
+			
+		ÕâÀïboot¿ÉÒÔÊ¹ÓÃÄ¬ÈÏµÄÅäÖÃ£¬staticÏÂµÄÎÄ¼ş¿ÉÒÔÖ±½Ó·ÃÎÊ(ÏÂ¼¶Ä¿Â¼Ò²¿ÉÒÔ£¬±ÈÈçjs/a.js£¬¿ÉÊ¡ÂÔstatic²»Ğ´)£¬
+		ÕâÑù¾ÍÀíÇåÁË£¬±ğµÄ×Ô¶¨ÒåÄ¿Â¼¾ÍĞèÒªaddResourceHandlersµ¥¶ÀÅäÖÃÁË
+		±ÈÈçtemplatesÏÂµÄÄ¿Â¼£¬¾ÍÒªÈ¥µ¥¶ÀÅäÖÃ×ÊÔ´Ó³ÉäÁË
+		
+		templates Ò»°ãĞèÒªÅäÖÃ¶ÔÓ¦µÄÄ£°å£¬jsp  ftl ºÍ thymeleaf µÈ  ÅäÖÃviewµÄÓ³Éä£¬ÊôÓÚÄ£°åÂ·¾¶
+		
+		Í¨¹ıInitStaticDataInterceptor ½«È«¾ÖÊôĞÔ¼Óµ½requestÖĞ£¬Õâ¸öÊÇ¿ÉÒÔÀ¹½ØhtmÂ·¾¶µÄ£¬ÅÅ³ıÁËjsÂ·¾¶µÈ
+
+
+
+ÅäÖÃÎÄ¼şÖĞµÄÊôĞÔ¼ÓÔØ
+		Properties pro = new Properties();
+		InputStream input = EManagerAdminApplication.class.getClassLoader().getResourceAsStream("application.properties");
+		pro.load(input);
+		
+		String debug = String.valueOf(pro.get("xye.env"));
+			<resource>
+                <!--´ò°ü¸ÃÄ¿Â¼ÏÂµÄÅäÖÃÎÄ¼ş -->
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.yml</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <!-- ÆôÓÃ¹ıÂË ¼´¸Ã×ÊÔ´ÖĞµÄ±äÁ¿½«»á±»¹ıÂËÆ÷ÖĞµÄÖµÌæ»» -->
+                <filtering>true</filtering>
+            </resource>
+		
+	
+		bootÄ¬ÈÏµÄÕ¼Î»·ûÊÇ@key@,ÏëÊ¹ÓÃ${},Ê¹ÓÃÏÂÃæµÄ²å¼ş
+		½«Õ¼Î»·ûÌæ»»Îª@@(Èç@username@)¡£
+		µ±Ç°ÏîÄ¿µÄpomÊ¹ÓÃresources-plugin£¬²¢Ö¸¶¨Ê¹ÓÃÄ¬ÈÏdelimiter¡£
+		
+		¿Ó
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+		
+		filtering¶ÔÓ¦µÄÊÇymlÖĞµÄspring:profiles:active: ${environment} ÕâÀï²ÅÄÜ¼¤»î£¬  <profile>ÖĞµÄproperties¼ÓÔØµÄÊôĞÔ£¬${env}ÔÚpropertiesÎÄ¼şÖĞ¿ÉÒÔ¶ÁÈ¡
+
+		·¢ÏÖspring-bootÎªÁË±£»¤application.ymlºÍapplication.properties£¬ĞŞ¸ÄÁËÄ¬ÈÏµÄÕ¼Î»·û${...}Îª@...@£¬È»ºó·¢ÏÖresources²å¼şÓĞÒ»¸öÅäÖÃÏî£º
+		<useDefaultDelimiters>true</useDefaultDelimiters> ¿ÉÒÔ»·¾³ÔÙÊôĞÔÎÄ¼şÖĞÊ¹ÓÃ@${}
