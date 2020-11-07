@@ -1,0 +1,160 @@
+渡一 姬成
+
+下个要看	 作用域，作用域链精讲
+
+编程形式的区别
+
+面向过程
+	分步执行，步骤分解，任务分解
+
+面向对象
+
+
+display:none 	连位置都不占
+
+var aa = window.prompt("请您输入一个数字");   调用系统默认的弹出输入框
+document.write(aa);   浏览器输出
+console.log  一般推荐控制台输出
+
+浏览器的组成
+	1.shell部分，外壳
+	2.内核部分
+		渲染引擎	语法规则和渲染
+		js引擎		chrome 用的是v8引擎，可直接将js代码转为机械码执行，速度块
+		其他模块
+		
+	.java-->javac-->编译-->.class--->jvm-->解释执行，不是解释性语言
+		
+	js的特点(轮转时间片)
+		解释性语言，(不需要编译成文件)跨平台
+		单线程
+		使用ECMA标准
+		
+	js的三大部分
+		ECMAScript，DOM，BOM
+		
+	主流浏览器
+		ie(trident),chrome(webkit/blink),firefox(Gecko),opera(presto)，safari(webkit)
+				
+		
+	引入方式 1.页面级 <script type="text/javascript">  2.<script type="text/javascript" src=""> 引入外部文件
+		
+	js基本语法
+		变量申明，再赋值 	var a=100;     也可以批量声明变量   注意不能使用关键字
+		语句最后要分号结束
+		js语法错误会引发后续代码终止，但不会影响其他js代码块(<script>块)
+		***错误只影响当前的js块***
+		
+		引用值copy过去的是地址，数组是引用值
+		
+		原始值  stack     	number string  boolean undefined null
+		引用值	heap		array  object function	...date regexp
+		
+		js运算符
+			任何数据类型加字符串都等于字符串
+			优先级=最弱，()优先级较高
+			
+			NaN 不是一个Number
+			
+			子串的比较大小，比较的是ASC码
+			
+			undefined,null，NaN，“”,0,false==》false
+			
+			逻辑运算符 && ||
+			js中，如果是表达式1 && 表达式2  ，如果1真，直接返回2的值.多个表达式，规则一样。一般以前常规用即可
+			用法：短路语句：data && 执行一个语句，会用到data
+			
+			swith case    记得要使用break终止，不使用就会往下漏执行
+			
+		初始值引用
+			数组arr		js数组中 是可以混搭类型存入的。
+			对象obj		
+				var obj = {
+					name : "deng"，
+					age : 40,
+					cc : undefined,
+					handsome : true
+				}
+			取值/赋值  obj.name=
+			
+		typeof()  操作符     返回对象类型
+			注意这个返回值是String类型的。 number string boolean object undefined function
+			数组和null都会返回object
+			typeof(a)   返回undefined，其他情况使用未定义变量会报错
+			
+	
+	类型转换
+		显式类型转换
+			Number()   		转为数字，转undefined  就会变成NaN。转null是0
+			parseInt()		这个参数只能是数字。从数字位开始到非数字位结束返回，这样特殊用法 可以取100px的整数部分
+			parseFloat()
+			toString()		有个进制参数，一般不用。 obj.toString()   undefined 和null不能使用。任何数据+空串都是字符串
+			String()		转为字符串
+			Boolean()
+			
+		隐式类型转换
+			isNaN(),+,>等
+			isNaN() 内部使用了Number()，那么isNaN("abc")  这个会返回true
+			1=="1",1==true都是true 是有隐式类型转换的     使用强等于=== 和 !==
+			
+			
+	函数，作用域
+	
+	console 相当于在js最后又添加了一个<scirpt>作为输出
+	
+		函数定义(函数声明+函数表达式)
+			1.函数声明：		function test() {}
+			2.命名函数表达式	var test = function abc() {}        
+			3.匿名函数表达式	var test = function () {}			用的多，简称函数表达式
+			
+		参数(形参，实参。特点:不定参)，
+			不定参，参数不限制位数，数量不用对齐，按顺序排即可。形参和实参按顺序排即可，不定数量
+			function sum(a,b){}     
+				每个函数中 都有一个 arguments[],用来存储实参。
+				sum.length 是形参的长度
+			
+			 arguments是绑定映射关系，但是不是同一个变量。同变。参数位数要对上才行
+			
+			函数return是终止返回，
+			
+			写switch要注意break。不然会往下漏。
+			var num="123";  字符串num[0]能直接取字符
+			
+		递归，预编译
+			js运行三个步骤
+				1.语法分析
+				2.预编译
+				3.解释执行
+			
+			 一般也不会未声明就使用变量，规范点就没这事
+				1.暗示全局变量：任何变量未经声明就赋值，变量为全局对象所有(window)
+				2.一切声明的全局变量，全是window的属性	
+			
+			
+				预编译
+					函数体系中，发生在函数执行的前一刻，先预编译，后按顺序解释执行。
+					
+					*****
+						函数声明整体提升；
+						变量  声明提升
+					*****
+					
+					预编译的四个步骤
+					***常规的没有重名和未定义的特殊情况，一般不用细考虑***
+					先生成GO,再AO。
+						在函数体系中
+							1.创建AO对象，即执行期上下文
+							2.找形参和变量声明，将变量和形参名作为AO属性名，值为undefined。注意是声明，赋值没动
+							3.将实参值和形参统一
+							4.在函数体里面找到函数声明，值赋予函数体
+							
+						全局
+							1.生成GO对象，就是window对象
+							2.顺序按需同上
+						
+					
+					
+					
+			
+			
+			
