@@ -528,6 +528,27 @@ SpringBoot 内嵌 Tomcat 的解决方式
 				.run(args);
 
 
+创建，新建boot
+	springboot中的maven多模块继承
+		boot 的两种方式(考虑单继承的原因)，一种是直接继承bootparent，还有一种是版本管理。本质上都是集中定义了boot相关jar的版本号(版本管理)
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-dependencies</artifactId>
+						<version>2.2.11.RELEASE</version>
+						<type>pom</type>						默认是jar，，设置为pom说明导入的是一个父模块
+						<scope>import</scope>					解决单继承的问题
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+			
+			后面使用一个stater-web  中自动附带了boot-starer的jar。
+
+			<type>pom</type>，<scope>import</scope>，只能在dependencyManagement中使用，且type为pom类型。
+
+
+
 静态资源
 	1.虽然SpringBoot默认的静态资源地址是resources下的static，但是他只限存放文件，即如果你在static下直接放css样式是可以访问的，
 	但是为了管理，我们一般都会在static下新建文件夹，如css，js等分类。这样的话就会出错了，因为SpringBoot不会访问到static文件夹下的子文件夹。

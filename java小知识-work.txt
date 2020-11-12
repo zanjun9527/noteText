@@ -670,8 +670,9 @@
 		orderValidate不加STDOUT，控制台是看不到的额，因为指定匹配了logger，没有使用root的
 		
 		<logger name="ch.qos.logback" level="ERROR" />  和 root 和日志级别关系    additivity="false"这个属性注意下
-		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。
+		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。为了不让日志打到root的配置中
 
+		<logger name="com.xiaoyuer.core.dao" level="INFO"  />  单独配置可以覆盖 root的级别，为了单独显示指定的日志
 
 		
 		
@@ -3314,10 +3315,14 @@ InputStream is = item.getInputStream();
 		
 	@Value(”$(database.driverName)”),${}代表占位符，会读取上下文的属性值装配到属性中，这是一个最简单的spring表达式
 
+		静态代码块，static初始化
+			静态static代码块在首次调用这个类时才触发，而不是一开始就加载。且只加载一次
 	
-		
-		
-		
+	
+	@Bean 和  CommandLineRunner
+		@Order注解并不能改变Bean加载优先级，对多个CommandLineRunner是有效的，加在普通的方法上或者类上没有作用
+		CommandLineRunner 和 @bean 加载顺序，启动mq先消费，CommandLineRunner的常量尚未加载就消费，导致初始化client异常。
+					
 		
 109.iframe 路径编码
 		iframe嵌入的地址时候，相当于get请求，其中包含url的连接&等符号需要编码后传输
@@ -3571,8 +3576,20 @@ InputStream is = item.getInputStream();
 				<button type="submit">提交</button>
 			</form>
 		
-		
 119.杂知识
+		********************
+		重点问题记录
+			k8s部署dubbo-admin问题
+				bbo.xsd 识别错误--->找dubbo.jar---->找pom.xml依赖--->确定发布分支-->至于sit能发布的原因是，war包名称不一致，导致去/data/apps下使用原dev的包。
+		
+			升级dubbo的问题，版本升级一定要参考官网的，不能随意使用版本，标准就是官方文档。任何时候都不要用最新的版本试验
+				dubbo升级2.7.x,  不要使用最新版，按照官方文档中的推荐2.7.7即可	
+				
+				dubbo官方文档						http://dubbo.apache.org/    
+				springboot-dubbo官方文档			https://github.com/apache/dubbo-spring-boot-project/
+
+		********************		
+
 		双循环的终止问题，continue 和break都只影响本身的循环，不会影响上层循环体
 		
 		AxureRP文件将resource下的crx文件rar格式解压，然后对应插件中开发者模式加载目录，即可访问index页面
@@ -3893,3 +3910,5 @@ InputStream is = item.getInputStream();
 		rocketmq producer 发送消息失败，总是连接不上服务器地址
 		1. 目前这种写法Rocket默认开启了VIP通道，VIP通道端口为10911-2=10909。若Rocket服务器未启动端口10909，则报connect to <> failed。
 		2. 解决方式：增加一行代码producer.setVipChannelEnabled(false);
+		
+	
