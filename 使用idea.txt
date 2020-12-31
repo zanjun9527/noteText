@@ -167,6 +167,13 @@ git，maven相关
 	Ctrl+Alt+L 格式化代码
 	选中右击generate方法  getset方法
 
+编码，乱码相关
+	eclipse中的编码问题
+	1.修改Eclipse中文本文件的默认编码	windows->Preferences->general->Workspace->Text file encoding设置为UTF-8
+	2.修改JAVA源文件的默认编码		windows->Preferences->general->Content Types->右侧Context Types树，点开Text，选择Java Source File，在下面的Default encoding输入框中输入UTF-8，点Update
+	3.重启一下eclipse
+
+	简单的就单独右击项目的属性设置
 
 idea小常识
 	idea 导入相关的工程，后续使用统一工作空间，将project当作workspace使用
