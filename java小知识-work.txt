@@ -676,12 +676,6 @@
 	这个是单独配置的级别  其中的参数默认覆盖root中的，其他的按照root默认来，会优先匹配logger，匹配不到才使用root的。
 	***指定了详细的包的日志级别，root的不管用***
 	
-	
-	
-		
-	
-	
-	
 	案例：
 		<logger name="orderValidate" additivity="false">
 			<level value="INFO" />
@@ -700,8 +694,31 @@
 		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。为了不让日志打到root的配置中
 
 		<logger name="com.xiaoyuer.core.dao" level="INFO"  />  单独配置可以覆盖 root的级别，为了单独显示指定的日志
-
 		
+	logback MDC机制
+			作用：扩展logback内置的日志字段，自定义业务数据
+			原理：内部持有一个InheritableThreadLocal实例，用于保存context数据。注意操作完要MDC.clear()方法
+			案例：实际使用中可以用一个filter专门定制自定义的日志字段。也可以个别类中单独处理。只要是一个线程请求即可。
+			
+			代码实例
+				MDC.put("sessionId",sessionId);
+				logger.info("test23");
+				MDC.remove("sessionId");
+			
+			logback.xml中的配置
+				<property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread|%X{invokeNo}|%X{sessionId}] %-5level %logger{36}-%msg%n"/>
+				<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${logbackpath}/xye.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<FileNamePattern>${logbackpath}/xye.%d{yyyy-MM-dd}-%i.log</FileNamePattern>
+					<maxFileSize>500MB</maxFileSize>
+				</rollingPolicy>
+					<encoder>
+						<pattern>${pattern}</pattern>
+					</encoder>
+				</appender>
+				
+			
 		
 23.rpc相关
 		zookeeper和服务端建立的是长连接，可以定时进行心跳检测。这肯定是的啊  基础知识
@@ -791,7 +808,8 @@
 
 		数据库行锁住之后，是可以查询的 ，更新不行
 		
-		分表通常分为：垂直划分、水平划分；垂直划分通常是根据业务场景将一个多字段大表拆分成多个多个少字段小表，
+		分表通常分为：垂直划分、水平划分；
+		垂直划分通常是根据业务场景将一个多字段大表拆分成多个多个少字段小表。那么带来的问题会有，1.分布式事务，2.查询表关联问题
 		水平划分是根据某个分片策略将同一个表的数据分开存到多个相同结构表中。
 
 
@@ -1402,6 +1420,12 @@
         cookieSerializer.setDomainName(domainName);   //xiaoyuer.com
         cookieSerializer.setCookiePath("/");
 	
+	base64编码 	NGEwMWQ3ZDQtMWY3OS00OTQzLTg5MDQtMWM1ZjM0MGU1NjQy
+	
+	注意的是虽然浏览器64编码了，但是传到后台后会解码为正常的sessionid，redis缓存中存的也是正常的缓存值。意思前到后有个自动编解码的过程。
+		场景	手机编码  ids未编码
+			手机带过去的是64编码后的，ids未解码直接拿来使用，在redis中找不到sessioinid，重新创建(req.getSession()默认是true)了一个session存值，这样存和取不在一个session中。
+			
 	
 	登录相关
 		主流的单点登录还是使用的是耶鲁大学开源的CAS，验票的环节
@@ -2489,7 +2513,7 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		whereis 				只能用于可执行文件的搜索，只能搜索二进制文件，说明文件，源代码文件。比which范围广
 		curl 					页面请求返回	
 
-
+		locale					
 		
 65.http 和 htps 的cookie  ， 没有区分，主要是满足domain中的值
 
@@ -2681,8 +2705,9 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 				
 				上传文件
 					注意	文件类型白名单，显示上传大小，上传后重命名
-
-
+					
+		java.sql.Date		这个是数据库中的类型date，指精确到年月日
+		java.util.Date		这个是数据库中的类型dateTime，精确到时分秒，一般开发用这个
 	
 71.nexus 搭建
 	nexus仓库类型  
@@ -2767,10 +2792,9 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 73.Websocket 电签  上传图片
 	Websocket之前， long poll 和 ajax轮询。  服务端能主动调用客户端
 程序设计中，这种设计叫做回调
-1.前段开启连接，需要带上userid。前端会将sessin传过去，通过参数绑定唯一的userid
+1.前段开启连接，需要带上userid。前端会将session传过去，通过参数绑定唯一的userid
 2.后端配置WebSocketServer，通过onOpen将session和userid绑定。WebSocketServer中奖session和userid绑定。
 3.发送消息就调用对应的server发消息
-
 
 打开websocket连接开启,生成二维码，扫码跳转地址，打开另一个websocket连接(和第一个同参数，但是不同session)，签名发送消息，前端接收。
 
@@ -3617,7 +3641,9 @@ InputStream is = item.getInputStream();
 	@Bean 和  CommandLineRunner
 		@Order注解并不能改变Bean加载优先级，对多个CommandLineRunner是有效的，加在普通的方法上或者类上没有作用
 		CommandLineRunner 和 @bean 加载顺序，启动mq先消费，CommandLineRunner的常量尚未加载就消费，导致初始化client异常。
-					
+		用户扩展CommandLineRunner，进行启动项目完毕之后一些业务的预处理。
+		InitializingBean，项目启动时，初始化bean的时候都会执行该方法
+		
 		
 109.iframe 路径编码
 		iframe嵌入的地址时候，相当于get请求，其中包含url的连接&等符号需要编码后传输
@@ -3932,6 +3958,8 @@ InputStream is = item.getInputStream();
 					if(it.next()==3){it.remove();}
 				}
 			System.out.println(list);
+			
+			iterator.next() 这里的每次next就会迭到下一个元素，最好用变量接收iterator.next()
 			
 		servlet-api版本导致的filter加载错误排查
 		
@@ -4358,6 +4386,43 @@ InputStream is = item.getInputStream();
 			重写了超类Object类中任意一个public方法的方法并不算接口中的抽象方法。
 			
 			比如：Comparator 中就有  int compare(T var1, T var2);  和  boolean equals(Object var1);
+			
+		lambda访问外部变量的规则，
+			1.只能引用标记了 final 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
+			2.局部变量可以不用声明为 final，但是必须不可被后面的代码修改（即隐性的具有 final 的语义）
+			3.不允许声明一个与局部变量同名的参数或者局部变量。
+			
+			
+			****这个阶段一般在编译阶段就报错了，以为着可以修改内部的值，但是不能改变地址，不能改变引用*****
+			****只要在lambda中使用的变量都默认是final特性*******
+			Lambda表达式引用的局部变量无论是否声明final，均具有final特性！表达式内仅允许对变量引用（引用内部修改除外，比如list增删），禁止修改！
+			以下情况均不允许编译通过：
+				情况一：修改外部局部变量
+				 int n = 0;
+				 src.forEach(item -> {
+					 n = 3;
+					 dest.add("dest: " + item);
+				 });
+				
+				情况二：Lambda使用外部局部变量，变量隐性final！
+				int n = 0;
+				src.forEach(item -> {
+					dest.add("dest: " + item + n);
+				});
+				n = 0;
+				
+				情况三：声明外部局部变量同名参数
+				int n = 0;
+				src.forEach(n -> {
+					dest.add("dest: " + n);
+				});
+			*********		
+
+			
+			
+			
+			
+			
 
 		Stream操作
 			形式：创建流+中间处理(intermediate)+终端处理（只能有一个terminal操作）
