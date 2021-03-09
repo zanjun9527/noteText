@@ -1,6 +1,6 @@
 渡一 姬成
 
-下个要看	 作用域，作用域链精讲
+下个要看	 事件
 
 编程形式的区别
 
@@ -140,6 +140,8 @@ console.log  一般推荐控制台输出
 					*****
 					
 					预编译的四个步骤
+					AO：activation object 
+					GO：global object
 					***常规的没有重名和未定义的特殊情况，一般不用细考虑***
 					先生成GO,再AO。
 						在函数体系中
@@ -155,6 +157,255 @@ console.log  一般推荐控制台输出
 					
 					
 					
+			作用域，作用域链
+				作用域[[scope]],其中存储了一个作用域链(执行期上下文对象的集合，呈链式连接)
+				***** 
+				scope chain 作用域链，自己的优先放在链的顶端使用即scope[0].实现了子类覆盖父类的属性。子继承父(继承的是引用)，并且覆盖父
+				*****
+					函数也是一个对象，对象就有属性.每次执行都有一个执行期上下文，函数执行要遵循作用域链
+					函数每执行一次就创建一个临时的独立的执行上下文AO,执行完毕上下文销毁
+					
+			立即执行函数
+				定义：此类函数没有声明，一次执行后即释放。适合做初始化工作
+				立即执行函数:只执行一次，针对初始化功能。执行完就被释放	
+					(function (){...}())  可以又参数和返回值
+			
+			
+				只有表达式才能被执行符号()执行
+				
+			闭包；简单看看后续有空再详看，
+				闭包的抽象概念：内部的函数被保存到了外部，一定生成闭包
+				那么保存到外部的函数共享父级的变量，这个共享很关键
+				
+				闭包造成：生成的作用域链不释放，造成内存泄露
+			
+				闭包的作用：	
+					实现公有变量
+					可以做缓存
+					可以实现封装，属性私有化
+					模块化开发，防止污染全局变量
+					
+		对象、包装类
+			js中的单双引号都行
+			var obj={
+				name:"deng",
+				age:12
+			
+			}
+				js对象中属性名加引号和不加引号是都可以的，效果是一样的。
+				但是对于不符合规范的属性名必须要加引号，json对象是必须要加的
+				
+				属性的增删改
+					obj.newShuXing="tianjia"
+					delete obj.shuxing
+					
+				对象的创建方法
+					1.var obj={}
+					2.构造函数  1).系统自带的构造函数 Object()  2).自定义构造函数(也是new出来)
+						var  obj= new Object()
+				
+				
+				大小驼峰命名规则   TheFirstName,theFirstName 
+				
+				
+				new 构造函数内部如果显式返回，不能返回基本数据类型，只能是对象
+				
+				new Number(4).len=3     用完就delete
+				
+			不 new  构造函数内this就指向window，new就指向构造的对象
+				
+				构造函数的内部原理
+					相当于函数内部隐式创建了一个this对象，var this={}，最后再return出去
+					1.函数体最前面隐式加上this={}
+					2.执行this.xxx=xxx;
+					3.隐式返回this
+					
+					
+		原型，原型链，call和apply方法
+				原型是function对象的一个属性，一般用在构造函数中，用来继承该原型的属性和方法
+				后代无法更改原型的属性
+				对象的__proto__就是其构造函数的原型Prototype
+				
+				
+				*****原型必须要是一个对象*****
+				
+				原型的构造函数内，var this ={_proto_:Person.prototype}
+				
+				var obj1={}; 推荐这个  和var obj2 = new Object(); 效果是一样的
+				
+				
+				引用对象，如果是同一个对象，其他引用也会更新，如果不是同一个对象，其他的不受影响
+				
+				var obj = Object.create(原型);
+				
+				
+				任何能toString()的都是有包装类或者是对象，最终有Object.prototype，才能有toString方法
+				
+				
+				绝大多数对象顶层都有obj的原型，  Object.create(null)除外
+				Number.prototype._proto_=Object.prototype
+				
+				
+				Object.prototype.toString.call(123);  对象直接调用指定的原型方法
+				
+					function test(){};
+						test()  等价于test.call()
+						
+						test.call(obj)  这个可以改变构造函数中this的指向
+
+				总结，call和apply都可以改变this的指向，区别是传参形式不同(都要传入自身对象)，相当于借用别人的方法实现自己功能
 			
 			
 			
+		继承，空间命名，对象枚举
+		
+		
+		
+		
+	闭包还可以实现变量私有化
+		
+			继承就几种方式
+				1.传统形式-原型链，过多继承了没用的属性
+				2.借用构造函数（call 和apply），不能继承借用构造函数的原型，每次构造函数都要多走一个函数
+				3.共享原型，不能随便改动自己的原型(公用的同一个原型)
+					Target.prototype=Origin.prototype            
+				4.圣杯模式  推荐使用   F是一个中间层
+						function inherit(Target,Origin){
+							function F(){};
+							F.prototype=Origin.prototype;
+							Target.prototype=new F();
+							Target.prototype.constuctor=Target;
+							Target.prototype.uber=Origin.prototype;
+						}
+						
+					优化版本,利用闭包实现变量私有化
+						var inherit=(function (){
+							var F=function () {};
+							return function inherit(Target,Origin){
+								F.prototype=Origin.prototype;
+								Target.prototype=new F();
+								Target.prototype.constuctor=Target;
+								Target.prototype.uber=Origin.prototype;
+							}
+						}());
+						
+			命名空间
+				管理变量，防止污染全局，使用模块化开发
+				
+				使用立即执行函数创建私有化变量(闭包特性),避免变量冲突
+				
+				var init=(function (){
+							var name="abc";							
+							function callName(){
+								console.log(name);
+							}
+							return function (){
+								callName();
+							}
+						}());
+						
+			属性的表示方法
+				obj.prop  或者  obj["prop"]
+					
+				for in   这个还能实现变量属性循环
+					for(var prop in obj)
+				
+				hasOwnProperty  用于排除父类属性用
+				
+				in  对象能否访问到一个属性
+				
+				A instanceof B	A对象是否是B构造函数构造出来的。看A对象的原型链上有没有B的原型 
+					
+					
+		arguments、数组、三目运算
+				var arr= new Aaary(10);  创建长度为10的空数组
+				var arr1 = [10];
+				
+			数组常用方法
+				改变原数组，push pop shift  reverse
+				不改变原数组，concat,join
+				
+				
+				Array.prototype.push= function(target){
+					this[this.length]=target；
+					this.length++;
+				}
+			类数组
+				属性要为索引(数字)属性，必须要有length属性，最好加上push
+				Array.prototype.push
+				
+				
+		通过var给window上添加的属性是不可配置属性，delete不掉
+				
+				
+		try catch es5标准 dom操作
+			es5严格模式  use strict
+				可以写在全局严格模式
+				局部函数内严格模式(推荐)
+				
+		dom操作	
+		<document>
+			<html>
+		操作的document
+			对html和xml的标准编程接口
+				xml中标签可以自定义，已经逐渐被json替代了
+				
+				主要也就是增删改查  appendChild  removeChild  document.createTextNode()
+			
+			选择器
+				id name 类 选择
+				id 标签 name 类名   css 选择器
+			节点类型
+				子父节点，同级节点
+				
+				元素节点
+				属性节点
+				文本节点
+				注释节点
+				document
+				
+			节点的四个属性：nodeName，
+							nodeValue 
+							nodeType 
+							attributes	element节点的属性集合
+							
+			节点的一个方法  Node.hasChildNodes();
+			获取节点类型 nodeType
+				
+				
+			HTMLDocument 继承了	  Document.prototype
+				
+				
+			document --> HTMLDocument
+			
+				
+			
+			element节点的一些属性
+				innerHTML 	改变内部的html内容
+				innerText	改变文本内容，注意文本结构，会覆盖结构
+				
+				
+				
+				方法  setAttribute() 和getAttribute()
+				
+		data-log应用
+		
+	var date=new Date()  和一些相关操作date的api
+	
+	var timer = setInterval(funcion(){},time); 定时器功能，定时循环
+	clearInerval(timer)  可以停止上面的定时器
+	
+	var timerout = setTimeOut()  隔n时间后执行一次
+	clearTimeOut(timerout)
+	
+	
+	窗口属性，dom尺寸 脚本化css
+		dom不能直接操作css，能间接改变   div.style。  这里是一个可读写的样式表
+		
+		dom.style.prop	
+			复合属性必须拆解，组合单词小驼峰写法，写入值必须是字符串格式
+			
+			通过js改变状态位，比如class
+			轮播图，一个定制div，然后一个几张图组成的胶卷，然后在div中的窗口滑动
+			每个li中一个img 然后float起来，然后调整距离即可
+	
