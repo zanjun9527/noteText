@@ -8,6 +8,8 @@
 	新技术:官方的文档，官网的demo。后面再横向对比，看源码(从依赖性最小的模块看起)。
 	
 	不是全面的掌握，每个东西都有关键点，抓住关键点是核心，往原理上问，抓重点记忆
+	
+	不仅仅是细节化的落实了，要整体的设计，主要核心点，以前是从点研究，后面要从面入点。请求数量 性能指标，aqs等
 
 	
 开发经验
@@ -849,6 +851,10 @@
 		
 		db_xiaoyuer.log_user_trade  在sqlyog中是可以夸库查询的
 
+		
+		CASE WHEN ro.status = 6 THEN
+		CASE ro.status WHEN 6 THEN
+		
 		mysql---同服务器下跨数据库更新
 			update 
 				A数据库.表名,B数据库.表名 
@@ -915,10 +921,12 @@
 			(9288,9289,9290)
 			
 
-		
 		数据库操作原子性测试
 		设置autocommit=false，然后两个事务操作都成功了，才收工commit，否则rollback
 
+		数据库字段在设计非空时候，如果有默认值，代码不插会默认。否则会报错
+		可以为空随便，有默认就默认，没默认就是null	
+		
 25.属性文件相关
 		classpath 是xml中和属性文件中用的语言，直接属性文件加载不用，类似classpath*:a/b/c
 		
@@ -1627,6 +1635,7 @@
 34.多线程和锁相关
 			线程直接run就是普通的方法，并没有开线程。必须new Thread(Runnable target).start 才开新线程
 			
+			
 				使用两种锁锁方法
 		   public static void lock(int i){
 				lock.lock();
@@ -1649,12 +1658,14 @@
 			ExecutorService executorService = Executors.newFixedThreadPool(11);
 			new ThreadPoolExecutor(nThreads, nThreads,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>()); 这样默认的是最大的队列值
 			
-			
 			ListenableFuture是guava中的多线程能得到结果的方法,可得到多线程调用的结果  这个知道概念就行了
 			
 			
 			
 35.分布式锁相关
+
+		ReentrantLock是基于aqs实现的。
+
 		使用private static  Lock lock = new ReentrantLock(true);/  系统是放在@service中，因为容器中的实例能保证是单例的，这样并发下lock只有一个实例
 		
 		redisson获取锁，不成功则订阅释放锁的消息，获得消息前阻塞。得到释放通知后再去循环获取锁。后续删除key后会发送消息，所以上文提到获取锁失败后，阻塞订阅此消息。
@@ -2561,6 +2572,17 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		比如
 			某表现有索引(a,b,c),现在你有如下语句
 			select * from t where a=1 and b>1 and c =1;     #这样a,b可以用到（a,b,c），c不可以
+			
+			
+			
+		EXPLAIN
+		SELECT * FROM pp_trade_ass_confirm_paid WHERE item_order_ext_id IN (
+			SELECT id FROM `pp_trade_item_order_extention`  WHERE order_no IN (
+				SELECT trace FROM ac_pay_acct_txn WHERE account='0000000000000888811'  AND trace LIKE '%XQDD%' AND create_time BETWEEN '2019-05-06 00:33:15' AND '2019-08-01 00:00:00'
+			) 
+		)
+		order_no  需要加索引  这种关联查询很慢的，对应的各sql的最左的都应该加上索引	
+					
 			
 	查看表作为其他表的外键
 			SELECT
@@ -4149,6 +4171,41 @@ InputStream is = item.getInputStream();
 			}
 			request.getSession().setAttribute("loginUser",JSON.toJSONString(user));
 			
+			常规的if判断 用 ==？ : 会简洁点
+			
+			
+			并发等待
+				使用while(判断)+redis实现并发的等待处理  redis的setEx
+				
+			@RequestParam  传空串是可以的，类似这种?cellPhone=&userName=要小心
+			
+			
+			对于xml解析的实用类，XStream用的比较常用
+			
+	排除core-dao后	编译正确，运行异常
+	同名路径的依赖问题，注意jar和另一个类。
+	1.xye-open-web引入了xye-core-dao      使用的是userInfo类  暂时看手机存的是json字符串，没有序列化问题   主要涉及小程序支付的问题
+	  ac-dmo中自建引用的core.dao.dmo   同名覆盖  这样看编译时看上去是引用jar，但实际运行时同名包下的类，可以用get属性测试
+			
+	注意文件长度是字节长度，不是位长度
+	byte[] bytes = string.getBytes("GBK");
+	StringBuilder sb = new StringBuilder(minLength);
+	for (int i = bytes.length; i < minLength; i++) {sb.append(padChar);}
+	
+	
+		BufferedReader in = new BufferedReader(new InputStreamReader(request.getInputStream()));
+		StringBuffer strBuff = new StringBuffer();
+		String line;
+		while ((line = in.readLine()) != null) {
+			strBuff.append(line);
+		}
+		Utils.log("HTTPS,服务器响应结果是: \n" + strBuff.toString());
+    	
+	
+	
+	
+			
+			
 			
 120.前后端分离
 		前端从后端剥离，形成一个前端工程，前端只利用Json来和后端进行交互，后端不返回页面，只返回Json数据。前后端之间完全通过public API约定
@@ -4230,6 +4287,9 @@ InputStream is = item.getInputStream();
 			
 			创建->转换->集合
 			List<Integer> ageList = userInfos.stream().map(userInfo -> userInfo.getAge()).collect(Collectors.toList()); // [10, 20, 10]  可以写map(UserInfo::getAge)
+			
+			String result = list.stream().collect(Collectors.joining(","));  //逗号拼接
+			
 			
 			方法引用又包括实例方法、静态方法。双冒号（::）,语法格式类名：：方法名。
 			[双冒号运算表达式]是个什么类型。答案是：Function<T,R>类型。也是lambda的简写方式
@@ -4418,10 +4478,9 @@ InputStream is = item.getInputStream();
 				});
 			*********		
 
-			
-			
-			
-			
+
+			目前看，只要使用lambda中没有提示外部变量，就可以使用
+
 			
 
 		Stream操作
@@ -4806,7 +4865,6 @@ InputStream is = item.getInputStream();
 					  }
 					}
 		filter 暂不研究
-		
 		由于logstash只能收集本机日志，故在其他机器上搭建filbeat，将日志发送给logstash
 				input {
 				  beats {

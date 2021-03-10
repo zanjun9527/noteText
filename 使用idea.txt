@@ -332,6 +332,12 @@ netpay  vars下面的文件夹显示不出来，在properties-resource filter中清除过滤规则
 
 ctrl + shift 注释的/ 和\ 是成对出现的
 
+
+git 中的还原，如果没反应，就直接reset - hard 
+
+
+
+
 ===================vscode==================
 查看-终端，执行git命令操作
 
