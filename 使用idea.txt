@@ -147,6 +147,17 @@ git，maven相关
 	https://my.oschina.net/xiaomingnevermind/blog/1609830
 
 	intellij 出现“Usage of API documented as @since 1.6+”的解决办法      设置model的jdk编译
+
+	查看git log,git  history
+		在history中查看的是比较简洁的信息，注重改动的记录。查看当前代码块的变动记录
+		如果要看git改动详情需要在log中查看。这里是全部分支和仓库，需要筛选后查看
+		变动的节点图还是比较清楚的
+
+		其中log中的  in 5 branches  说的是此处的代码被这几个分支共有，这些分支共享这个代码的源点。
+
+
+
+		
 	
 	
 	
@@ -156,6 +167,13 @@ git，maven相关
 	Ctrl+Alt+L 格式化代码
 	选中右击generate方法  getset方法
 
+编码，乱码相关
+	eclipse中的编码问题
+	1.修改Eclipse中文本文件的默认编码	windows->Preferences->general->Workspace->Text file encoding设置为UTF-8
+	2.修改JAVA源文件的默认编码		windows->Preferences->general->Content Types->右侧Context Types树，点开Text，选择Java Source File，在下面的Default encoding输入框中输入UTF-8，点Update
+	3.重启一下eclipse
+
+	简单的就单独右击项目的属性设置
 
 idea小常识
 	idea 导入相关的工程，后续使用统一工作空间，将project当作workspace使用
@@ -308,19 +326,20 @@ idea中的 package.package连起来显示问题
 	1.点击com的上一级包（这里就是java包），然后新建包为com.Dao
 	2.在com包下新建一个package-info.java，然后再新建其他的包
 
-
-
-
 elcipse下ctrl + shift + t 快捷键，就可以查看其源码文件了。
 
 netpay  vars下面的文件夹显示不出来，在properties-resource filter中清除过滤规则
+
+ctrl + shift 注释的/ 和\ 是成对出现的
+
+
+git 中的还原，如果没反应，就直接reset - hard 
+
 
 
 
 ===================vscode==================
 查看-终端，执行git命令操作
-
-
 
 
 

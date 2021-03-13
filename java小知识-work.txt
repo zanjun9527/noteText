@@ -6,6 +6,10 @@
 	思维导图，查看体系知识更清晰
 	
 	新技术:官方的文档，官网的demo。后面再横向对比，看源码(从依赖性最小的模块看起)。
+	
+	不是全面的掌握，每个东西都有关键点，抓住关键点是核心，往原理上问，抓重点记忆
+	
+	不仅仅是细节化的落实了，要整体的设计，主要核心点，以前是从点研究，后面要从面入点。请求数量 性能指标，aqs等
 
 	
 开发经验
@@ -31,8 +35,11 @@
 	可以给锁增加时间戳，定期清除超时的锁即可
 	
 	在冲突率很高的并发场景下适合用悲观锁（应该是作为乐观锁的一个补充）
-	
-	
+
+	悲观锁开销在于加锁本身，一般来说悲观锁需要很复杂的同步与调度机制，即使没有真正发生冲突也增加额外开销，
+	而乐观锁通常来说根本没有真正的锁，而只是检查了一个标记决定是否真的进行提交，开销要小得多，但是一旦发生冲突需要撤销整个transaction重做。所以冲突相对少的时候乐观锁有优势。
+	其实使用update的 SET account_active=(account_active+#{amount}),version=version+1，这里条记录是不会冲突的， 实际起到的作用是保证useraccount 和actran记录的一致性
+		
 3.跨域多个请求的事务称为长事务，还有就是使用延迟事务，尽可能晚打开事务
 
 4.客户端的会话状态保存，客户端存储数据，：url参数(常用来传递sessionId)，表单隐藏域(可以再传给server端)，cookie(基于域名传递的)，
@@ -65,11 +72,26 @@
 	setter是实例化结束的对象放到一个Map，可以获取，构造是放在池中，池不能重复创建同一对象
    
 	初始化方法，
+	
+		初始化就使用初始化的东西，别整些什么servlet的启动啥的非主流
+
 		直接在 Bean 的构造方法里做初始化工作
-		使用＠PostConstruct 注解，指明在 Bean 造器方法执行后执行的方法
-		Bean实现InitializingBean 接口，在 afterPropertiesSet 中做初始化工作
+		***
+			使用＠PostConstruct 注解，指明在 Bean 造器方法执行后执行的方法
+			Bean实现InitializingBean 接口，在 afterPropertiesSet 中做初始化工作
+		***
 		XML 中使用 init-method 指定 Bean 构造完成后调用的方法
 
+		
+		***
+			销毁对应
+				1.@PreDestroy注释，注释回调方法上，销毁Bean之前调用；
+				2.实现DisposableBean接口，调用destroy(...)，销毁Bean之前调用；
+				3.Bean定义中包含destroy-method（在XML中标签<bean>的属性）或@Bean(destroyMethod="...")指定的方法，销毁Bean之前调用；	
+		***
+		
+		
+		
 		@DependsOn  是有条件的初始化 
 		也可使用 BeanFactoryPostProcessor 和 BeanPostProcessor 来做一些更前置的初始化工作，典型的应用场景就是实现自己的注解
 		BeanFactoryPostProcessor> Constructor > BeanPostProcessor.postProcessBeforelnitialization > @PostConstruct > InitializingBean > init-method
@@ -247,7 +269,7 @@
 		2.属性文件配置
 			#pagehelper
 			pagehelper.helper-dialect=mysql
-			pagehelper.reasonable=true
+			pagehelper.reasonable=true							这个属性要注意，默认是false(超限返回空数据)，设置为true，页数超限就显示最后一页的内容
 			pagehelper.support-methods-arguments=true
 			pagehelper.params=count=countSql
 		
@@ -256,6 +278,9 @@
 	dao中引入了tk-mybatis，其中使用了3.4.5的mybatis版本。然后admin中引入的pagehelper和mybatis对应的是mybatis是3.5几的版本， 
 	jar冲突，导致了spring-dubbo.xml中的${zookeeper.address}读取失败，占位符无效，少见的错误。排除方法，针对简单ok的dubbo.xml demo 逐步删除admin无效代码，缩小排查范围。
 
+	查询结果是page转对象问题
+		使用pagehelper查询出的对象是page对象，然后放入json中，如果取的时候是getString,然后用arrayList转，会报错。除非放入限定好的对象中或者直接list<E>强转
+		就是pagehelper查询出的page对象，放json中，然后用getString反转为对象就要注意，直接强转
 	
 		
 12、Java泛型中的标记符含义： 
@@ -301,6 +326,7 @@
 	}
 
 16、boot、dubbo
+	提供者注册在zookeeper的地址是，192.168.6.85:20881，这样就是通过20881端口对外提供dubbo服务
 	jar 启动时候可以用java -jar app.jar --spring.profiles.active=dev  来指定运行的环境，目前采用的是pom中指定profile加载的属性文件
 	
 	注册服务
@@ -343,6 +369,9 @@
 
 	在使用spring-dubbo.xml中，service实现类 注入dubbo服务后，才会去读取配置的zookeeper地址
 	
+	boot中继承dubbo
+		dubbo-spring-boot-starter 使用这个才能在applicationi.properties中自动配置dubbo属性，否则只引入dubbo的maven，就需要添加dubbo.proerties配置
+
 	
 17、在继承arraylist后，转为json对象，后面只能解析出list元素中的东西，使用fastjson是这样的
 	实际是判断list继承后解析的，只解析了list总的元素值，在eclipse中显示正常，但是在idea中显示缺少
@@ -649,12 +678,6 @@
 	这个是单独配置的级别  其中的参数默认覆盖root中的，其他的按照root默认来，会优先匹配logger，匹配不到才使用root的。
 	***指定了详细的包的日志级别，root的不管用***
 	
-	
-	
-		
-	
-	
-	
 	案例：
 		<logger name="orderValidate" additivity="false">
 			<level value="INFO" />
@@ -670,10 +693,34 @@
 		orderValidate不加STDOUT，控制台是看不到的额，因为指定匹配了logger，没有使用root的
 		
 		<logger name="ch.qos.logback" level="ERROR" />  和 root 和日志级别关系    additivity="false"这个属性注意下
-		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。
+		root的作用是收集下面所有反馈上来的信息流并根据配置在root中appender进行输出，looger中配置了additivity="false"，就不会反馈到root中。为了不让日志打到root的配置中
 
-
+		<logger name="com.xiaoyuer.core.dao" level="INFO"  />  单独配置可以覆盖 root的级别，为了单独显示指定的日志
 		
+	logback MDC机制
+			作用：扩展logback内置的日志字段，自定义业务数据
+			原理：内部持有一个InheritableThreadLocal实例，用于保存context数据。注意操作完要MDC.clear()方法
+			案例：实际使用中可以用一个filter专门定制自定义的日志字段。也可以个别类中单独处理。只要是一个线程请求即可。
+			
+			代码实例
+				MDC.put("sessionId",sessionId);
+				logger.info("test23");
+				MDC.remove("sessionId");
+			
+			logback.xml中的配置
+				<property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread|%X{invokeNo}|%X{sessionId}] %-5level %logger{36}-%msg%n"/>
+				<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<File>${logbackpath}/xye.log</File>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<FileNamePattern>${logbackpath}/xye.%d{yyyy-MM-dd}-%i.log</FileNamePattern>
+					<maxFileSize>500MB</maxFileSize>
+				</rollingPolicy>
+					<encoder>
+						<pattern>${pattern}</pattern>
+					</encoder>
+				</appender>
+				
+			
 		
 23.rpc相关
 		zookeeper和服务端建立的是长连接，可以定时进行心跳检测。这肯定是的啊  基础知识
@@ -711,7 +758,7 @@
 			solrServer.add(doc, Constants.CREATE_INDEX_MS);
 	
 	
-24.数据库相关
+24.数据库相关，mysql相关
 		mysql中的主从复制是基于Binary log实现的
 		
 		
@@ -763,7 +810,8 @@
 
 		数据库行锁住之后，是可以查询的 ，更新不行
 		
-		分表通常分为：垂直划分、水平划分；垂直划分通常是根据业务场景将一个多字段大表拆分成多个多个少字段小表，
+		分表通常分为：垂直划分、水平划分；
+		垂直划分通常是根据业务场景将一个多字段大表拆分成多个多个少字段小表。那么带来的问题会有，1.分布式事务，2.查询表关联问题
 		水平划分是根据某个分片策略将同一个表的数据分开存到多个相同结构表中。
 
 
@@ -803,6 +851,10 @@
 		
 		db_xiaoyuer.log_user_trade  在sqlyog中是可以夸库查询的
 
+		
+		CASE WHEN ro.status = 6 THEN
+		CASE ro.status WHEN 6 THEN
+		
 		mysql---同服务器下跨数据库更新
 			update 
 				A数据库.表名,B数据库.表名 
@@ -869,6 +921,12 @@
 			(9288,9289,9290)
 			
 
+		数据库操作原子性测试
+		设置autocommit=false，然后两个事务操作都成功了，才收工commit，否则rollback
+
+		数据库字段在设计非空时候，如果有默认值，代码不插会默认。否则会报错
+		可以为空随便，有默认就默认，没默认就是null	
+		
 25.属性文件相关
 		classpath 是xml中和属性文件中用的语言，直接属性文件加载不用，类似classpath*:a/b/c
 		
@@ -999,6 +1057,8 @@
 			boot中WebMvcConfigurer配置web属性，然后boot中配置类 WebMvcAutoConfiguration 自动配置(即属性中的mvc配置)
 			
 			传参
+				其实mvc会只能将json数据装配好，但是如果使用了@requestBody,传递的json串中必须要有对应key。所有一般不实用
+				@requestBody注解常用来处理content-type=application/json类型。默认是application/x-www-form-urlcoded类型，这是key-value形式传参
 				数组    支持逗号分割的数组参数，用intp[] intArr接收
 				json	ajax中的data： JSON.stringfy(param对象)，后台@requestBody接收  $.post({})
 						contentType:”application/json”, //此处需要告知传递参数类型JSON,不能缺少
@@ -1024,12 +1084,24 @@
 		在spring中定时很简单，1.使用＠EnableScheduling注解启动定时任务，2.使用＠Scheduled配置具体的某个任务
 			
 		springboot的jar中依赖的jar，用解压打开，可以拿到相关的jar包	
+		
+		
+		
+		在1.x低版本的springsession中使用的还是CookieHttpSessionStrategy，但是在2.3.x之后改类就不存在了。
+		
+		在boot中使用了server.servlet.session.cookie.name=ADMINSESSION来指定cookieName
 			
 			
 27.dubbo相关
 		dubbo默认服务提供方的IP为内网IP，生产上需要映射成公网ip
 		
 		几个soa问题：多级调用的延迟，调试跟踪困难，安全监测，qos支持，高了用，易伸缩
+
+		dubbo启动两次 在tomcat中配置启动参数是false
+
+		dubbo已经是20881端口了   linux上还需要端口暴露
+
+		dubbo jar 启动之后就不提供web支持，web是访问不了的
 		
 28.maven相关
 	maven依赖特性
@@ -1077,6 +1149,8 @@
 		dependency:tree -Dverbose -Dincludes=com.xiaoyuer:xye-core-dao
 		Dincludes=org.springframework:spring-tx 过滤串使用groupId:artifactId:version的方式进行过滤	
 		
+	emanager中  spring-boot-dependencies    和dubbo-dependencies-bom 2.77 冲突，这种引入dependencyManagement管理的，会优先使用这里集中限定的版本。将pom工程中的依赖限定导入进来了。优先使用。
+	不是父依赖的问题，是jar冲突的问题
 
 		
 	maven-setting.xml配置	
@@ -1141,6 +1215,7 @@
 		**********	
 		try 事务测试，try事务，循环事务(本次以3次测试)
 			try{1.update 2.异常 3.update}catch{}  这种事务1走完会放入事务待提交，2中直接被异常抛出，3不会执行，这样对于别的循环次数没有影响，但是本次，还是1会成功。
+			测试1  版本号不对直接回滚 ，内层异常，在同一个事务中，遇到运行时异常，全部回滚
 		**********	
 						
 						
@@ -1199,9 +1274,8 @@
 						对环绕通知而言，可使用 ProceedingJoinPoint类型的参数。
 						
 					实际中使用@order注解来控制切面的指定顺序。实际就是拦截器的顺序
-				
-				
-				
+			
+				在aspect中使用@Around，Object obj=pjp.proceed()这个返回的就是被切方法实际返回的对象，这个可以实际用来添加调用日志的记录。
 				
 				
 				@transactional 作用范围，所有public 非静态的方法启用 ，最终生成一个TransactionDefinition
@@ -1262,6 +1336,16 @@
 						
 		sql中的#{},MyBatis创建预处理语句属性并以它为背景设置安全的值,
 		$在这里的作用只是做字符串替换，不会修改或转义字符串 因此，能使用＃的地方就不要使用$，除非是像 order by 这种不是参数的地方
+
+		分布式事务相关
+			1.需要一个全局协调者，全局事务管理器想所有事务参与者发送准备请求，事务参与者向全局事务管理器回复自己是否准备就绪
+			2.全局事务管理器接收到所有事务参与者的回复后判断，如果所有事务参与者都可以提交，则向所有事务提交者发送提交申请，否则进行回滚。事务参与者根据全局事务管理器的指令进行提交或回滚。
+			
+			实践中最常用的一致性方案是使用带有事务功能的MQ
+				在做本地事务之前，先向MQ发送一个prepare消息，然后执行本地事务，执行ok，向MQ发送一个commit消息。
+				否则发送一个rollback消息，取消之前的消息。MQ只会在收到commit确认才会将消息投递出去，保证一致性。
+				网络超时等原因可能收不到commit，那么MQ就不会吧prepare消息投递出去。MQ会根据策略尝试回调checkcommit
+				检查该消息是用还是不用，确认后，MQ处理。
 						
 		
 30.其他
@@ -1336,8 +1420,20 @@
 	一般是使用cookies，这样可以实现单点登录（不过还是没有解决跨域，要跨域只能用cas单点登录方案），
 	手机app的话，不支持cookies，只能使用header，服务器响应请求的时候，往header里面写sessionId。
 	
+	cookie编码，sessionId的base64编码  boot中web工程设置cookie相关。
+		spring-session-1.3.4(默认false)  和spring-session-core 2.0.2(默认true)  注意各版本中的编码默认值
+		DefaultCookieSerializer
+		在高版本的spring-session 的jar中，设置cookie相关的时候,cookieSerializer.setUseBase64Encoding(false);//这个要关闭，否则sessionid会在浏览器编码显示。
+		cookieSerializer.setUseBase64Encoding(false);//这个要关闭，否则sessionid会在浏览器编码显示，导致跨手机 和pc的sessionid变化
+        cookieSerializer.setDomainName(domainName);   //xiaoyuer.com
+        cookieSerializer.setCookiePath("/");
 	
+	base64编码 	NGEwMWQ3ZDQtMWY3OS00OTQzLTg5MDQtMWM1ZjM0MGU1NjQy
 	
+	注意的是虽然浏览器64编码了，但是传到后台后会解码为正常的sessionid，redis缓存中存的也是正常的缓存值。意思前到后有个自动编解码的过程。
+		场景	手机编码  ids未编码
+			手机带过去的是64编码后的，ids未解码直接拿来使用，在redis中找不到sessioinid，重新创建(req.getSession()默认是true)了一个session存值，这样存和取不在一个session中。
+			
 	
 	登录相关
 		主流的单点登录还是使用的是耶鲁大学开源的CAS，验票的环节
@@ -1539,6 +1635,7 @@
 34.多线程和锁相关
 			线程直接run就是普通的方法，并没有开线程。必须new Thread(Runnable target).start 才开新线程
 			
+			
 				使用两种锁锁方法
 		   public static void lock(int i){
 				lock.lock();
@@ -1561,12 +1658,14 @@
 			ExecutorService executorService = Executors.newFixedThreadPool(11);
 			new ThreadPoolExecutor(nThreads, nThreads,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>()); 这样默认的是最大的队列值
 			
-			
 			ListenableFuture是guava中的多线程能得到结果的方法,可得到多线程调用的结果  这个知道概念就行了
 			
 			
 			
 35.分布式锁相关
+
+		ReentrantLock是基于aqs实现的。
+
 		使用private static  Lock lock = new ReentrantLock(true);/  系统是放在@service中，因为容器中的实例能保证是单例的，这样并发下lock只有一个实例
 		
 		redisson获取锁，不成功则订阅释放锁的消息，获得消息前阻塞。得到释放通知后再去循环获取锁。后续删除key后会发送消息，所以上文提到获取锁失败后，阻塞订阅此消息。
@@ -1590,9 +1689,11 @@
 					jvm1的程序现在执行完毕，执行释放锁。关闭当前会话。临时节点不复存在了并且事件通知Watcher，jvm2和jvm3继续创建。
 					设置有效时间，超过时间就删除节点
 			
-		zookeeper
+		zookeeper相关
 				zookeeper=文件系统+监听通知机制。
-				
+
+				zookeeper通常有2n+1台server组成。用作投票机制
+
 				主要的开源框架	两款开源框架ZKClient和Curator。可以用来操作zookeeper
 				
 				ZooKeeper目录树中每一个节点对应一个Znode。每个Znode维护着一个属性结构，它包含着版本号(dataVersion)，时间戳(ctime,mtime)等状态信息。
@@ -1646,6 +1747,66 @@
 			使用TimeUnit类来实现线程的sleep也可以
 			
 			
+			windows 下查看zookeeper节点，dubbo节点
+				1.zkCli.cmd -server 127.0.0.1:2181 
+				2.然后ls /   查看当前目录
+
+		
+				可视化客户端 ZooInspector(Zookeeper Inspector的IP+端口要一次性写对，不然要关掉重新再写才行)
+				
+				实现层次命名空间的数据模型，就是一个精简的文件系统。基于watcher机制，监听znode节点(包括子节点)变化，通知给订阅状态的客户端。
+							
+				server内部控制时间逻辑的最小单位是tickTime(ms)  
+				
+				常常遇到session expire异常，这时需要重新连接，重新建立session。
+				
+				new ZooKeeper(url,sessionTimeOut,watcher)  三个重要的参数
+				
+				*****所有的增删改查操作都是针对znode节点进行的*****
+				
+				zookeeper的watcher是一次性的，每次处理完状态变化时间后，需要重新注册watcher。
+				
+				zkclient其中状态变化主要包括：1.子节点的变化 2.数据变化 3.连接及状态的变化
+				
+				
+				利用znode的特点和watcher机制，统一管理服务名称和对应的服务器列表信息。
+				 zookeeper		容错特性			通过事务日志和数据快照来避免因为服务器故障导致的数据丢失，leader和follower服务器都会记录事务日志
+								leader选举特性		leader 负责数据的读写，而follower只负责数据的读
+							
+				zookeeper使用了ZAB(Zookeeper Atomic Broadcast)协议，保证了leader,follower的一致性，
+				当leader宕机的话，使用 Fast Leader Election 快速选举出新的leader,节点在一开始都处于选举阶段，只要有一个节点得到超半数节点的票数，它就可以当选准 leader。
+				
+				临时节点:EPHEMERAL
+				
+				dubbo注册zookeeper节点相关
+				
+					三层节点 ： 根节点，服务名称节点和服务提供者的地址节点
+						其中根节点，服务名称节点是持久节点(persistent)，地址节点是临时节点(ephemeral)
+				
+				
+				根节点->服务名称节点->type节点->地址节点
+				/dubbo->com.soa.api.IUserService->provider->dubbo://192.168.6.222:20881/com.....
+				
+				consumers->consumer://192.168.6.222/com...
+				
+				其中provider、consumers 后续属于新增的一层type节点
+					1.dubbo节点，dubbo下一级接口，接口下的provider、consumers、configurators、routers都是持久化节点
+					2.provider和consumers下的url子节点都是临时节点。
+					
+					*******消费者从ZK获取provider地址列表后，会在本地缓存一份。后续都是对这个服务列表的本地存储进行更新*******
+					
+					*******
+						ZK的本质就是为两端提供服务地址的发布/订阅服务，让消费者及时感知最新的服务列表，consumer真正调用provider是通过某种通信协议直接调用，并不依赖ZK。
+						即使zk宕机，不影响两端调用，只是让本地缓存的服务列表有可能过时的。
+					*******
+					
+				调用的消费端，从注册中心获取到的是服务提供者的地址列表(负载均衡算法选出一台服务器地址调用)。
+				并且服务名称对应节点上有IZKCildListener监听，节点变化，对应的handleChildChange方法执行，更新节点，更新serverlist
+					
+				只有配置信息更新时，服务消费者才会去zookeeper上获取最新服务地址列表，其他时候使用本地缓存即可。这样服务消费者在服务信息没有变更时，几乎不依赖配置中心，降低配置中心压力。
+					
+			
+			
 36.回调的思想是:
 		类A的a()方法调用类B的b()方法
 		类B的b()方法执行完毕主动调用类A的callback()方法
@@ -1659,7 +1820,9 @@
 		a调用了b的方法，b开始执行，b执行完了，再调用a的方法，这就是回调。
 
 
-37.多个微服务的dubbo的架构问题， 可以同时为提供者和消费者	
+37.多个微服务的dubbo的架构问题， 可以同时为提供者和消费者
+
+	微服务解决，1代码复用，2.应用解耦，需求变更快，各模块独立，不影响  敏捷交付
 
 	其中的 Hessian 是基于 HTTP协议的 
 	Dubbo 是基于 TCP 协议的，
@@ -1681,7 +1844,7 @@
 			非对称加密需要两个密钥，一个公钥，一个私钥。
 			公钥加密数据，只有私钥才能解密。
 			私钥用来签名，公钥用来验证签名。判断公私钥的正确性，就是ca证书做的事。
-			常用：RSA 和 DH
+			常用：RSA 和 DH，重点RSA
 	
 		可分为对称加密：	加密后的信息可以解密成原值	des(适用数据库密码的加密)
 		非对称加密：		无法解密还原为原值			比如 md5
@@ -1697,6 +1860,53 @@
 				int d2 = n % 16;
 				return hexDigits[d1] + hexDigits[d2];
 			}
+
+	常用安全算法
+		彩虹表破解hash算法
+			一一穷举存储明文和密文的所有组合。
+
+		md5 和 sha 都属于hash算法
+
+			一个Byte由8 bits组成，是数据存储的基础单位，1Byte又称为一个字节
+			bit（比特）是表示信息的最小单位，是二进制数的一位包含的信息。一个bit是一个0或1，中文叫做一个二进制位
+
+		16进制编码
+			每4位二进制对应一位16进制数据
+			一个字节包含8位二进制(8bits)，转为2位的16进制
+		
+		base64编码	
+			任何人只要得到base64编码的内容，便可通过固定的方法，逆向得出编码之前的信息，
+			只是一种编码算法，将一组二进制信息编码成可打印的字符，在网上传输展现。
+			字节数组，一个字节是8个二进制信息，所以字节数组是二进制信息
+		md5 
+			md5信息摘要之后(摘要长度是128位),返回一个16个字节的字节数组，将字节数组转成16进制格式的数据(32位)。
+			而1个byte转成16进制正好是2位（16进制使用4个bit，一个byte有8个bit），所以MD5算法返回的128bit 转成16进制就正好是 32位
+
+		SHA
+			摘要信息长度是160位，常用16进制编码，和base64编码
+
+		数字证书
+			要获得数字证书，首先要使用数字证书管理工具，如keytool、openSSL等，然后构建CSR,提交给数字证书认证机构，最终形成数字证书
+			
+		摘要认证	
+			*****数据传输安全，简单说就是验签的过程。(加秘钥验签)*****
+				参数排序，加上secret拼接待加签的明文，使用md5等摘要算法，生成密文，传输
+			
+			使用treeset去重，复杂对象重写compareto方法实现排序
+			TreeSet的底层是用TreeMap来组织数据的，
+			
+		签名认证
+			使用公私钥
+			客户端
+				1.排序拼接待加密串，
+				2.使用共同的md5等摘要算法生成摘要串，
+				3.然后在使用私钥加密生成密文，
+				4.然后16进制编码为字符串传输
+			服务端
+				1.排序拼接待加密串，
+				2.使用共同的md5等摘要算法生成摘要串(字节转16进制字符串)，
+				3.使用公钥解密传来的密文得到明文串(字节转16进制字符串)
+				4.两个字符串一致，即可
 
 		
 38.浏览器敲get  对应的sessionid放哪里了
@@ -1816,7 +2026,34 @@
 						
 						
 		-D skipTests    这个更快点
-		-Dmaven.test.skip=true				
+		-Dmaven.test.skip=true		
+
+
+		<profiles>
+				<profile>
+					<id>sit</id>
+					<distributionManagement>
+						<snapshotRepository>
+							<id>my-nexus-snapshot</id>
+							<url>http://192.168.6.251:8087/nexus/content/repositories/sit/</url>
+						</snapshotRepository>
+					</distributionManagement>
+				</profile>
+		</profiles>		
+
+
+		这是以前的，这样看貌似 本地jar环境已经没有了
+			<distributionManagement>
+				<repository>
+					<id>my-nexus-releases</id>
+					<url>http://192.168.6.251:8087/nexus/content/repositories/releases/</url>
+				</repository>
+				<snapshotRepository>
+					<id>my-nexus-snapshot</id>
+					<url>http://192.168.6.251:8087/nexus/content/repositories/snapshots/</url>
+				</snapshotRepository>
+			</distributionManagement>
+				
 						
 						
 45.cmd 不识别mysql命令的时候，需要在环境变量中的path中添加mysql对应的bin目录
@@ -1869,6 +2106,11 @@
 	filter 是预处理，与Servlet的区别在于：它不能直接向用户生成响应
 	spring mvc 是对于Servlet的再包装，单纯的使用Servlet，你需要考虑线程安全(java的内存模型是线程安全问题产生的根本)
 	
+	
+	webapp 下的文件直接访问  mvc放过
+	
+	
+	
 	java的内存模型：java的主内存+线程私有内存的模型
 		java程序中，所有线程都共享主内存，但是每一个线程都有自己的工作内存。工作内存和主内存通过一些规定的操作来交互同步数据，但线程只能访问自己的工作内存。
 		因此在多线程环境下，很容易造成共存内存数据不一致引起的并发问题
@@ -1906,7 +2148,8 @@
 		完成方法 aftercompletion不一样，它只会执行返回 true 的拦截器的完成方法，而且顺序是先注册后执行
 	
 	
-49.可以直接使用redisTemplate，也可以bean中创建一个jedispool操作。pc中是重复了一个redis操作
+49.	redis相关
+	可以直接使用redisTemplate，也可以bean中创建一个jedispool操作。pc中是重复了一个redis操作
 	redis一般使用的是 Spring的RedisTemplate，也可以使用 Jedis自己的封装
 	redistemplate
 		没有设置序列化方式的时候redistemplate使用的序列化方式为JdkSerializationRedisSerializer，所以我们存入key前面会带上一串东西，而StringRedisTemplate使用的是 StringRedisSerializer，序列化的方式不一样，所以使用的时候key就不会出现一串字符串
@@ -1946,7 +2189,27 @@
 			这样版本才能统一对应上。
 			系统中是<exclusion>了*,所有，使用了boot默认的
 		
+		hashset
+			hset  相当于是给hash存储结构添加key-value数据，类似map
+			hgetall是取出hash结构的所有数据
+			redis.hset("url","google","www.google.cn");
+			redis.hset("url","baidu","www.baidu.com");
+			
+			就相当于是	Map<String,String> map = new hashMap()；
+						map.put("google","www.google.cn");
+						map.put("baidu","www.baidu.com");
+						redis.hmset("url",map)；
+
+			redis的list
+				是一个链表机构，类似栈或者队列，对元素的push和pop，可分别选择在首尾部添加和删除，lrange可以获取list在指定区间的元素
+		
+			redis的set
+				相对来说就是增加了一个去重的功能，用的暂时不多
+				zset还可以实现排序功能
 	
+
+				*****redis 中的incr方法，如果键不存在，会将默认重新计数，并且，过期时间为-1，需要判断ttl的时间，看情况重置过期时间*****
+
 	
 50.重定向
 	RedirectView
@@ -2251,6 +2514,18 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 64.linux 命令
 		top查看系统的cpu
 		
+		执行当前文件夹下的文件是    ./version.sh
+
+		more 可以分页查看，
+		less 支持内容查找，高亮显示
+		grep  aa xye.log	字符串查找	找出xye.log中的aa内容
+		find  -name xye.log  文件查找 find  -name "*.log"				查询速度慢
+		which   				查看系统命令是否存在，以及执行的到底是哪一个位置的命令。
+		whereis 				只能用于可执行文件的搜索，只能搜索二进制文件，说明文件，源代码文件。比which范围广
+		curl 					页面请求返回	
+
+		locale					
+		
 65.http 和 htps 的cookie  ， 没有区分，主要是满足domain中的值
 
 66.	 java.lang.Error: Unresolved compilation problem
@@ -2279,8 +2554,7 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 	
 	windows下nginx用nginx.exe -s stop关
 	
-	
-	
+	转发的两台tomcat需要session共享才能相互访问，不然登录会丢失session
 
 70.mysql
 	梯度漏斗   
@@ -2298,6 +2572,17 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		比如
 			某表现有索引(a,b,c),现在你有如下语句
 			select * from t where a=1 and b>1 and c =1;     #这样a,b可以用到（a,b,c），c不可以
+			
+			
+			
+		EXPLAIN
+		SELECT * FROM pp_trade_ass_confirm_paid WHERE item_order_ext_id IN (
+			SELECT id FROM `pp_trade_item_order_extention`  WHERE order_no IN (
+				SELECT trace FROM ac_pay_acct_txn WHERE account='0000000000000888811'  AND trace LIKE '%XQDD%' AND create_time BETWEEN '2019-05-06 00:33:15' AND '2019-08-01 00:00:00'
+			) 
+		)
+		order_no  需要加索引  这种关联查询很慢的，对应的各sql的最左的都应该加上索引	
+					
 			
 	查看表作为其他表的外键
 			SELECT
@@ -2396,9 +2681,55 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 			批量插入代替单挑插入
 				
 		
+		mysql-connector  mysql时区
+			serverTimezone=UTC   在mysql-connector高版本8.x中会有时区的问题，方案要么配置serverTimezone=Asia/Shanghai,要么换用低版本的mysql-connector
 		
-		 
-	
+			com.mysql.jdbc.Driver和mysql-connector-java 5一起用。
+			com.mysql.cj.jdbc.Driver和mysql-connector-java 8 一起用。	需要配置市区serverTimezone=GMT%2B8
+				
+		TIMESTAMPDIFF(MINUTE,'2020-08-27 10:38:00','2020-08-27 11:38:00')  			计算两个时间差
+		
+
+		mysql扩展
+			服务化的增加一个优点，单个系统复杂性降低，减轻了多分支开发带来的分支合并冲突解决的麻烦。
+			分库分表  这里需要考虑到扩容的情况，这个是避不开的问题
+				拆表的数量一般是2的n次方
+				分表解决的是单表数据量过大带来的查询效率的下降问题
+				单纯的分库和分表 都是可以通过单独的取模进行分
+				比如根据user_id划分256张表，那么就是user_id%256  这0-255共256张表
+				
+			如果同时进行分库和分(这种数据量就很大了，分库还能缓解单库的写操作压力)
+				一种分库分表的路由策略
+					1.中间变量=user_id%(库数量*每个库的表数量)
+					2.库=取整(中间变量/每个库的表数量)
+					3.表=中间变量%每个库的表数量
+					
+			带来的几个问题，1.引入多表关联查询，2.必须执行路由字段，3.扩容问题，4.分布式事务
+
+		mysql 可以开启慢查询，定位比较低效的sql语句
+			性能优化的几个方法
+				单例模式的使用场景，对于io处理，文件配置解析等一些消耗资源的操作，需要限制创建，公用一个。
+				future模式，发送处理，然后执行其他任务，后取结果
+				使用线程池
+				
+				结果缓存  springcache
+				
+				mysql  explain中的type=const  表示查询结果最多匹配一行(只有在使用了主键和唯一索引情况下，进行常数值比较时查询的type才为const)
+				
+				索引失效的场景
+					1.当查询的列不是独立的，而是表达式或者函数一部分时，将无法使用该列的索引。
+					2.当查询的列需要进行模糊匹配时，索引失效，全表扫描
+				
+				索引的最左原则
+				
+				密码安全
+					用户密码虽然经过单向的hash,如md5加密了。但是还是可以彩虹表破解，这是hash+salt就相对安全了
+				
+				上传文件
+					注意	文件类型白名单，显示上传大小，上传后重命名
+					
+		java.sql.Date		这个是数据库中的类型date，指精确到年月日
+		java.util.Date		这个是数据库中的类型dateTime，精确到时分秒，一般开发用这个
 	
 71.nexus 搭建
 	nexus仓库类型  
@@ -2474,15 +2805,18 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 	
 	@crossorigin可以针对单个的路径实现，要求Spring4.2及以上的版本
 
+
+	公司在几年前就采用了前后端分离的开发模式，前端所有请求都使用ajax
+	传统结构项目中，shiro从cookie中读取sessionId以此来维持会话，在前后端分离的项目中（也可在移动APP项目使用），我们选择在ajax的请求头中传递sessionId，
+
 	
 	
 73.Websocket 电签  上传图片
 	Websocket之前， long poll 和 ajax轮询。  服务端能主动调用客户端
 程序设计中，这种设计叫做回调
-1.前段开启连接，需要带上userid。前端会将sessin传过去，通过参数绑定唯一的userid
+1.前段开启连接，需要带上userid。前端会将session传过去，通过参数绑定唯一的userid
 2.后端配置WebSocketServer，通过onOpen将session和userid绑定。WebSocketServer中奖session和userid绑定。
 3.发送消息就调用对应的server发消息
-
 
 打开websocket连接开启,生成二维码，扫码跳转地址，打开另一个websocket连接(和第一个同参数，但是不同session)，签名发送消息，前端接收。
 
@@ -2548,6 +2882,9 @@ InputStream is = item.getInputStream();
 	然后项目中是在BaseInfoInitServlet中初始化完成的静态页面生成
 	 
 	想法就是通过使用freemaker使用预先的ftl模板，然后生成静态的html文件，后面页面直接引用
+	
+	spring.freemarker.template-loader-path  只是freemarker将静态文件加载的配置，配置对应目录，其他前后缀正常加。目前不必关注，配置正常添加即可
+
 	
 77.mybatis
 	mybatis的逆向在github的官方文档有相关的xml配置说明。
@@ -3026,6 +3363,8 @@ InputStream is = item.getInputStream();
 		
 		控制同一个ip和设备id的请求频率，记录在redis中的，使用incr 和 expire实现
 
+		返回给ajax的信息，关键信息，手机号等要*加密处理,敏感数据 userinfo一定要严格返回
+
 	
 97.dubbo的创建
 	使用自定义的schema，实现命名空间自定义配置
@@ -3295,6 +3634,9 @@ InputStream is = item.getInputStream();
 			这样就是 编译是找自身的jar  运行才会找最终的依赖jar。尽量版本统一
 			方法定义了  会就近寻找jar依赖   
 			
+	runtime 是运行的意思。指的是直接在运行时所需要的包，而非在编译时等时候需要的包。  mysql-connector可以配置，但是编译需要的jar不能使用
+
+			
 			
 106.job梯度时间发送
 		时间梯度，总的来说就是定30,60,100规则穿，记录次数，10job一次，然后每次判断下次的时间点到没到，漏发的再补发一次就可以了
@@ -3314,9 +3656,15 @@ InputStream is = item.getInputStream();
 		
 	@Value(”$(database.driverName)”),${}代表占位符，会读取上下文的属性值装配到属性中，这是一个最简单的spring表达式
 
+		静态代码块，static初始化
+			静态static代码块在首次调用这个类时才触发，而不是一开始就加载。且只加载一次
 	
-		
-		
+	
+	@Bean 和  CommandLineRunner
+		@Order注解并不能改变Bean加载优先级，对多个CommandLineRunner是有效的，加在普通的方法上或者类上没有作用
+		CommandLineRunner 和 @bean 加载顺序，启动mq先消费，CommandLineRunner的常量尚未加载就消费，导致初始化client异常。
+		用户扩展CommandLineRunner，进行启动项目完毕之后一些业务的预处理。
+		InitializingBean，项目启动时，初始化bean的时候都会执行该方法
 		
 		
 109.iframe 路径编码
@@ -3501,7 +3849,41 @@ InputStream is = item.getInputStream();
 	
 					会判断ASYNC_KEY是否为true,如果是，则会向context中写入future对象：
 					
-					
+			dubbo直连(绕过注册中心，点对点直连，以服务接口为单位，忽略注册中心的提供者列表)
+				3.dubbo 直连，开发环境可不使用zookeeper,节省启动注册时间，soa关闭再启动不影响消费端使用，步骤如下：
+				服务端口SOA   1.取消注册 添加 register="false"   2.关闭令牌验证   token="false"
+
+				<dubbo:registry protocol="zookeeper" address="${zookeeper.address}" register="false"/>
+				<dubbo:provider token="false" timeout="20000" retries="0"/>
+				消费端   替换 spring-dubbo.xml 表达式
+				eclipse:   find:interface=\"(.*)\"    replace with:  interface=\"$1\" url="dubbo://localhost:20881"  勾选 regular expressions  
+
+			dubbo  qos  qos-server端口冲突
+				dubbo的重启多次启动导致的端口冲突  qos-server 端口冲突，
+				经过网络查找，结果是Root WebApplicationContext 启动了两次，第二次报错，dubbo端口被占用
+				qos主要用来对服务动态上下线，目前用不到
+				解决办法：在tomcat的server.xml中设置 <Host appBase="webapps" autoDeploy="false" deployOnStartup="false" name="localhost" unpackWARs="false">
+
+			dubbo服务超时调用
+				默认是服务不成功，重试两次。如果服务端处理时间超过了设定的超时时间，就会有重复请求
+					1.对于核心的服务中心，去除dubbo超时重试机制，并重新评估设置超时时间。
+					2.业务处理代码必须放在服务端，客户端只做参数验证和服务调用，不涉及业务流程处理
+
+				<dubbo:provider delay="-1" timeout="6000" retries="0"/>  加大超时时间(接口配置>全局配置)
+
+				一个是provide提供的超时参数(推荐服务端配置)，还有一个是consumer提供的超时参数
+				服务消费者端设置超时时间，如果在消费者端设置了超时时间，以消 费者端为主，即优先级更高。因为服务调用方设置超时时间控制性更灵活。如果消费方超时，服务端线程不会定制，会产生警告。
+				
+				
+				消费端配置1s的超时时长，注意这里不能说默认就是1s你还显示声明干嘛。你要不显示声明服务端显示声明就会按照服务端的配置时长操作的咯，注意这一点
+
+				出现超时异常的时候服务端可不会停下来，你客户端为了保证高可用一顿重试最后结果就是重复请求。当然如果是查询没问题，可以避免一些网络波动造成的超时异常，可以提升服务的可用性。但是如果是数据插入，如扣款、订单等操作，重复操作可不是一件好事情
+				
+			
+			zookeeper关闭调用 和服务关闭调用
+			zookeeper关闭 不影响调用，服务关闭当然失败，新版的dubbo2.7.7 提供者断开后，消费者调用失败，过段时间提供者重启，消费者可以连上
+
+
 113.多接口实现
 		class a 实现 接口b(继承接口c)，那么a需要实现所有方法(包括c中的)，但是若a继承了一个实现c接口的类，就不用都实现(只认implements)，系统中是baseSericeImpl。
 
@@ -3571,8 +3953,20 @@ InputStream is = item.getInputStream();
 				<button type="submit">提交</button>
 			</form>
 		
-		
 119.杂知识
+		********************
+		重点问题记录
+			k8s部署dubbo-admin问题
+				bbo.xsd 识别错误--->找dubbo.jar---->找pom.xml依赖--->确定发布分支-->至于sit能发布的原因是，war包名称不一致，导致去/data/apps下使用原dev的包。
+		
+			升级dubbo的问题，版本升级一定要参考官网的，不能随意使用版本，标准就是官方文档。任何时候都不要用最新的版本试验
+				dubbo升级2.7.x,  不要使用最新版，按照官方文档中的推荐2.7.7即可	
+				
+				dubbo官方文档						http://dubbo.apache.org/    
+				springboot-dubbo官方文档			https://github.com/apache/dubbo-spring-boot-project/
+
+		********************		
+
 		双循环的终止问题，continue 和break都只影响本身的循环，不会影响上层循环体
 		
 		AxureRP文件将resource下的crx文件rar格式解压，然后对应插件中开发者模式加载目录，即可访问index页面
@@ -3586,6 +3980,8 @@ InputStream is = item.getInputStream();
 					if(it.next()==3){it.remove();}
 				}
 			System.out.println(list);
+			
+			iterator.next() 这里的每次next就会迭到下一个元素，最好用变量接收iterator.next()
 			
 		servlet-api版本导致的filter加载错误排查
 		
@@ -3641,13 +4037,13 @@ InputStream is = item.getInputStream();
 				
 				list<obj>对象的复制，一般是foreach中，新建copy对象。
 		
-		double的保留位数和四舍五入处理
+		double的保留位数和四舍五入处理,BigDecimal处理金额计算
 				public static double setDifScare(double arg) {
 				BigDecimal bl = new BigDecimal(arg).setScale(2, BigDecimal.ROUND_HALF_UP);
 				return Double.parseDouble(bl.toString());}
 				
 		网银支付，网银网页跳转
-		后端生成自动跳转的Html表单串(包含验签信息),将生成的html写到浏览器中完成自动跳转打开银联支付页面；
+			后端生成自动跳转的Html表单串(包含验签信息),将生成的html写到浏览器中完成自动跳转打开银联支付页面；
 		
 		静态类外部访问必须是public。
 		debug调试时，类中的静态属性查看不到。
@@ -3683,7 +4079,7 @@ InputStream is = item.getInputStream();
 		想要高效区分任务优先级，需要知道成本和价值，然后就有成本价值划分优先级（任务优先级=任务价值/任务成本），不要做无用功
 			
 		spring security	
-		1.引入spring-boot-starter-security   2.@EnableWebSecurity
+			1.引入spring-boot-starter-security   2.@EnableWebSecurity
 		
 		比较常用的工具类
 			apache commons ，google guava, joda time，fastjson
@@ -3693,6 +4089,123 @@ InputStream is = item.getInputStream();
 				
 			httpClient 是使用HttpEntity来现的 常用的几个 httpEntity:UrlEncodedFormEntity,MultipartFormEntity,StringEntiry
 					
+			
+		ajax 返回前台会有数据暴露(可以在network中看到返回的参数),页面跳转没有数据暴露的问题	
+		
+		www.yu.com/auth  实际就是转到了192.168.6.222:8080/auth(实际从yu过来，带着cookie,访问了具体的ip机器)    当然/ids路径下的cookie拿不到，
+		还要就是cookie的编码问题，不要使用编码
+		
+		主站的绑卡http访问支付，支付从页面中是拿不到cookie对象的，这样支付实际没有校验card bin。跳过了校验
+		非cookie页面过来的，systemGateWay.htm路径清除多余session，相当于systemGateWay.htm过来的，根本不使用当前request中的session，不是页面的不共享session，单独http请求的sessionid是不共享的
+	
+		ArrayList 和linkedlist区别
+			ArrayList是实现了基于动态数组的数据结构，LinkedList是基于链表结构。
+			对于随机访问的get和set方法，ArrayList要优于LinkedList，因为LinkedList要移动指针。
+			对于新增和删除操作add和remove，LinkedList比较占优势，因为ArrayList要移动数据。
+		
+		一个字节等于8位  1byte = 8bit      int占用4个字节，long 8个字节，
+		
+		
+		对象引用操作
+			前台js中
+				var psa={"name":"wangzhan",}
+				var obj1=psa;
+				psa={"name":"baidu"}
+				JSON.stringify(obj1);   -- 出来的是wangzhan，因为操作的不是同一个对象
+
+				var psa={"name":"wangzhan",}
+				var obj1=psa;
+				psa.name="baidu";
+				JSON.stringify(obj1);	-- 出来的是baidu，因为操作的是同一个对象
+	
+		测试controller 中的return；   遇到return; 直接终止执行
+		测试 异常抛出的return		   异常抛出，直接终止
+
+		静态初始化和bean加载的顺序问题
+			es的client静态初始化，mq启动消费和常量类的属性加载顺序引起的异常。之前留下的一个记录，先消费消息，然后加载常量类，出现错误
+
+		事务中  try 事务操作的问题,不影响，之后接收到runtimeexception才会回滚，单个try住不影响外层的事务，这也是遍历中常用的操作
+
+		http://xiaoyuer.jenkins.net/ 域名  后面是域名 兄弟，应该是http://jenkins.xiaoyuer.net/ 域名
+		
+		
+		dubbo+k8s
+			k8s+dubbo	
+				https://blog.csdn.net/weixin_41715077/article/details/89385413	 		核心点和原理图
+				https://blog.csdn.net/xujiamin0022016/article/details/107288208/		实际操作
+
+			幸运的是dubbo提供了自动义指定注册ip的配置，我们可以在部署开发联调服务时指定ip地址为宿主机的ip地址。
+			env:
+					  - name:  APOLLO_META
+						value: http://172.31.205.22:8080
+					  - name: DUBBO_IP_TO_REGISTRY
+						value: 172.31.205.23
+					  - name: DUBBO_PORT_TO_REGISTRY
+						value: "30011"
+					  - name: DUBBO_PORT_TO_BIND
+						value: "30011"
+
+			有考虑过，但后期 K8S 节点扩容后，集群外服务往集群内的一些网络权限变更就得重新搞，一个服务就得开一个策略，假设有一百个服务，扩容一台节点，就得加一百条策略，网络工程师应该会砍死我，。
+
+			针对外部访问不到容器内的服务
+				目前是这样解决的，在容器部署模板里的 env 部分定义一个变量，并声明 valueFrom.fieldRef.fieldPath 的值为 status.hostIP，
+				这样容器启动后就可以通过环境变量获取到宿主机的 IP 地址，将注册地址改为主机地址，外部 zookeeper 对主机地址可见即可
+				env:
+						- name: DUBBO_IP_TO_REGISTRY
+						  valueFrom:
+							fieldRef:
+							  fieldPath: status.hostIP
+						- name: DUBBO_PORT_TO_REGISTRY
+						  value: "20920"	
+					  
+		rememberMe 记住登录
+			if("true".equals(rememberMe)){
+				Cookie cookie = new Cookie("cellphone",cellphone);
+				cookie.setPath("/");//根目录
+				cookie.setMaxAge(-1);//永久
+				response.addCookie(cookie);
+			}else{
+				Cookie cookie = new Cookie("cellphone",null);
+				cookie.setMaxAge(0);
+				response.addCookie(cookie);
+			}
+			request.getSession().setAttribute("loginUser",JSON.toJSONString(user));
+			
+			常规的if判断 用 ==？ : 会简洁点
+			
+			
+			并发等待
+				使用while(判断)+redis实现并发的等待处理  redis的setEx
+				
+			@RequestParam  传空串是可以的，类似这种?cellPhone=&userName=要小心
+			
+			
+			对于xml解析的实用类，XStream用的比较常用
+			
+	排除core-dao后	编译正确，运行异常
+	同名路径的依赖问题，注意jar和另一个类。
+	1.xye-open-web引入了xye-core-dao      使用的是userInfo类  暂时看手机存的是json字符串，没有序列化问题   主要涉及小程序支付的问题
+	  ac-dmo中自建引用的core.dao.dmo   同名覆盖  这样看编译时看上去是引用jar，但实际运行时同名包下的类，可以用get属性测试
+			
+	注意文件长度是字节长度，不是位长度
+	byte[] bytes = string.getBytes("GBK");
+	StringBuilder sb = new StringBuilder(minLength);
+	for (int i = bytes.length; i < minLength; i++) {sb.append(padChar);}
+	
+	
+		BufferedReader in = new BufferedReader(new InputStreamReader(request.getInputStream()));
+		StringBuffer strBuff = new StringBuffer();
+		String line;
+		while ((line = in.readLine()) != null) {
+			strBuff.append(line);
+		}
+		Utils.log("HTTPS,服务器响应结果是: \n" + strBuff.toString());
+    	
+	
+	
+	
+			
+			
 			
 120.前后端分离
 		前端从后端剥离，形成一个前端工程，前端只利用Json来和后端进行交互，后端不返回页面，只返回Json数据。前后端之间完全通过public API约定
@@ -3710,6 +4223,14 @@ InputStream is = item.getInputStream();
 		创建了个SSLClient(基于DefaultHttpClient使用)
 		本质都是使用了DefaultHttpClient，支付都是使用的443端口(可以nginx中转到支付的80，但是原请求都是s端口)
 		JSONObject result = HttpClientUtil.httpsPost(httpsurl, port, params,timeOut);
+
+
+		使用 httpPost提交参数	UrlEncodedFormEntity		BasicNameValuePair，必须要使用如下类型，使用json传参会失败
+		content-type	application/x-www-form-urlencoded; charset=UTF-8
+		//httpPost.addHeader("Content-Type", "application/json");
+			  
+
+
 		
 122.HttpRequest中常见的四种ContentType
 			客户端发起 HTTP POST/PUT 请求时，可以指定Request Header 的 Content-Type，表示向服务端发送的 Request Body 中的数据的格式
@@ -3767,6 +4288,9 @@ InputStream is = item.getInputStream();
 			创建->转换->集合
 			List<Integer> ageList = userInfos.stream().map(userInfo -> userInfo.getAge()).collect(Collectors.toList()); // [10, 20, 10]  可以写map(UserInfo::getAge)
 			
+			String result = list.stream().collect(Collectors.joining(","));  //逗号拼接
+			
+			
 			方法引用又包括实例方法、静态方法。双冒号（::）,语法格式类名：：方法名。
 			[双冒号运算表达式]是个什么类型。答案是：Function<T,R>类型。也是lambda的简写方式
 			
@@ -3778,7 +4302,14 @@ InputStream is = item.getInputStream();
 			java8的一些新特性
 				接口的默认方法：即扩展方法。	允许通过关键字default向接口中加入非抽象方法。（也允许添加静态方法）
 				
+		
+
+				由于JDK1.8中接口支持默认方法，但即使一个接口中有很多默认方法，只要接口只定义了一个抽象方法，它就仍然是一个函数式接口。
 				lambda,参数列表+箭头+函数体组成
+					*****只有在有函数接口的地方才能使用lambda*****
+					********用来代替函数式接口的匿名实现类********
+					*****场景：用来代替一些匿名类。或者是赋给一个变量*****
+					*****简化函数式接口的匿名类，只是创建了一个匿名的实现类，参数还是要最终传入的*****
 					函数接口：仅仅包含一个抽象方法的接口。
 					可将任意只包含一个抽象方法的接口用作lambda表达式。使用＠FunctionalInterface,可提前检查合法性。
 					也可以使用::来简化，暂不用，后面遇到再说
@@ -3804,7 +4335,180 @@ InputStream is = item.getInputStream();
 				stream foreach 是开线程的  数量大了这个块，一般的使用foreach即可,复杂的业务操作逻辑中，流的优势就很大了。
 				
 				流编程就是增加连贯性，简化写法。stream编程挺方便的。主要操作的对象是元素集合。
+
+				*****
+					Lambda表达式由参数列表（People people）,箭头  -> 、和Lambda主体  "男".equals(people.getName()) 三部分组成
+				*****	
+
+				格式一： 参数列表 -> 表达式 
+				格式二： 参数列表 -> {表达式集合}
+
+				传参形式	推荐，省略参数类型，加上括号，主体加上大括号
+					1.(People people)-> "男".equals(people.getName())										//完整的参数列表
+					2(people) -> "男".equals(people.getName())												//参数类型可以省略
+					3.people -> "男".equals(people.getName())												//当传入参数只有一个时，括号可以省略
+					4.(People people,People  people1) -> people.getName.equals(people1.getName())			//当传入多个参数，或者不传参数时，括号不能省略
+					5.(people, people1) -> people.getName.equals(people1.getName())							//当传入多个参数，或者不传参数时，括号不能省略，多个参数的参数类型也可以省略
+
+				主体形式
+					1.（people） -> "男".equals(people.getName())							//当没有花括号时，表达式结果就是返回值,隐含了return
+					2.（people） -> {return "男".equals(people.getName())}					//当有花括号时，要显性返回方法要求的返回信息
+
+				Lambda表达式可以用来替换函数式接口(接口里面只定义了一个抽象方法)的实现类。避免了定义新的类或者使用匿名函数。
+
+
+
+			Lambda本身不知道对应哪个函数式接口，编译器会根据上下文（context）环境来适配目标类型(target type)。意思是先右后左。那么函数签名相同，Lambda就可以混合使用
+			Runnable a = ()->System.out.println("Runnable");
+
+
+			当函数式接口的抽象方法与lambda表达式表达的函数签名相同的时候我们可以使用
+
+
+			jdk8会提供一些默认的函数式接口，比如Consumer等 list的forEach就用了这个接口，这个后面可能要使用.默认的函数式接口基本都在jdk下的java.util.function包下
+
+			特殊的void规则  这个暂时不细看，用到再说
+				如果一个Lambda的主体是一个语句表达式，他就和一个返回void的函数描述符兼容（当然需要参数列表也兼容）			Consumer
+				如果Lambda表达式的主体是一个语句表达式，那么它就和一个返回void的函数描述符兼容，
+			
 				
+			方法引用,复用的地方又不多推荐使用lambda表达式,否则应该使用方法引用.  
+
+			Stream中map()方法可以理解为对集合的每一个元素进行相应的操作,
+			创建一个该接口的一个实例，方法的真正执行需要通过该实例去触发执行
+		
+			只要保证入参和返回结果一致，就可以使用lambda了，所以双冒号也是lambda的一种缩写
+
+
+			
+         * 通过分析可以得知静态方法eat需要输入的参数为Cat实例，无返回结果，
+         * 那么它与JDK所提供的函数式接口Consumer<T>所需要的输入和输出是一致的，
+         * 因此该静态方法可以使用函数式接口Consumer<T> + 双冒号lambda表达式 的方式进行引用
+         * 引用方式如下：
+         */
+        Cat cat = new Cat();
+        Consumer<Cat> eatMethod = Cat::eat;//静态方法的双冒号表达式是类名::方法名
+        eatMethod.accept(cat);
+
+		**********选择合适的函数式接口 才是lambda的使用的关键，一定要匹配**********，只要能匹配上，随便用。使用过程中可以按照需要挑选，大部分情况不需要自己定义函数式接口。
+		由于方法的输入参数类型和输出参数类型相同,所以可以使用一元函数接口
+		只需要分析清楚方法的输入参数类型和参数格式，以及返回结果类型，然后由此选择合适的函数式接口，再配合双冒号（"::"）lambda表达式，就可以完成方法引用了。
+			
+		https://blog.csdn.net/nrsc272420199/article/details/84718802    方法引用的实际讲解
+
+		lambda是针对某个函数式接口创建的，所以要选好接口后再匹配相应的方法
+		Lambda更适合和JDK提供Stream配合使用
+
+		*****:: 双冒号操作符  已经理解了，就是对应函数式接口的那个方法，一致即可用，需要选择好函数接口*****
+
+
+		双冒号操作符(方法引用)中的方法需要匹配下面的类型再使用
+
+		四大核心函数式接口
+			Consumer<T>  	void accept(T t)	消费型接口
+			Supplier<T>	 	 T get()			供给型接口
+			Function<T, R> 	 R apply(T t)		函数型接口   
+			Predicate<T>	 boolean test(T t)	断言型接口
+
+		Lambda局部内使用外部变量必须是final类型的，但是使用类上的属性，貌似没有问题。方法内的属性需要final，类上的属性不需要
+			对引用类型(地址传递)来说是引用地址的一致性(地址不变)，对基本类型(值传递)来说就是值的一致性（数据不变）
+			*****在JDK8之后，匿名内部类引用外部变量时虽然不用显式的用final修饰，但是这个外部变量必须和final一样，不能被修改（这是一个坑）。*****
+			  即可以对对象属性操作，可以对list操作，但是不能new 对象重新赋值。list是引用对象类型
+			解决方案：可以通过定义一个相同类型的变量b，然后将该外部变量赋值给b，匿名内部类引用b就行了，然后就可以继续修改外部变量。
+
+		局部内部类和匿名内部类访问的局部变量必须由final修饰，java8开始，可以不加final修饰符，由系统默认添加。java将这个功能称为：Effectively final 功能
+
+        可以操作引用类型的值，但是不能改变地址
+
+		针对基本类型可以
+			1）把 limit 变量声明为 static。
+			2）把 limit 变量声明为 AtomicInteger。(数字用)
+			3）使用数组。
+
+
+
+
+		System.out::println  这个也是对应消费型接口的一种简写
+		list.forEach(System.out::println);
+		list.forEach
+			default void forEach(Consumer<? super T> action) {
+				Objects.requireNonNull(action);
+				for (T t : this) {
+					action.accept(t);
+				}
+			}
+		@FunctionalInterface实际测试，接口的方法继承也不行
+		Runnable也是一个函数式接口	
+
+
+
+		特殊情况
+			重写了超类Object类中任意一个public方法的方法并不算接口中的抽象方法。
+			
+			比如：Comparator 中就有  int compare(T var1, T var2);  和  boolean equals(Object var1);
+			
+		lambda访问外部变量的规则，
+			1.只能引用标记了 final 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
+			2.局部变量可以不用声明为 final，但是必须不可被后面的代码修改（即隐性的具有 final 的语义）
+			3.不允许声明一个与局部变量同名的参数或者局部变量。
+			
+			
+			****这个阶段一般在编译阶段就报错了，以为着可以修改内部的值，但是不能改变地址，不能改变引用*****
+			****只要在lambda中使用的变量都默认是final特性*******
+			Lambda表达式引用的局部变量无论是否声明final，均具有final特性！表达式内仅允许对变量引用（引用内部修改除外，比如list增删），禁止修改！
+			以下情况均不允许编译通过：
+				情况一：修改外部局部变量
+				 int n = 0;
+				 src.forEach(item -> {
+					 n = 3;
+					 dest.add("dest: " + item);
+				 });
+				
+				情况二：Lambda使用外部局部变量，变量隐性final！
+				int n = 0;
+				src.forEach(item -> {
+					dest.add("dest: " + item + n);
+				});
+				n = 0;
+				
+				情况三：声明外部局部变量同名参数
+				int n = 0;
+				src.forEach(n -> {
+					dest.add("dest: " + n);
+				});
+			*********		
+
+
+			目前看，只要使用lambda中没有提示外部变量，就可以使用
+
+			
+
+		Stream操作
+			形式：创建流+中间处理(intermediate)+终端处理（只能有一个terminal操作）
+			其中中间处理有很多如，filter(),map()的常用操作
+			优点：
+				1.“延迟计算”，占用内存很少。
+				2.集合类的迭代逻辑是调用者负责，通常是for循环，而Stream的迭代是隐含在对Stream的各种操作中，例如map()
+			Stream 是对集合（Collection）对象功能的增强，高效的聚合操作（过滤、排序、分组、聚合等）
+			所有 Stream 的操作必须以 lambda 表达式为参数
+
+			终端处理之后，流关闭，无法再进行中间处理。数据收集主要使用 collect 方法，该方法也属于归约操作
+
+		Optional
+			适用场景，连环的属性判空处理
+			Optional是为了更优雅的判断null而诞生的,但是并不代表有null的地方一定就要用Optional代替
+
+			判空推荐使用ofNullable
+			*****每次的map操作会返回一个optional对象，相当于操作的是optional中的value对象*****，
+			连续的map操作，只要有一个就数连续null传递，最后一个orElse收尾返回。
+			map(Function)：对Optional中保存的值进行函数运算，并返回新的Optional(可以是任何类型)
+			其中如果是空，就会返回一个new Optional<>()，value是null
+			目前看只能判断null，但是不能判断''这样的空串,可以使用filter过滤
+
+
+
+
+
 
 125.配置job
 	启动加载进入内存
@@ -3836,6 +4540,11 @@ InputStream is = item.getInputStream();
 				- 	指定时间区间
 				/ 	指定时间间隔执行		
 			
+		"0 0 */3 * * ? *"      "* * 0/3 * * ? *" 注意* 是匹配任意。这里按时为界线,到了小时点，就按规则执行
+		17:12:22
+		20:0:0	
+			
+		
 126.xxl-job 
 		最重要的两个部分：	1.执行器，一般是bean执行器，分散配置在各自的服务中，在spring的基础上，@XxlJob注入任务(将执行器的name和注册地址作为一对，放入了admin的地址list中) 
 							2.统一的调度中心，就是xxl-job-admin。
@@ -3864,6 +4573,8 @@ InputStream is = item.getInputStream();
 
 	对象访问（句柄访问，指针访问）
 	hotspot采用的是直接指针访问：直接保存的是对象实例的地址，对象实例中保存了类型数据的指针。其中实例在堆中，对象类型数据在方法区中。
+
+	根据对象引用能定位到堆中的对象
 	
 	
 129.系统调优相关
@@ -3879,11 +4590,23 @@ InputStream is = item.getInputStream();
 		使用top  和 ps  先查个大概 ，然后看具体进程的原因
 		
 		测试在虚拟机上使用root用户是可以的，jstack 和 jstat 相关命令 
-		jstat -gc  	查看gc情况
-		jstack  	打印异常进程的堆枝信息
-		jmap        查看堆内存使用情况
+		jstat   	查看类加载，内存管理，gc情况
+		jstack  	打印异常进程的堆枝信息 dump线程快照，定位死锁，超时问题
+		jmap        查看堆内存使用情况，可生成JVM堆的转储快照，dump文件较大，消耗大量资源
 		
-		现在用VisualVM 比较多点
+		
+		jps   		查看进程和运行的主类，cmd下测试可用
+		
+		**********现在用VisualVM 比较多点，直接线程的客户端，比较好用(直接继承了上面的命令)**********
+		目前连接远程，有两种方式，1.服务器上启动jstatd  2.服务器上配置jmx。然后客户端连接
+		连接后续有个调优的可以试试
+		
+		
+		
+		常见的攻击方式
+		xss  	 	由页面输入脚本引起，接收转义即可
+		crsf  		利用cookie引起，使用token或者在cookie中设置httpOnly
+		sql注入		使用预编译语句，用占位符将参数语句当做普通字符串
 		
 		释放不必要的引用： ThreadLocal 使用完记得释放以防止内存泄漏，各种 stream用完也记得 close
 		
@@ -3893,3 +4616,332 @@ InputStream is = item.getInputStream();
 		rocketmq producer 发送消息失败，总是连接不上服务器地址
 		1. 目前这种写法Rocket默认开启了VIP通道，VIP通道端口为10911-2=10909。若Rocket服务器未启动端口10909，则报connect to <> failed。
 		2. 解决方式：增加一行代码producer.setVipChannelEnabled(false);
+		
+131.ELK
+	建立 ELK ( Elasticsearch + Logstash + Kibana ）日志集中分析平台，便于快速搜索、定位日志
+			***Elasticsearch***
+			ELK
+			elasticsearch			日志搜索
+			logstash				日志收集汇总分析
+			kibana					web界面展示
+		
+	Elasticsearch
+		官网 https://www.elastic.co/cn/   
+		
+		boot中会引入 spring-data-elasticsearch，具体的看官方文档推荐使用的client,We strongly recommend to use the High Level REST Client instead of the TransportClient.
+		https://docs.spring.io/spring-data/elasticsearch/docs/4.0.2.RELEASE/reference/html/#reference
+		
+		Kibana 是用户界面，可对 Elasticsearch 数据进行可视化
+	
+		kibana中的console控制台查询
+			这是交集查询语法
+				GET _search
+					{
+					  "query": {
+						"bool":{
+						  "must":[{"match":{"_index":"user"}},{"match":{"_id":"1366"}}]
+						}
+					  }
+					}
+					
+		官网推荐默认使用的是RestHighLevelClient，添加使用的是indexrequest,搜索使用的是SearchRequest,
+		多条件查询使用BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()，然后.must拼接各种query即可
+		最终是sourceBuilder.query(boolQueryBuilder)---> request.source(sourceBuilder)---> client.search(searchRequest)
+		查询结构SearchHits hits = response.getHits();然后迭代器迭代后getSourceAsString获取jsonString
+		
+		其中QueryBuilders是用来生成不同功能的query.
+		
+		matchQuery：模糊查询，会将搜索词分词，再与目标查询字段进行匹配，若分词中的任意一个词与目标字段匹配上，则可查询到。
+
+		termQuery：精确查询，不会对搜索词进行分词处理，而是作为一个整体与目标字段进行匹配，若完全匹配，则可查询到。
+		
+		**********elasticsearch 里默认的IK分词器是会将每一个中文都进行了分词的切割，所以你直接想查一整个词，或者一整句话是无返回结果的。**********
+
+		elasticsearch 里默认的分词器(Standard Analyzer)是会将每一个中文都进行了分词的切割，所以你直接想查一整个词  加上.keyword
+		
+		如果想通过term查到数据，那么term查询的字段在索引库中就必须有与term查询条件相同的索引词，否则无法查询到结果。
+	
+		使用ik分词也不是万能的，维护词库的成本比较高,直接的做法,就是不分词( 7.0版本后使用fieldname.keyword就可以不分词,这里的keyword是=,不是contain)，这里match中的query使用operator.and 也可以
+		
+		
+		**********
+			match
+				match中，这里的分词是针对搜索输入的字符串进行分词
+				
+			term
+				term本身搜索的参数字符串不分词，属性词分词后包含参数串即可
+				
+				term检索，如果content分词后含有中国这个token，就会检索到
+				curl -XPOST http://192.168.1.101:9200/index/fulltext/_search -d’
+				{“query” : { “term” : { “content” : “中国” }}}’
+		**********
+		
+		指定分词三种方式		https://blog.csdn.net/tclzsn7456/article/details/79957221
+
+		elasticsearch 的ik分词器 地址 https://github.com/medcl/elasticsearch-analysis-ik/releases
+		
+		关于分词
+			实我们只需要关注两个就可以了。
+			1、standard				elasticsearch默认
+			2、ik分词器				ik_max_word和ik_smart模式
+			大家常说ElasticSearch中内置的分词器standard，更确切的说是Lucene内置的，ES是Lucene提供支持的。
+			
+			直接将里ik分词的解压到plugins\ik 即可,
+			
+		*****match query中查询，operator：表示单个字段如何匹配查询条件分词，默认是or，设置成and就是全部满足*****
+		minimum_should_match：当operator参数设置为or时，该参数用来控制应该匹配的分词的最少数量；
+		GET _search
+				{
+				  "query": {
+					"match":{
+					  "name":{"query":"保家", "operator": "and"}
+				  }
+				}
+
+		伪代码是：
+		"query":{  
+					  "match":{  
+						 "eventname":"Microsoft Azure Party"
+					  }
+				
+		“Microsoft Azure Party”，被分析器分词之后，产生三个小写的单词：microsoft，azure和party，
+
+		if (doc.eventname contains "microsoft" and doc.eventname contains "azure" and doc.eventname contains "party") 
+		return doc
+		
+		高亮搜索
+		
+			//千万记得要记得判断是不是为空,不然你匹配的第一个结果没有高亮内容,那么就会报空指针异常
+			搜索高亮显示，追加highlight，针对field对应字段拼接pre_tags，post_tags，到html页面显示
+			
+				 "highlight": {
+						"pre_tags" : "<font style=\"color:red;\">",
+						"post_tags" : "</font>",
+						"fields" : {
+							"name" : {}
+						}
+					}
+			
+			
+			查询结果出来直接高亮显示到html 
+					HighlightField name = next.getHighlightFields().get("name");
+					String fragments = name.getFragments()[0].toString();
+		
+		
+		分词，使用分词
+			CreateIndexRequest 创建索引，确定分词相关，主要是配置index下的settings和mapping结构
+			createIndexRequest 搭配XContentBuilder使用可以初始化设置某个字段的分词使用，也是是手工指定字段的分词属性
+			
+			配置CreateIndexRequest的settings和mapping，其中mapping可以配置相关的field的分词使用，注意是配置某个index下_mapping属性
+		
+		------es 初始化配置相关代码段------
+				String esHost = "192.168.6.153";
+				RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost(esHost, 9200, "http")));
+				
+				//1.索引的settings设置
+				Builder settings = Settings.builder()
+						.put("number_of_shards",1)//分片数
+						.put("number_of_replicas",1);//备份数
+				
+				//2.索引的mapping结构设置
+				XContentBuilder mappings = JsonXContent.contentBuilder()
+						.startObject()
+							.startObject("properties")
+								.startObject("req_title")
+									.field("type","text")
+									.field("analyzer", "ik_max_word")
+								.endObject()
+							.endObject()
+						.endObject();
+				
+				//3.将settings和mappings封装到一个request对象中
+				CreateIndexRequest createIndexRequest = new CreateIndexRequest(Es.INDEX_REQUIRE)
+						.settings(settings)
+						.mapping(mappings);
+				
+				//4.通过client对象连接ES并执行创建索引
+				client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+		------es 初始化配置相关代码段-------
+		
+		查看具体的分词结果
+			GET _analyze
+				{
+				  "text": "hello world, java spark",
+				  "analyzer": "standard"
+				}
+							
+							
+		后台分词配置(配置中配置了field的分词后，查询的时候会按照配置分词分词)
+		PUT /user/_mapping
+		{
+			"properties": {"family":{"type":"text","analyzer": "ik_max_word"}}
+			
+		}
+						
+		*******重点********
+			queryString  和doc中的field   的分词后几个词语，能找到相等的，就命中。注意这里不是contain关系，而是分词结果存在equals关系
+		*******重点********
+
+
+
+						
+		查看某个index下的_mapping的配置
+		http://localhost:9200/user/_mapping/		
+							
+							
+							
+							
+		在向Elasticsearch中插入数据之前就要给需要的进行分词的属性标记好解析，然后再插入数据即可解决问题！	先分词，再插入数据	
+		Elasticsearch的 mapping 一旦新建 只能新增字段 不能修改		
+		文档写入的时候会根据字段设置的分词器类型进行分词，如果不指定就是默认的standard分词器。
+		写时分词器需要在mapping中指定，而且一旦指定就不能再修改，若要修改必须重建索引。
+		读写采用一致的分词器
+							
+							
+							
+		
+		排序
+			searchSourceBuilder.sort(entry.getKey(), entry.getValue());    依次添加排序规则即可   value 是自带的 SortOrder 枚举类 直接追加sort即可
+
+	kibana	
+		初始需要创建一个index显示
+		切换中文，在config/kibana.yml添加i18n.locale: "zh-CN"
+		
+		GET /_cat/nodes  查看所有节点
+		
+		在可视化中创建图表保存，然后在仪表盘集中展示图表
+		
+	logstash 
+		logstash中，包括了三个阶段: 输入input --> 处理filter（不是必须的） --> 输出output
+		
+		就是收集日志，过滤日志，输出日志
+		实际使用中直接手机error.log 的日志
+		
+		相当于是将手机的日志关联到了elasticsearch上，然后通过kibana查询输出
+		
+		一般logstash中的filter使用的是 	grok的语法规则是:%{语法：语义}，这个过滤器暂不看
+		所有文本数据都是在Logstash的message字段中中的，我们要在过滤器里操作的数据就是message
+		
+		样例配置
+			input {
+				file {
+					path => "C:/Users/xiaoyuer/git/xye-soa-pom/logs/xye.log"
+				}
+			}
+
+			filter {
+			#定义数据的格式，正则解析日志（根据实际需要对日志日志过滤、收集）
+			grok {
+				match => { "message" => "%{IPV4:clientIP}|%{GREEDYDATA:request}|%{NUMBER:duration}"}
+			}
+			#根据需要对数据的类型转换
+			mutate { convert => { "duration" => "integer" }}
+			}
+
+			output {
+				elasticsearch {
+					hosts => ["localhost:9200"]
+					index => "testlogstash"
+				}
+				stdout { codec => rubydebug }   #用来测试时,验证有没有启动成功
+			}
+		
+		
+		生产(收集的是error.log文件，input使用的是beats组件)
+		input 1.从文件中来    2.系统日志方式   3.filebeats方式 
+
+		filebeats
+			使用beats(更新Filebeat配置文件后，启动filebeats)
+			启动beats  ./filebeat -e -c filebeat.yml
+			
+				beats配置文件
+					output.logstash:
+						hosts: ["192.168.194.6:5044"]					#读取log文件，发送到服务端的logstash中
+						
+				然后logstash监听beats端口
+					input {
+					  beats {
+						port => 5044  # 设置专用端口用于接收各个来源的日志
+					  }
+					}
+		filter 暂不研究
+		由于logstash只能收集本机日志，故在其他机器上搭建filbeat，将日志发送给logstash
+				input {
+				  beats {
+					port => 5044
+				  }
+				}
+				output {
+				  elasticsearch {
+					hosts => ["http://localhost:9200"]
+					index => "log-%{+YYYY.MM.dd}"
+				  }
+				}
+	
+132.json相关
+		JSONArray.toJSONString 和JSONObject.toJSONString 一样 都是调用了父类JSON的toString方法
+
+133.搜索相关，solr相关，Elasticsearch相关，索引相关
+		lucence的相关
+			倒排索引：	搜索引擎中使用的索引是倒排索引，将文档中的词作为关键字，建立词与文档的映射关系。搜索引擎中使用的索引是倒排索引，将文档中的词作为关键字，建立词与文档的映射关系。
+			分词：		英文比较简单，单词划分(空格，符号，段落等)，中文需要合适的中分文词工具，建立倒排索引
+			停止词：	类似英文的a the and ,中文的一些语气词，了，这等没有意义，需要忽略
+			排序：		不细看，可以针对具体的field,指定排序规则
+			文档：		类似数据库，一行记录包含的字段对应文档的域，这条记录就是一个文档	
+			查询query:	可能是条件组合查询，termQuery ,也可能是前缀查询等
+			高亮：		就是对关键字前后拼接html的颜色代码，高亮的是输入的搜索值(注意这里是搜索值的分词之后的关键字)
+			
+	
+134.系统优化，系统监控相关
+	ping是最常用的心跳检测方法，通过ping命令，使用ICMP协议，检测网络链路是否通畅，远程主机是否可达
+		发送字节数据，接收字节收据，和耗时
+
+		可以预留curl地址，检测远程服务是都可用
+
+		业务给出总的访问量（各系统比重不一样），即总的pv,uv后，再推导出每个独立的系统，接口上的流量，评估机器数量，网络带宽和技术实现方式
+
+		压测最关键的两个值，一个是qps，一个是rt。
+			
+		服务降级，就是，对于调用超时的非核心服务，超时次数超过阈值，先跳过调用，过时间点再重试调用
+		增加系统调用白名单，系统压力过大，丢弃非核心的服务，保证核心服务正常
+		服务开关，高峰时屏蔽一些非核心链路的调用
+			
+
+		负载过高：		用备用机器扩容
+		依赖宕机		数据无法写入，先写在本地，依赖恢复后，脚本数据还原
+		ddos攻击		针对攻击类型，流量清洗，通过开关开启验证码来验证，启动流控机制。借助公网控制大量的用户计算机，同一时刻攻击一个主机。针对服务器ip的
+		物理设备损坏	更换新机器
+		网卡流量占满	修改负载均衡策略，流量牵引到其他机房。 	
+
+		服务器防火墙中，只开启使用的端口，比如网站web服务的80端口、数据库的3306端口、SSH服务的22端口等。关闭不必要的服务或端口
+
+		tomcat的发布指定内存是在catalina.sh中指定jvm的内存大小，jar执行  就直接在启动命令中追加即可
+
+
+135.开源工具，开源jar
+		Hutool 工具类可以留意下，常用的工具类封装
+		
+136.bean生命周期，springbean生命周期
+		BeanDefinition 是加载如xml信息后的对象
+	实例化对应构造方法，属性赋值对应setter方法的注入；初始化和销毁这两个阶段用户可以自定义
+	主要的是4个关键阶段和多个扩展点(实现Aware接口)
+		1.实例化 Instantiation		
+		2.属性赋值 Populate		
+			扩展：检查Spring Awareness 这里是一个扩展点  基本都实现了aware接口
+		3.初始化 Initialization			beanpostprcessor，初始化前后自定义初始化逻辑。所有Aware接口的注入就是在这前置完成的。
+		4.销毁 Destruction
+	
+	
+137.编码,乱码,字符编码,转码
+		NotePad++
+			其实ANSI并不是某一种特定的字符编码，而是在不同的系统中，ANSI表示不同的编码。
+			ANSI不是固定的字符编码，不同的系统中，ANSI表示不同的编码。美国系统-ASCII编码，简体中文系统-GBK编码，韩文系统对应EUC-KR编码
+		
+			*****汉字在电脑显示 实际上计算机只认识编码后的信息，需要根据编码后的信息去字典去找的汉字*****
+			这里注意以gbk编码和转为的区别，以是选择当前的编码直接显示(相当于直接去字典找对应编码的字)，转为是转换为另一个字典中的编码
+
+		<META content="text/html; charset=ASCII" http-equiv=Content-Type>
+		编码识别正常使用，不识别就默认使用gbk。gb2312没收录的也使用gbk，很可能是因为会去寻找系统默认的编码
+		电脑的记事本在打开时候会根据编码自动选择对应编码打开，联通是特殊(默认ANSI保存，编码形同utf8，打开是ut8就会乱码)
+		就是说只要编码和解码都是用系统默认就不会有问题
+	
