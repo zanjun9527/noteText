@@ -1,6 +1,6 @@
 渡一 姬成
 
-下个要看	 事件
+下个要看	 完成
 
 编程形式的区别
 
@@ -409,3 +409,155 @@ console.log  一般推荐控制台输出
 			轮播图，一个定制div，然后一个几张图组成的胶卷，然后在div中的窗口滑动
 			每个li中一个img 然后float起来，然后调整距离即可
 	
+	
+	事件
+		交互体验的核心功能
+		div.onclick = function(){}
+		
+		绑定事件的三种方法
+			1.ele.onxxx = function (event){};
+				兼容性很好，但一个元素的同一个事件上只能绑定一个处理程序
+				基本等同于写在html行间上(相当于 <div onclick="">)
+				程序this指向dom元素本身
+			2.obj.addEventListener(type,fn.false);
+				IE9以下不兼容，可以作为一个事件绑定多个处理程序
+				程序this指向dom元素本身
+			3.obj.attacEvent('on'+type,fn)
+				IE独有，一个事件同样可以绑定多个处理程序
+				程序this指向window
+				
+		解除事件处理程序
+			1.ele.onclick = false；
+			2.ele.removeEventListener(type,fn,false)
+			3.ele.detachEvent('on'+type,fn)
+			若绑定匿名函数，则无法解除
+		
+		事件处理模型(可以取消冒泡和阻止默认事件)
+			事件冒泡
+				结构上嵌套关系的元素，存在事件冒泡功能，即同一事件，自子元素冒泡向父元素(自底向上)
+			事件捕获
+				结构上嵌套关系的元素，存在事件捕获功能，即同一事件，自父元素捕获至子元素(事件源元素) (自顶向下)
+					
+			IE没有捕获事件
+			
+		触发顺序，先捕获，后冒泡
+		focus、blur、change、submit、select等事件不冒泡
+		
+		默认事件：表单提交，a标签跳转，右键菜单等
+		javascript:void() 或者 void(0) 相当于return 0; void(false) 相当于return false；
+		
+		或者直接事件置为null,就取消了事件
+		
+		事件对象 事件委托(大致就是交给上级处理的意思)
+			event ||window.event 用于IE  获取事件对象，这是种兼容的写法，用||
+			事件源对象
+				event.target 火狐只有这个
+				event.srcElement ie只有这个
+				这两个chrome都有
+				
+		事件分类
+			鼠标事件
+			mousedown，mouseup，mousemove
+			
+			键盘事件
+			keydown keyup keypress(这个只响应字符类键盘按键)
+			
+			keydown>keypress>keyup
+			
+			窗体类操作类(window上的事件)
+			scroll
+			load  window.onload是页面加载完了等待交互使用了才使用，是最慢的加载
+			
+			
+			
+				用button来区分鼠标的按键，0/1/2
+				dom3标准规定，click只能监听左键，只能通过mousedown和mouseup来判断鼠标键
+				
+				
+		div.onmousemove = function(e){
+			var event = e ||window.event;
+			div.style.left = e.pageX+“px”;
+			div.style.top = e.pageY+“px”；
+		}
+		 
+		div.onmouseup = function(){
+			div.onmousemove = null;
+		}		 
+		
+		
+		页面读取到js就会阻断页面，执行完js再往下读取，一般js写在下方
+		
+		html和css是可以并行解析的  domtree    csstree   两个一起形成渲染树，开始渲染页面
+		
+		先解析 然后异步下载资源
+		js一般需要写在下面
+		
+		主程序不要放在 window.onload   这太慢了
+		
+		文档全部解析完，渲染树构建完，页面全部资源就绪了，都加载完了，最后才load，效率最低
+		
+		
+	json，异步加载 和时间线
+		本地用对象，传输用json
+		String-json  JSon.parse() 反之是JSon.stringify()
+		
+		*****Json中的属性名必须加“，传递的其实是字符串，后台传回来的也是字符串，只不过是json格式*****
+		
+		解析 是深度优先原则 形成一个dom树
+		html中，形成dom树，dom树的完成代表，dom所有节点解析完，并不是加载完毕。先解析完后才加载完
+		形成cssTree
+		dom树+cssTree=randerTree(渲染树)
+		
+		js是单线程的，也可以异步的引入
+		
+		js异步加载	
+			1.defer异步加载，但要等到dom文档全部解析完才会被执行。只有IE能用
+			2.async异步加载，加载完就执行。只能加载外部脚本，不能把js写在scirpt标签里
+			3.创建script，插入到dom中，加载完毕后callback
+		
+		
+		js时间线
+			1.创建Document,解析web页面。document.readyState='loading'
+			2.加载 css，js，遇到img，先正常解析dom，然后浏览器异步加载src
+			3.文档解析完成，document.readyState='interactive'
+			4.页面全部解析加载完执行完后，document.readyState='complete'，window对象触发load事件
+			
+			
+		在解析完之后就可以操作了
+			document.addEventListener('DOMContentLoaded',function(){
+				console.log("");
+			},false)
+			
+			这个比window.onload高效
+			
+	正则表达
+		转义符号 \
+		
+		两种方法    
+		直接量  
+			var reg=/abc/;
+		new RegExp()
+			var reg=new RegExp("abc");
+			
+			
+			str.match();  /reg.test();
+			
+			
+			[0-9A-Z] 是区间的意思
+			[^]表示非
+			(abc|bcd) 二取一
+			\w 代表 [0-9A-z_]
+			\W 代表 [^\w]
+			\d 代表[0-9]  \D代表非[^\d]
+			\s代表 [\t\n\r\v\f ]  注意有一个空格
+			\b 代表单词边界
+			
+			n+  	>=1
+			n*  	>=0
+			n？ 	0或者1个
+			n{x} 	x个
+			n{x,y}  x到y个 优先最大匹配  贪婪匹配原则
+			^n   	以n开头的匹配
+			n$		以n结尾的匹配
+				reg = /^abc$/    以abc开头并且以改abc结尾
+				reg = /(\w)\1(\w)\2/   匹配aabb
