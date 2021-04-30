@@ -126,6 +126,9 @@ git，maven相关
 
 
 			
+	远程分支看不到，pull那边刷新下就可以了
+	git pull 中默认是merge远程当前分支，就相当于更新。但是这里如果点别的分支，就是merge远程进来了，要注意。
+	Pull打开更新窗口，点击Remote栏后面的刷新按钮，会在Branches to merge栏中刷新出新的分支。这里并不想做合并，所以不要选中任何分支，直接点击Pull按钮完成操作。
 
 
 	idea在打包的时候，使用maven中的lifecycle中的install,不要用plugin下的
@@ -335,7 +338,7 @@ ctrl + shift 注释的/ 和\ 是成对出现的
 
 git 中的还原，如果没反应，就直接reset - hard 
 
-
+elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 
 
 ===================vscode==================

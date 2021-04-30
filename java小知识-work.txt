@@ -120,9 +120,9 @@
 			6.安全的通道建立完毕，后续基于对称加密算法传输数据
 
 
+		ssl网址		https://myssl.com/   可以查看xiaoyuer.com的https的证书相关
 
-
-
+		
 8、default-autowire="byName" 在配置mybatis数据源的地方去掉，否则读取属性文件找不到
 
 	<parent>
@@ -281,6 +281,30 @@
 	查询结果是page转对象问题
 		使用pagehelper查询出的对象是page对象，然后放入json中，如果取的时候是getString,然后用arrayList转，会报错。除非放入限定好的对象中或者直接list<E>强转
 		就是pagehelper查询出的page对象，放json中，然后用getString反转为对象就要注意，直接强转
+	
+	
+	开闭原则，对扩展开放，对修改关闭
+			
+			mybatis主要完成两件事，1.根据jdbc规范建立与数据库的连接 2.通过反射打通java对象和数据库参数的交互之间相互转化的关系
+			
+			PreparedStatement 接口是 Statement 的子接口，它表示一条预编译过的 SQL 语句，可以添加参数
+			效率高.安全性好,使用PreparedStatement可以防止SQL注入,参数设置非常方便
+			PreparedStatement perstmt?=?con.prepareStatement(sql);  // ？作为参数占位符
+			perstmt.setString(1,var1);
+			perstmt.setString(2,var2);
+			perstmt.executeUpdate()
+			
+			原始的ibatis的调用实例
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection connection = DriverManager.getConnection("url", "user", "password");
+				PreparedStatement ps = connection.prepareStatement("sql");
+				ps.setInt(1, 10);
+				ps.execute();
+				ResultSet resultSet = ps.getResultSet();
+				while(resultSet.next()) {
+					String value = resultSet.getString("columName");
+				}
+	
 	
 		
 12、Java泛型中的标记符含义： 
@@ -733,6 +757,84 @@
 		
 	静态内部类，可以实现延迟加载（初始化时候才加载），支付那边的就使用类，第一次调用加载，后续直接用只有在加载内部类的时候才初始化
 	
+	rpc调用原理相关
+	一般的服务区分是，interfacename+version+group 
+	version的使用场景在于一个大型的分布式系统中，修改更细某个接口，在过渡状态，1.新增方法（多余，重复）2.version区分
+	
+	dubbo_version
+	当一个接口实现，出现不兼容升级时，可以用版本号过渡，版本号不同的服务相互间不引用。用的暂时不多，后面可以再详细看使用场景
+	在低压力时间段，先升级一半提供者为新版本,再将所有消费者升级为新版本,然后将剩下的一半提供者升级为新版本
+	同一个接口不同version，不同的实现类。
+	
+	
+	服务升级
+		接口不变，直接重发即可。同名起名可能重复点，不好命名。其实这种快点
+		接口表动
+			1.新增接口
+			2.接口参数列表变化，
+				1.全部消费端一起修改，全部重发，动静大，无关消费者躺枪
+				2.版本号，老方法调用原来的，新方法使用新版本服务。对应两个实现类即可，version不一样。新实现类中实现新功能方法即可，老的没动的还是用原来的实现类。
+				3.考虑扩展性使用类似map的结构，但不直观，参数校验复杂。
+
+	负载均衡的策略，随机，轮询，权重，其中权重是在服务集群的机器能力不对等的情况下，比较合适。
+	
+	QPS，可以利用tomcat中的access.log中的出现的日志统计到秒的重复次数。
+	cat xx.log |grep 'GET /mvc2'|cut -d ' ' -f4|uniq -c|sort -n -r 
+	
+	
+	服务调用的限流处理
+		被拒接的请求，直接返回给调用者，也可以进行排队
+		1.0和1开关
+		2.设置固定值(每秒请求次数QPS)，超过请求次数，拒绝请求。
+		
+		限流的维度，
+			1.根据服务端自身的接口，方法控制，每个负载不一样。
+			2.根据来源做控制，设置不同的限制，根据请求来源不同级别进行不同的流控处理。
+					
+
+	序列化
+		文本协议，直观、描述性强，容易理解，便于调试，缺点就是冗余数据较多，不适宜传输二进制文件（比如：图片等），解析复杂（需要进行字符串比较）；
+		二进制协议，没有冗余字段，传输高效，方便解析（固定长度，并且可以直接比较字节），缺点就是定义的比较死，哪个位置有哪些东西，是什么意义是定义死的，场景单一。
+		
+		Xstream		把对象转化成xml最好用的专业工具
+		微服务框架的主要的数据传输处理方式是二进制序列化。服务要有共用性。
+		Java IO 是一种装饰者模式，
+		网络模块是通过二进制流的方式进行传输的。通过序列化方式将内存对象转为二进制数据(二进制序列化后的数据传输效率高,适合系统之间传输),对象序列化需要实现Serializable接口
+		
+		主流的、常用的序列化框架
+		相对来说，二进制存储占用体积小。
+			1.json序列化，适用与web与控制层的转换。,可视化强,文本化协议
+			2.hessian序列化,HTTP协议的，二进制序列化，跨平台，内部会使用HessianSkeleton(HessianOutput和HessianInput)，将传输对象序列化，不需要手工序列化。
+			3.java内置序列化，不支持跨平台，性能低，ObjectOutputStream和ObjectInputStream
+			4.XStream，使用json居多，数据传输，xml序列化推荐，XStream,可视化强,文本化协议
+			5.Thrift用的也不多。
+	
+		四种常见的异步远程通信方式
+			1.oneway，只管发送不关心结果，是单向的通知。
+			2.callback回调，执行不在原请求线程中
+			3.future能主动控制超时，获取结果，并且执行仍在原请求线程中
+			4.可靠异步方式，保证异步请求能在远程被执行，一般用消息中间件完成保证。
+			
+		**********future的使用场景**********
+		底层使用了NIO方式，实现了并行调用。
+		需要实现Callable接口
+		主线程分别调用服务a,服务b,服务c,最后统一处理三个数据，服务之间没有相互依赖，这种适合futrue模式。
+		但是如果服务之间有依赖，那么就必须要等拿到前一个服务结果后再调用下一个服务。
+		**********future的使用场景**********
+		
+		
+		providerBean本身并不执行具体服务，只起到调用端代码存根的作用
+		服务框架启动时，需要监听服务端口，等着消费端请求进来
+		一般来说调用服务一定是在工作线程(非IO线程)，而反序列化工作取决于具体实现。
+		
+		服务提供者可以对不同的消费者进行分级，确保优先级高的消费者优先拿到服务。保证稳定性。
+		服务框架必须做到要模块化和可配置。配置调用的策略。
+		
+		其中降级限流，还可以停止一些非重要功能的，以便主流程可以继续执行
+	
+	
+	
+	
 	soa数据库加载使用
 			
 	在profile中现在dev环境也会默认指定的
@@ -759,6 +861,78 @@
 	
 	
 24.数据库相关，mysql相关
+			mysql   158
+				工具也能操作
+					SHOW COLUMNS FROM log_job    
+					SHOW CREATE TABLE log_job
+				
+				sql不区分大小写，
+				sql查询一般就联结，并子查询
+					
+				order by  多列排序， 只有在前一个相同的情况下，才会触发后一个排序，	先order by 后limit
+					在union中，只出现在最后一条select之后，并且是针对总结果集排序
+				
+				between  不仅可以用在时间，也可以用在数字，两端是闭区间
+				mysql中也可以使用正则，用的不多
+				concat(),拼接，多个参数，逗号分割即可
+				用于时间的sql功能用到再说 ，year()等
+				
+				count(*)  		对表中行计数，所有行，不管表中列是不是null
+				count(colum)	对特定列中有值的计数，忽略null
+				
+				having 用来过滤分组(和group by一起使用)，where是过滤行
+				
+				select ... from ... where ... group by ... having ... order by ... limit
+				
+				多条insert,  insert into table(colum) values (),();
+				
+				insert select		insert into table(colum) select 
+				
+				对于update或者delete的语句，要先查看select过滤出来数据，确保正确在执行
+				对于需要计算和分组的列，建议使用默认值，不要null
+				
+				存储过程，游标，触发器，都不常用，忽略
+				
+				
+				事务中的保留点，事务处理中设置的临时占位符，可对其发布回退。回退部分事务，回退到某个占位符
+				
+				start transaction
+				...
+				commit;  //rollback
+				
+				事务回滚，create 和 drop语句无法回退
+				
+				SET autocommit = 0; 可以设置是否自动提交
+				
+				mysql 的用户权限，增删用户(create/drop)，新创建用户后，要分配权限，grant语句增加权限(可多条权限合并执行)，revoke撤销权限
+				
+				
+				当你删除数据时，mysql并不会回收已删除的数据所占据的存储空间，以及索引位。而是空在那里，而是等待新的数据来弥补这个空缺，这样就有一个缺少，如果一时半会，没有数据来填补这个空缺，那这样就太浪费资源了。
+				所以对于写比较频繁的表，要定期进行optimize，一个月一次，看实际情况而定了。
+				注意:在optimize table '表名'运行过程中，MySQL会锁定表。
+				
+				MySQL执行命令delete语句时，如果包括where条件，并不会真正的把数据从表中删除，而是将数据转换成了碎片，通过下面的命令可以查看表中的碎片数量和索引等信息：
+				由于命令optimize会进行锁表操作，所以进行优化时要避开表数据操作时间，避免影响正常业务的进行。
+				
+				当对MySQL进行大量的增删改操作的时候，很容易产生一些碎片，这些碎片占据着空间，所以可能会出现删除很多数据后，数据文件大小变化不大的现象。当然新插入的数据仍然会利用这些碎片。但过多的碎片，对数据的插入操作是有一定影响的，此时，我们可以通过optimize来对表的优化。
+				可以减少空间与提高I/O性能
+				
+				日志方便 主要就是慢查询日志 和binlog(记录更新数据的所有sql语句)，慢查询在优化中很有用
+				sql优化   
+					不要使用*查询，
+					索引
+					union性能比or要好得多，同样适用case when.并集查询，优化使用union
+				
+
+				mysql4.0版本以下，varchar(20)，指的是20字节，如果存放UTF8汉字时，只能存6个（每个汉字3字节） 
+				mysql5.0版本以上，varchar(20)，指的是20字符，无论存放的是数字、字母还是UTF8汉字（每个汉字3字节），都可以存放20个，最大大小是65532字节 
+				
+				char是一种固定长度的类型，varchar则是一种可变长度的类型，它们的区别是： char(M)类型的数据列里，每个值都占用M个字节，
+				在varchar(M)类型的数据列里，每个值只占用刚好够用的字节再加上一个用来记录其长度的字节（即总长度为L+1字节）． 
+				
+				一般情况下货币是decimal(8,2),不严格的用double也够用
+				
+
 		mysql中的主从复制是基于Binary log实现的
 		
 		
@@ -1076,6 +1250,35 @@
 			使用restTemplate 和 httpClient  两种不同的http调用方式而已
 			其中restTemplate使用用 postForEntity 和 getForEntity 比较方便
 			
+			
+			
+		springmvc中，handlermapping负责映射用户的url和对应的处理类，handlermapping接口中定义了根据一个url必须返回一个由handlerexecutioinchain代表的处理链，其中可以添加任意的handleradapters实例来处理这个url请求。
+		handlermapping初始化的重要工作，1.将url和hanler对应的关系保存在handlerMap集合中，并将所有interceptors保存在adaptedInterceptors数组中，请求来时执行数组中所有对象。
+		handlermapping 完成url和handler的映射关系。
+		
+		control处理逻辑关键，URL匹配handlermapping中的handler，匹配成功返回处理链handlerexecutionchain(包含多个拦截器)。其中的prehandle和posthandle分别在handler执行前后执行，aftercompletion在view渲染完成、在dipatchersrvlet返回之前执行。
+			preHandle
+				调用时间：Controller方法处理之前
+				执行顺序：链式Intercepter情况下，Intercepter按照声明的顺序一个接一个执行
+				若返回false，则中断执行，注意：不会进入afterCompletion
+				SpringMVC中的Interceptor拦截器是链式的，可以同时存在多个Interceptor，然后SpringMVC会根据声明的前后顺序一个接一个的执行，而且所有的Interceptor中的preHandle方法都会在Controller方法调用之前调用。
+				令preHandle的返回值为false，当preHandle的返回值为false的时候整个请求就结束了
+				
+			postHandle
+				调用前提：preHandle返回true
+				调用时间：Controller方法处理完之后，DispatcherServlet进行视图的渲染之前，也就是说在这个方法中你可以对ModelAndView进行操作
+				执行顺序：链式Intercepter情况下，Intercepter按照声明的顺序倒着执行(先声明的Interceptor拦截器该方法反而会后调用)。
+				备注：postHandle虽然post打头，但post、get方法都能处理
+
+			afterCompletion
+				调用前提：preHandle返回true
+				调用时间：整个请求完成之后,DispatcherServlet进行视图的渲染之后
+				多用于清理资源
+			
+			
+			modelandview是链接业务逻辑和view层的桥梁，持有一个modelmap和一个view对象，该map会传递到view对应的viewresolvers中，不同模板(jsp，freemarker等)处理map方式不同
+			
+			
 						
 		场景,对于一串操作中的某个耗时的、不影响主流程的，可以异步一个线程单独处理，异步处理
 		spring中的异步调用使用，
@@ -1217,8 +1420,7 @@
 			try{1.update 2.异常 3.update}catch{}  这种事务1走完会放入事务待提交，2中直接被异常抛出，3不会执行，这样对于别的循环次数没有影响，但是本次，还是1会成功。
 			测试1  版本号不对直接回滚 ，内层异常，在同一个事务中，遇到运行时异常，全部回滚
 		**********	
-						
-						
+
 						
 		mybatis、事务相关
 				JdbcTemplate这种方式也不算成功，实际中用的也不多
@@ -1347,6 +1549,24 @@
 				网络超时等原因可能收不到commit，那么MQ就不会吧prepare消息投递出去。MQ会根据策略尝试回调checkcommit
 				检查该消息是用还是不用，确认后，MQ处理。
 						
+						
+		
+		*************重点就是全局的事务管理器，控制多个分支事务。*************
+		全局的事务管理器，管理事务的启动，提交和回滚。
+		事务管理器在资源的协调事，需要增加相应的日志记录。
+			分布式系统中，两机器无法状态一致，需要引入协调器(事务管理器)，控制全局事务，管理事务生命周期，协调资源。
+			
+		相对于单库中的事务提交，数据操作时候只有一个动作，提交或回滚
+		分布式中，有两个动作，准备和提交，所以称为两阶段提交。
+		
+		分布式id要考虑两个点 1.唯一性  2.连续性
+		*****分库后带来的一些join问题*****
+			合并查询的一些复杂点的操作，如排序啥的，建议都在应用层，将数据中信组装处理。其中排序分页比较复杂，难点在将足够多的数据返回给应用层。一般来说就是每个数据源都查询需要的条数，然后再筛选。
+			1.在应用层将原来的单次操作，分成多次数据库操作然后组装(合并查询)。
+			2.表的数据冗余，但会涉及到更新的问题，要注意。
+			3.借助外部引擎，比如搜索引擎。				
+						
+						
 		
 30.其他
 		每次request请求完成后，下一次是重新的request，不会保留上次请求的信息，这叫无状态
@@ -1358,6 +1578,7 @@
 					
 		JVM 在处理 i = i++; 时 , 会建立一个临时变量来接收 i++ 的值 , 然后返回这个临时变量的值 ,
 		返回的值再被等号左边的变量接收了 , 这样就是说 i 虽然自增了但是又被赋值了0 , 这样输出的结果自然就是 0 了
+		
 
 		不妨我们用 temp 临时变量来接收 i++ 的值 , 来看一下结果 :
 		int i = 0;
@@ -1385,6 +1606,17 @@
 		
 		CGLib代理，不受接口的限制，底层采用ASM字节码生成框架，效率高比使用Java反射效率要高。唯一需要注意的是，CGLib不能对声明为final的方法进行代理，因为CGLib原理是动态生成被代理类的子类。
 
+		
+			
+		java栈总是和线程关联一起，每创建一个线程，jvm就会创建对应一个java栈，这个线程执行的多个方法，每运行一个方法就创建一个栈帧(包含内部变量，操作栈和方法返回值等信息)
+		每一个方法执行完成，弹出栈帧作为方法的返回值，并清除该栈帧，java栈的栈顶的栈帧就是房钱正在执行的方，方法的到调用就是创建活动栈帧，后面逐层出栈。
+		栈是非线程共享，堆是线程共享的。
+		
+		方法区就是java堆中的永久区。存放的相关class信息和常量池相关
+		运行时常量池是方法区的一部分
+		
+		
+		
 		其中需要使用 //Enhancer类是CGLib中的一个字节码增强器，它可以方便的对你想要处理的类进行扩展
 		jdk使用的invocationhandler接口
 		cglib使用的是MethodInterceptor接口
@@ -1521,6 +1753,9 @@
 	Future是返回各个线程的处理结果，并且多个线程，get的时候如果还没处理完就会阻塞（这是同步的），返回的对个future都是绑定固定的线程号的，线程只要执行完就能拿到结果。
 	线程是进行中的，调用future.get()时会阻塞主线程，获取异步任务的返回结果
 	
+	使用future模式，就是先开线程获取结果，然后继续处理其他事，等到需要结果的时候，再get()出结果处理即可。那优先将长请求使用future前置，后续要用了再get出来。
+	或者使用回调的方式处理阻塞的请求
+	
 	
 	/***开启新线程之前，将RequestAttributes对象设置为子线程共享*/
 		ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -1534,6 +1769,10 @@
 	
 
 33.单例模式，延迟加载
+
+		构造私有化 + synchronized	实现单例模式的获取（防止多线程同时获取）
+		synchronized保证了代码块的串行执行。(内部执行wait 和notify)
+	
 
 		饿汉模式、懒汉模式、静态内部类模式、枚举模式
 
@@ -1592,7 +1831,8 @@
 		  
 		所以要使用volatile修饰 ，关闭指令重排序
 		volatile ：此关键 的语义保证了新值能够立即同步到主内存，并且每次使用前都即从主内存刷新 volatile 保证了多线程操作时变量的可见性
-
+			只是保证了同一个变量在多线程中的可见性，更多是用于修饰作为开关状态的变量。
+			同一个变量线程间的可见性与多个线程中操作互斥是两件事，操作互斥是提供了操作整体的原子性，不要混淆。
 		  
 		volatile就会不会有问题了呢？因为volatile禁止了new Singleton() 这个操作的指令重排序  这个暂时不看，先记录下
 		指令重排序(不改变程序语义的前提下)，必须考虑到指令之间的数据依赖性.实现执行效率优化
@@ -1632,6 +1872,9 @@
 					2. JVM虚拟机保证了静态内部类SingletonHolder的类初始化只执行一次(单例特性，不用null判断之类的了)，不需要我们手动保证并发的同步。相当于将实例化的过程交给了jvm
 					3. 用静态的内部类实现单例模式的原理：静态内部类可以不依赖外部类的实例而被实例化(延迟特性)。
 
+					
+					
+					
 34.多线程和锁相关
 			线程直接run就是普通的方法，并没有开线程。必须new Thread(Runnable target).start 才开新线程
 			
@@ -1682,6 +1925,12 @@
 				2、redis实现（使用redission实现，但是需要考虑思索，释放问题。繁琐一些）   锁的失效时间难控制、容易产生死锁、非阻塞式、不可重入    这个怎么理解呢,待定
 				3、Zookeeper实现   （使用临时节点，效率高，失效时间可以控制）
 				4、Spring Cloud 实现全局锁（内置的）
+				
+				
+				
+			Redis 实现为去插入一条占位数据，而 ZK 实现为去注册一个临时节点。
+			遇到宕机情况时，Redis 需要等到过期时间到了后自动释放锁，而 ZK 因为是临时节点，在宕机时候已经是删除了节点去释放锁	
+				
 				
 			Zookeeper实现原理	
 					zk节点唯一的！ 不能重复！节点类型为临时节点
@@ -1822,6 +2071,8 @@
 
 37.多个微服务的dubbo的架构问题， 可以同时为提供者和消费者
 
+	合理的拆分系统，一般相互之间没有直接的相互调用，都是单独的业务系统。
+
 	微服务解决，1代码复用，2.应用解耦，需求变更快，各模块独立，不影响  敏捷交付
 
 	其中的 Hessian 是基于 HTTP协议的 
@@ -1937,6 +2188,36 @@
 	
 	mybatis构造方法必须要有无参的构造方法
 	
+	
+	
+	ioc的依赖注入机制
+			spring的三个核心的组件  bean，core，context
+				bean组件(在org.springframework.beans包下)
+					bean的定义	BeanDefinition 		完整描述了配置文件中<bean>节点的所有信息，当spring成功解析<bean>节点后就会转化为一个beanDefinition对象，给后续操作
+					bean的创建	典型的工厂模式，顶级接口是BeanFactory
+					bean的解析	对spring的配置文件的解析
+					
+					
+				context组件(在org.springframework.context包下)
+					作用就是给spring提供一个运行时的环境。作为spring的ioc容器，基本上整合了spring的大部分功能
+					ApplicationContext是Context的顶级父类。继承了BeanFactory，resourceloader接口。
+					
+				core组件
+
+				ioc的一些扩展点
+					主要有BeanFactoryPostProcessor 和 BeanPostProcessor    分别在构建BeanFactory 和Bean时调用
+					InitializingBean 和DisposableBean					   分别在bean实例创建和销毁时调用
+					FactoryBean
+					
+		aop
+			jdk的动态代理    public static Object newProxyInstance(ClassLoader loader,Class<?>[] interfaces,InvocationHandler h)
+					通常参数1和被代理的类是同一个loader，这里被代理类被封装进了InvocationHandler实现类中
+			从代理的原理可知，代理的目的是调用目标方法时可以转而执行InvocationHandler中的invoke方法。就是对调用方法的一种增强实现
+	
+	
+	
+	
+	
 41.查看进程 和端口号    kill进程
 	ps -ef | grep java	ps 静态的进程统计信息    e：所有   f:完整格式显示   grep  搜索
 	netstat -ano | findstr "8080"
@@ -1956,6 +2237,8 @@
 
 	logger没有分配级别，那么将从被分配级别的最近的祖先那继承级别。rootlogger默认是debug
 	logback中的logger有继承机制，配置文件中的additivity为了不继承rootlogger的配置，从而避免输出多分日志
+	
+	e.printStackTrace()   logger不打印日志,控制台打印
 	
 	
 44.maven配置,jenkins，多环境
@@ -1985,6 +2268,20 @@
 	Invalid keystore format   因为maven中开启了filter过滤  证书相关不能开启  filter=false
 	
 	<resource>同目录下还是可以覆盖的，但是webresource不是同一目录所以不能覆盖。webresource只针对tomcat部署，boot还是用的target/classes下的
+	
+	
+	这个是可以将zx下的目录打到cer下的，并且target和war目录一致
+	<resource>
+		<!-- 元配置文件的目录，相对于pom.xml文件的路径 -针对WEB-INF下面文件内容按照环境区分需要单独配置到该目录 -->
+		<directory>../vars/${pay_env}/zx</directory>
+		<!-- 目标路径 -->
+		<targetPath>WEB-INF/classes/cer</targetPath>
+	</resource>
+	
+	targetPath:指定build资源到哪个目录，默认是base directory
+	directory:指定属性文件的目录，build的过程需要找到它，并且将其放到targetPath下，默认的directory是${basedir}/src/main/resources
+	
+	
 	
 	jenkins插件配置使用的是jenkins的maven_setting.xml文件，
 	pipeline使用了sh脚本。sh 'mvn clean install -P sit -Dmaven.test.skip=true -Dmaven.javadoc.skip=true'   这里使用的系统默认的setting.xml,有点不一样。
@@ -2189,7 +2486,9 @@
 			这样版本才能统一对应上。
 			系统中是<exclusion>了*,所有，使用了boot默认的
 		
-		hashset
+		尽量使用RedisTemplate操作，正规点
+		redis 常用的数据结构 string hash list set等		其中String结构和hash结构是最为常用的结构
+		hashset   hash结构  (key,(field,value))  field是hash结构的内部键
 			hset  相当于是给hash存储结构添加key-value数据，类似map
 			hgetall是取出hash结构的所有数据
 			redis.hset("url","google","www.google.cn");
@@ -2199,6 +2498,8 @@
 						map.put("google","www.google.cn");
 						map.put("baidu","www.baidu.com");
 						redis.hmset("url",map)；
+						
+			在数据量很大的hash结构，取出的是要要考虑性能
 
 			redis的list
 				是一个链表机构，类似栈或者队列，对元素的push和pop，可分别选择在首尾部添加和删除，lrange可以获取list在指定区间的元素
@@ -2207,9 +2508,7 @@
 				相对来说就是增加了一个去重的功能，用的暂时不多
 				zset还可以实现排序功能
 	
-
 				*****redis 中的incr方法，如果键不存在，会将默认重新计数，并且，过期时间为-1，需要判断ttl的时间，看情况重置过期时间*****
-
 	
 50.重定向
 	RedirectView
@@ -2379,10 +2678,116 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		3-7-5
 		处理map的时候也是一样的，线程1 刚走完3-7那步挂起，线程2全部走完，那么线程1执行7的时候，7的next就不对了，又变成了7-3了，这样就出现了问题
 
+		直接初始化map
+		Map kk = new HashMap<String, String>(){
+			{
+				put("name", "123");
+				put("age", "222");
+			}
+		};
+			
+		
+concurrentHashMap和HashMap相关
+	HashMap相关
+		HashMap的线程不安全主要体现在下面两个方面：
+			1.在JDK1.7中，当并发执行扩容操作时会造成环形链和数据丢失的情况。				使用头插法
+			2.在JDK1.8中，在并发执行put操作时会发生数据覆盖的情况。							使用尾插法，因此不会出现环形链表的情况
+			
+			真正的map中的entry链表结构如下：存在于hashmap中的内部类
+			 static class Node<K,V> implements Map.Entry<K,V> {
+					final int hash;
+					final K key;
+					V value;
+					Node<K,V> next;
+				}
+			这里数组中存的是一个链表，其实只要取第一个头结点就可以了
+			
+			改变数组或者list中的对象的引用，不改变数组的值。就是说list或者数组中存入的是引用地址，存入后地址就不变了。
+			数组和list中存的引用对象，存入的是引用对象的地址，后续
+			person1=person2;是将两个对象都指向了person2的地址
+			
+			多线程的内存模型是针对变量来的，并不是针对整个方法，这里和数据库不一样，entry对象被另一个线程修改后就会回写到主内存中
+			
+			核心就是头插法导致的顺序反转。
+			原3-7
+			1.线程a在读取了next后挂起，当前3 next指向7
+			2.b线程执行完后变成了7-3 
+			3.a恢复执行，引用到了b更新后的7指向3，形成闭环。
+			
+			这里线程在用到变量的时候才会取，这样当第一次取e暂停后面处理正常，转到next第二次取e时会从主内存中重新获取（主内存中已经被更新）。
+			这种工具类中没有类似事务操作的，之后内存之间的快速处理。用时取快速回写。用到的时候再从主存中获取。
+			另一个线程已经更新完了，当前线程去操作获取，不存在冲突。
+			
+			既然出发点就没有考虑多线程环境，代码里面没有任何同步手段，在多线程下使用就可能出现太多的错误，不仅仅是什么覆盖、死循环。 
+			没有对get put操作同步不就完了吗
+			
+			java8中对HashMap进行了优化，如果链表中元素超过8个时，就将链表转化为红黑树，以减少查询的复杂度，将时间复杂度降低为O(logN)。
+			Java 8 中使用 Node 模型来代表每个 HashMap 中的数据节点，都是 key，value，hash 和 next 这四个属性。Node 用于链表，红黑树用 TreeNode。
+			
+			HashTable 那样不管是 put 还是 get 操作都需要做同步处理，效率低。
+			
+			总结，无论是 1.7 还是 1.8 其实都能看出 JDK 没有对它做任何的同步操作，所以并发会出问题，甚至出现死循环导致系统不可用。
+		
+	concurrentHashMap相关	
+		concurrentHashMap使用了锁分段，避免竞争同一个资源阻塞。
+			核心思想就是尽量只锁住需要操作的散列表段。
+				将资源分段存储
+				jdk1.7版本使用
+				结构：segment[]+hashEntry[]   数组结构  *****这是jdk7版本使用，在jdk8版本基本不使用了，只是做了相应的兼容****
 				
+				Segment数组的意义就是将一个大的table分割成多个小的table来进行加锁，也就是上面的提到的锁分离技术，
+				而每一个Segment元素存储的是HashEntry数组+链表，这个和HashMap的数据存储结构一样。本身segment继承ReentrantLock，会在put操作时加锁保证线程安全。
+
+				通过两次Hash定位到元素位置，第一次是定位segment，第二次是定位hashEntry。
+				
+				jdk1.7版本	使用了segment中继承的ReentrantLock实现锁控制
+				jdk1.8版本	使用synchronized+cas实现锁控制
+					
+				
+		
+			Segment的优缺点
+				段Segment继承了重入锁ReentrantLock，有了锁的功能，每个锁控制的是一段，当每个Segment越来越大时，锁的粒度就变得有些大了。
+				分段锁的优势在于保证在操作不同段 map 的时候可以并发执行，操作同段 map 的时候，进行锁的竞争和等待。这相对于直接对整个map同步synchronized是有优势的。
+				缺点在于分成很多段时会比较浪费内存空间(不连续，碎片化); 操作map时竞争同一个分段锁的概率非常小时，分段锁反而会造成更新等操作的长时间等待; 当某个段很大时，分段锁的性能会下降。
+
+				***
+				JDK1.8的实现已经摒弃了Segment的概念，而是直接用Node数组+链表+红黑树的数据结构来实现，并发控制使用Synchronized和CAS来操作，整个看起来就像是优化过且线程安全的HashMap。
+				虽然在JDK1.8中还能看到Segment的数据结构，但是已经简化了属性，只是为了兼容旧版本。
+				
+				JDK1.8为什么不用ReentrantLock而用synchronized ?
+				减少内存开销:如果使用ReentrantLock则需要节点继承AQS来获得同步支持，增加内存开销，而1.8中只有头节点需要进行同步。
+				内部优化:synchronized则是JVM直接支持的，JVM能够在运行时作出相应的优化措施：锁粗化、锁消除、锁自旋等等。
+				***
+				
+				自旋锁是指当一个线程尝试获取某个锁时，如果该锁已被其他线程占用，就一直循环检测锁是否被释放，而不是进入线程挂起或睡眠状态。
+				
+				线程问题在于 多个线程同时resize时候，但是有的执行完 有的正在resize，这样数量就会出现问题。所以要加锁控制
+				
+				当数组大小已经超过64并且链表中的元素个数超过默认设定（8个）时，将链表转化为红黑树。
+				
+				***
+				CAS(Compare and Swap)比较并替换。这就是乐观锁的思想.但是更严谨的应该是使用版本号更新
+				CAS机制中使用了3个基本操作数：内存地址V，旧的预期值A，要修改的新值B。
+				更新一个变量的时候，只有当变量的预期值A和内存地址V当中的实际值相同时，才会将内存地址V对应的值修改为B。
 			
-			
-			
+				什么事ABA问题？怎么解决？
+					当一个值从A变成B，又更新回A，普通CAS机制会误判通过检测。		利用版本号比较可以有效解决ABA问题。
+
+				缺点；	
+					1） CPU开销过大		在并发量比较高的情况下，如果许多线程反复尝试更新某一个变量，却又一直更新不成功，循环往复，会给CPU带来很到的压力。
+					2） 不能保证代码块的原子性	CAS机制所保证的知识一个变量的原子性操作，而不能保证整个代码块的原子性。比如需要保证3个变量共同进行原子性的更新，就不得不使用synchronized了。
+
+				synchronized属于悲观锁，悲观的认为程序中的并发情况严重，所以严防死守，CAS属于乐观锁，乐观地认为程序中的并发情况不那么严重，所以让线程不断去重试更新。
+				***
+						
+				JDK1.8的实现降低锁的粒度，JDK1.7版本锁的粒度是基于Segment的，包含多个HashEntry，而JDK1.8锁的粒度就是HashEntry（首节点）
+				在大量的数据操作下，对于JVM的内存压力，基于API的ReentrantLock会开销更多的内存，虽然不是瓶颈，
+				因为粒度降低了，在相对而言的低粒度加锁方式，synchronized并不比ReentrantLock差，在粗粒度加锁中ReentrantLock可能通过Condition来控制各个低粒度的边界，更加的灵活，而在低粒度中，Condition的优势就没有了
+
+				concurrentHashMap的安全性在于put的操作，而不是外部包裹了一段的代码块
+				
+				JDK1.8中concurrentHashMap不安全性
+					两个线程A、B都在进行put操作，且hash函数计算出的插入下标是相同的，在hash碰撞判断后，a挂起(时间片耗尽)，b走完，随后线程A获得时间片，直接进行插入数据，会将b的覆盖。
 			
 			
 58. 装饰器模式可以动态的把新的职责添加到对象上。这里关键点是“动态”，也就是运行时；而继承在编译的时候已经确定了。没啥意思   io是装饰模式
@@ -2471,6 +2876,11 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		所以当拦截器非正常执行完成时，会直接跳过所有拦截器的postHandle()函数，然后再逆向的执行preHandle()函数返回为true时的afterCompletion()方法
 
 		boot中和普通的mvc中，执行顺序就是配置添加的顺序
+		
+		
+		
+		前置方法preHandle->处理器handler->后置方法postHandle->视图解析和渲染视图->完成方法afterCompletion
+		
 	
 62.spring中的子父容器
 		WebApplicationContext
@@ -2524,7 +2934,20 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		whereis 				只能用于可执行文件的搜索，只能搜索二进制文件，说明文件，源代码文件。比which范围广
 		curl 					页面请求返回	
 
-		locale					
+		locale			
+
+
+		linux中的系统发布，优雅停机
+		应用启动后，小校验从而完成服务器上的应用发布。(一般通过检测脚本或者页面。有返回结果即可。)
+		优雅停机，在负载均衡上做文章，关闭应用前，把应用从负载均衡中心上移去，然后再优雅关闭应用（结束当前所有请求后关闭），然后进行新应用的启动及检查，检查通过后再把应用加到负载均衡上，并对外提供应用。
+		灰度发布，指针对新应用，在用户体验上完全感知不到的更新，可能持续时间长，重要的状态需要记录。
+		
+		elk日志也一般是采集的异常信息，或者一段时间内的总调用次数和响应相关
+		之前通过短信方式来报警，现在通过手机应用来接收报警也不错。
+		降级多是大量请求且不能扩容进行的功能限制，可能针对某功能，也可能根据不同使用者。
+		切换更多是依赖的下层出现故障，需要手工切换。
+
+		
 		
 65.http 和 htps 的cookie  ， 没有区分，主要是满足domain中的值
 
@@ -2610,6 +3033,23 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 		格式化
 			时间 	DATE_FORMAT(si.date_insert,'%Y-%m-%d %T') AS releaseTime
 			数字 	CAST( 120.6 AS DECIMAL(15,2))		
+			
+			当天时间
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(new Date());
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
+				Date zero = calendar.getTime();
+					
+				Calendar.HOUR_OF_DAY是24小时制
+				Calendar.HOUR是12小时制
+				所以下面方法是结果是不同的
+				calendar.set(Calendar.HOUR_OF_DAY, 23); ?输出日期?2017-04-13 23:07:02
+				calendar.set(Calendar.HOUR, 23); ?输出日期2017-04-13 11:07:02
+			
+			
+			
 	
 		sql xml中 foreach 中的空list，直接跳过，类似代码中的一样
 	
@@ -2680,6 +3120,27 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 			避免多表join 尽量使用冗余策略解决联表问题
 			批量插入代替单挑插入
 				
+				
+			数据库的访问规则
+			注意分表后的表名问题
+				固定hash规则
+					分库分表中的常用方法就是取模,分x张表就mod数值x
+					
+				映射表法
+					将id和对应的表和库建立一个关系表，每次查询关系表，确定数据库和表。这种方法，一般用来以上面的规则为基础，作为配合使用。
+					
+				自定义规则，
+					自定义函数，确定数据库的访问规则
+					
+			*****数据库的迁移，关键一点是要关心迁移过程中可能出现的数据变化。*****
+			当然最稳就是先停机，再迁移，最后切换。
+			参考的方案，总的原则就是，1.正常迁移，2.记录增量 3.暂停待迁移的数据写操作，4.处理完增量，切换规则。
+					这里好处是停止写操作的时间只是在处理增量的操作中。减少了停机时间。
+					这里就是用日志，记录增量变动，针对变动停机修复。
+						1.数据迁移时，记录增量日志，迁移技术后，对增量变化进行处理。
+						2.最后可以吧要被迁移的数据写暂停，保证增量日志都处理完毕后，再切换规则，放开所有的写，完成迁移工作。
+					
+					
 		
 		mysql-connector  mysql时区
 			serverTimezone=UTC   在mysql-connector高版本8.x中会有时区的问题，方案要么配置serverTimezone=Asia/Shanghai,要么换用低版本的mysql-connector
@@ -2730,6 +3191,49 @@ MDC中的put方法其实就是讲键值对放入一个Hashtable对象中，然后赋值给当前线程的Threa
 					
 		java.sql.Date		这个是数据库中的类型date，指精确到年月日
 		java.util.Date		这个是数据库中的类型dateTime，精确到时分秒，一般开发用这个
+		
+		
+		
+		DISTINCT 和 group by
+		DISTINCT 简单用来去重列值，而group by更多是用来统计，以某个维度来统计数据
+		DISTINCT 用在所有的检测列之前，并且 它是作用于 所有列，不能部分使用
+		distinct简单来说就是用来去重的，而group by的设计目的则是用来聚合统计的.
+		单纯的去重操作使用distinct(可单列或者多列，多列相当于联合唯一)，速度是快于group by的。
+		group by 必须在查询结果中包含一个聚集函数，而distinct不用。 常用来统计数据
+		聚合函数 ：AVG、MAX、MIN、SUM、COUNT
+		
+		
+		mysql优化
+			SELECT * FROM mytable t
+			WHERE (CASE aPARAM WHEN 'a' THEN t.a = aID WHEN 'b' THEN t.b = aID WHEN 'c' THEN t.c = aID ELSE TRUE END)
+			等价于
+			SELECT * FROM mytable t
+			WHERE ( t.a = aID AND aPARAM = 'a') OR (t.b = aID AND aPARAM = 'b') OR (t.c = aID AND aPARAM = 'c') OR (aPARAM NOT IN ('a','b','c'))
+
+			这里CASE WHEN 可以和OR  或者union all 相互转换，当case when影响到索引使用的使用，可以使用union all 来替换，兼容索引使用
+			应尽量避免在WHERE子句中对字段进行NULL值判断，否则将导致引擎放弃使用索引而进行全表扫描
+			尽量避免在WHERE子句中使用!=或<>操作符，否则将引擎放弃使用索引而进行全表扫描
+			启慢查询日志来找出较慢的SQL
+			
+			
+			
+			Lock wait timeout exceeded; try restarting transaction场景
+			在5.5中，information_schema 库中增加了三个关于锁的表（MEMORY引擎）；
+				innodb_trx ## 当前运行的所有事务
+				innodb_locks ## 当前出现的锁
+				innodb_lock_waits ## 锁等待的对应关系
+			
+				SELECT * FROM information_schema.innodb_trx
+				SELECT * FROM information_schema.innodb_locks
+				SELECT * FROM information_schema.innodb_lock_waits
+						
+				SHOW ENGINE INNODB STATUS			查看mysql事务处理列表，可查询死锁和事务相关的信息，
+				SHOW FULL PROCESSLIST				查看所有mysql进程id
+			
+			kill掉有锁表的进程   kill trx_mysql_thread_id         innodb_trx中的trx_mysql_thread_id字段，这里就是对应的上面的进程id 
+				对应的就是mysql的Connection is closed
+			
+	
 	
 71.nexus 搭建
 	nexus仓库类型  
@@ -2985,6 +3489,28 @@ InputStream is = item.getInputStream();
 		
 		这种设计有个好处是，如果有人想替换系统级别的类：String.java。篡改它的实现，但是在这种机制下这些系统的类已经被Bootstrap classLoader加载过了，所以并不会再去加载，从一定程度上防止了危险代码的植入
 	
+		双亲委派机制，就是一个类只能被一个类加载器加载。
+			逐层往上(接待就返回，没有就抛给上层，直到有一级接待或者上级返回没有接待且不应由上级接待，那么本层就会加载)
+			
+				jvm显式加载class文件到内存
+					this.getClass.getClassLoader.loadClass()
+					Class.forName()
+					
+			jvm主要提供三个Classloader
+			
+			实际测试 可以遍历this.getClass.getClassLoader 的parent即可，就能看出链
+				Bootstrap ClassLoader 
+					加载jvm自身工作需要的类，没有字符加载器，jvm控制，别人访问不到
+				ExtClassLoader
+					除了System.getProperty("java.ext.dirs")目录下是由其加载，其他都由AppClassLoader来加载
+					
+				AppClassLoader
+					是上个加载器的子类，加载classpath目录下的类。
+					是自实现类加载器的父加载器
+	
+			jvm表示一个类是否是同一个类的条件 1.完整类名是否一致，2.加载该类的classloader实例是否是同一个
+
+	
 
 82.普通文件的读取
 	从classpath下加载
@@ -2998,10 +3524,21 @@ InputStream is = item.getInputStream();
 		      br.close();
 	}
 	
-	
 	File in = new FileInputStream(file);  这个是直接路径加载。类似d盘某个路径
 	
+	/**获取文件路径*/
+	private static String getRootPath() {
+		String oriPath = DSGJ0001.class.getClassLoader().getResource("").getFile();
+		if ("\\".equals(File.separator)) {
+			oriPath = oriPath.substring(1, oriPath.length());
+		} else if ("/".equals(File.separator)) {
+			// linux
+		}
+		oriPath=oriPath.replace("%20", " ");
+		return oriPath;
+	}
 	
+
 83.日志路径
 	这里是工程中以war工程为目录起点，后面可以单独测试下
 	<property name="logbackpath" value="../logs/"></property>  作为一个jar包执行的话就是  jar的上级目录
@@ -3009,8 +3546,6 @@ InputStream is = item.getInputStream();
 	path = path.substring(0, path.lastIndexOf("/"));			这里jar目录截取到d盘
 	path = path + "/conf/xye-datasource.properties";
 	logger.info("datasource-path:{}",path);
-		
-		
 		
 84.	Collections.sort(obj,new Comparator(){})实现排序
 
@@ -3217,21 +3752,30 @@ InputStream is = item.getInputStream();
 			return redisCacheManager;
 		}		
 		
-		
 		使用冒号分隔的权限表达式是org.apache.shiro.authz.permission.WildcardPermission 默认支持的实现方式。这里分别代表了 资源类型：操作：资源ID  
 
 
-87.redis持久化
-		方案：相对来说使用aof的sec足够了
+87.redis持久化 
+		方案：相对来说使用aof的sec足够了，先重点，细节用到再说
 		rdb:在指定的时间间隔内将内存中的数据集快照写入磁盘
 			数据集快照dump到dump.rdb中，可以修改dump的频率。快照文件总是完整可用的
 			频率比如:300秒内，如果超过10个key被修改，则发起快照保存 ；
 			
-			
 			fork一个子进程来进行持久化，不影响主进程的io操作
+			快照备份，是备份当前瞬间 Redis 在内存中的数据记录。备份慢一点，恢复快
 			
-		aof:每次写指令操作，进入aof记录文件。
-			三种策略：每次修改，每秒同步，从不同步
+			生成rdb文件的命令
+			save	阻塞服务器进程，知道rdb创建完成为止，阻塞期间，不接受任何命令
+			bgsave	用子线程创建rdb文件，服务器进程继续处理命令请求
+			
+			多个save命令(用save选项设置的保存条件)，是或关系，满足条件就会执行bgsave命令
+			
+			
+		aof:每次写指令操作，进入aof记录文件。追加命令进文件保存
+			追加文件，备份快，恢复慢，备份文件可能大
+			其作用就是当 Redis 执行写命令后，在一定的条件下将执行过的写命令依次保存在 Redis中， 将来就可以依次执行那些保存的命令恢复 Redis 的数据了
+		
+			三种策略：每次修改，每秒同步(常用)，从不同步
 		数据恢复时按照丛前到后的顺序再将指令执行一遍
 		
 		其中包含重写机制，一条 incr*100，最后可以合成一条incr100
@@ -3656,10 +4200,29 @@ InputStream is = item.getInputStream();
 		
 	@Value(”$(database.driverName)”),${}代表占位符，会读取上下文的属性值装配到属性中，这是一个最简单的spring表达式
 
-		静态代码块，static初始化
+	
+	从属性文件中加载list或者map
+		blog-top-links={"home":"/home"}
+		blog-list=1,2,3
+
+		@Value("#{'${blog-list}'.split(',')}")
+		private List<String> pList;
+
+		@Value("#{${blog-top-links}}")
+		private Map<String, String> topLinks;
+
+		
+		@Value("#{'${key}'.split(',')}")
+			
+	*****静态代码块，static初始化*****
 			静态static代码块在首次调用这个类时才触发，而不是一开始就加载。且只加载一次
-	
-	
+
+			
+			PropertiesUtil   自动状态属性类 	  这里就可以在static初始化中加载属性文件，后面直接静态方法调用即可
+					InputStream is = PropertiesUtil.class.getClassLoader().getResourceAsStream(propName);
+					prop.load(is);
+			
+			
 	@Bean 和  CommandLineRunner
 		@Order注解并不能改变Bean加载优先级，对多个CommandLineRunner是有效的，加在普通的方法上或者类上没有作用
 		CommandLineRunner 和 @bean 加载顺序，启动mq先消费，CommandLineRunner的常量尚未加载就消费，导致初始化client异常。
@@ -3679,6 +4242,11 @@ InputStream is = item.getInputStream();
 		
 111.spring cache
 
+	@EnableCaching 表示SpringIoC容器启动了缓存机制
+	 
+	 一般而言，对于查询，我们会考虑使用＠Cacheable；对于插入和修改，我们会考虑使用＠CachePut；对于删除操作，我们会考虑使用＠CacheEvict。
+	 
+	 
 	常规配置: 失效时间，序列化方式(redis服务端易读)，目录的层级(默认是::)
 
 	每次调用需要缓存功能的方法时，Spring会检查检查指定参数的指定的目标方法是否已经被调用过(依据是value+key,相同会覆盖，一般key中追加参数信息)；
@@ -3686,7 +4254,7 @@ InputStream is = item.getInputStream();
 
 	先执行@Cacheable----->再执行service层的方法，基于注解()，实际就是个拦截器(就是使用注解省去了判断的过程。原先是判断没有缓存，就从数据库查询，这里讲判断隐藏到了注解去实现)
 	
-	缓存的目的是：通过Cache来缓存不经常改变的数据以提高系统性能和增加系统吞吐量，避免直接访问数据库等低速的存储系统。
+	缓存的目的是：通过Cache来缓存不经常改变的数据以提高系统性能和增加系统吞吐量，避免直接访问数据库等低速的存储系统。经常变的数据，不适合用缓存
 	Spring Cache对Cache进行抽象，提供了@Cacheable、@CachePut、@CacheEvict等注解。
 	可用于单体应用系统，也可集成Redis(默认使用rediscache，最终存在Redis中，可跨系统)等缓存服务器用于大型系统或者分布式系统。(每次重启也不会去service，会花点时间从redis取，后面再取就快多了)
 
@@ -3727,8 +4295,7 @@ InputStream is = item.getInputStream();
 	
 	
 	
-	
-	
+	这个做springcache用的，查询结果缓存使用
 	@Bean
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
     	//1.设置key 和value的序列化方式
@@ -3883,10 +4450,15 @@ InputStream is = item.getInputStream();
 			zookeeper关闭调用 和服务关闭调用
 			zookeeper关闭 不影响调用，服务关闭当然失败，新版的dubbo2.7.7 提供者断开后，消费者调用失败，过段时间提供者重启，消费者可以连上
 
+			
+			dubbo超时
+				针对服务端重启，消费者超时，这个在duboo的源码中有个配置，对应的duboo中的源码： com.alibaba.dubbo.common.Constants DEFAULT_SESSION_TIMEOUT = 60 * 1000; 这个时间配置了，需要重新打jar才行
+			
 
 113.多接口实现
 		class a 实现 接口b(继承接口c)，那么a需要实现所有方法(包括c中的)，但是若a继承了一个实现c接口的类，就不用都实现(只认implements)，系统中是baseSericeImpl。
 
+		接口中方法注释可以上层显示，实现类中也能看到
 		
 114.重定向
 		/withdraw 抽空测试下同级的重定向  像/pay/withdraw这种两级路径：
@@ -4025,6 +4597,7 @@ InputStream is = item.getInputStream();
 				
 			curl模拟的访问请求一般直接在控制台显示，适用结果内容比较少
 			而wget则把结果保存为一个文件。适用结果比较多
+			wget是个专职的下载利器，简单，专一，极致；而curl可以下载，但是长项不在于下载，而在于模拟提交web数据，POST/GET请求，调试网页等。
 			
 			引用复制
 				会出现问题，这种引用传递要注意
@@ -4098,10 +4671,42 @@ InputStream is = item.getInputStream();
 		主站的绑卡http访问支付，支付从页面中是拿不到cookie对象的，这样支付实际没有校验card bin。跳过了校验
 		非cookie页面过来的，systemGateWay.htm路径清除多余session，相当于systemGateWay.htm过来的，根本不使用当前request中的session，不是页面的不共享session，单独http请求的sessionid是不共享的
 	
+	
+		cookie加密？类似之前springsession中session编码处理一样。定位维护加密key
+				
+			分布式session的实现思路
+				重新实现httpsession的操作接口。操作必须要在进入应用之前完成，可以配一个filter拦截。
+				
+				配置sessionfilter，请求到达mvc之前封装request和response，并创建自己的innerhttpsession，并设置到request和response中，这样request.getHttpSession就是自己创建的session对象。
+				用户请求完成后，会将innerhttpsession的所有内容更新到分布式缓存中，这样用户可跨服务器再次访问。
+				解决跨域名共享cookie的问题。
+					这样要实现sessioin同步，需要一个跳转引用，该应用可以被多域名访问，功能是，从一个域名下取得sessionid，然后同步到另一个域名下。其实就是一个cookie中的sessionid。
+					实现两个域名下的session同步，必须要将统一个sessionId作为cllike写到两个域名下。
+					
+				 盗用cookie的情况
+				 增加一个私密加密信息signinfo?
+				 除非用户只盗用的sessionid   要是连singinfo一起盗用，那也没辙
+				 
+				可以压缩cookie来节省带宽流量，就是将多个k-v作为文本压缩
+	
+	
+	
+	
+	
+	数据结构
 		ArrayList 和linkedlist区别
 			ArrayList是实现了基于动态数组的数据结构，LinkedList是基于链表结构。
 			对于随机访问的get和set方法，ArrayList要优于LinkedList，因为LinkedList要移动指针。
 			对于新增和删除操作add和remove，LinkedList比较占优势，因为ArrayList要移动数据。
+		
+		初始化
+			List<String> names = new ArrayList<>() {{
+				add("Tom");
+				add("Sally");
+			}};
+			
+			List<String> colors = Stream.of("blue", "red", "yellow").collect(toList());
+		
 		
 		一个字节等于8位  1byte = 8bit      int占用4个字节，long 8个字节，
 		
@@ -4125,10 +4730,41 @@ InputStream is = item.getInputStream();
 			es的client静态初始化，mq启动消费和常量类的属性加载顺序引起的异常。之前留下的一个记录，先消费消息，然后加载常量类，出现错误
 
 		事务中  try 事务操作的问题,不影响，之后接收到runtimeexception才会回滚，单个try住不影响外层的事务，这也是遍历中常用的操作
+		
+		spring 事务控制 设置手动回滚 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly(); 用在serviceA中try住操作常规B的catch中手动设置回滚，throw运行异常等效
+
+		serviceA中 try{ serviceB.do();} catch (Exception e) {}   
+			
+		如果B是默认事务，那么B中异常后，整体commit是会异常的，因为同一事务已经被标记过回滚了。
+		https://blog.csdn.net/f641385712/article/details/80445912
+		org.springframework.transaction.UnexpectedRollbackException: Transaction rolled back because it has been marked as rollback-only
+		一开始测试无效是因为B跑到了open  两个系统当然是新事物
+		但是try的是一个普通操作是没事的，如果内部有B也有事务，那就要留意点了。
+		
+		支付的批量验收事务异常原因是，GateWayBatchServiceImpl.systemGateWay(List<Map<String, String>>)入口开启了事务，后面又用了事务模板transactionTemplate做了回滚标记
+		
+		这种外部没有事务，然后循环两个事务操作，两个事务互不影响，上层没有就新开一个
+		
+		
+		外层事务有事务，这里第一个执行成功了
+		 try {
+				事务A执行正常
+				事务B执行异常
+              } catch (Exception e) {}
+		
+		public void ttest() {
+			for (int i = 0; i < 2; i++) {try {netpaytranService.ttest(i);} catch (Exception e) {}}
+		}
+		
+		
+		试验：serviceA-> service B b中new事务异常 全部回   
+				实际验证，@Transactional并没有捕获异常的功能，遇到运行异常自己回滚后会向上抛出。除非上层捕获了不影响上层
+				b中开新事物的话，如果a中和b中操作同一个资源，会锁住，因为a中还没有释放。
+		
 
 		http://xiaoyuer.jenkins.net/ 域名  后面是域名 兄弟，应该是http://jenkins.xiaoyuer.net/ 域名
 		
-		
+	
 		dubbo+k8s
 			k8s+dubbo	
 				https://blog.csdn.net/weixin_41715077/article/details/89385413	 		核心点和原理图
@@ -4174,13 +4810,277 @@ InputStream is = item.getInputStream();
 			常规的if判断 用 ==？ : 会简洁点
 			
 			
-			并发等待
-				使用while(判断)+redis实现并发的等待处理  redis的setEx
+			并发等待,redis锁，搭配 synchronized 入口方法
+				使用while(判断)+redis实现并发的等待处理  redisUtil.exists(key), redis的setEx，
 				
 			@RequestParam  传空串是可以的，类似这种?cellPhone=&userName=要小心
 			
 			
-			对于xml解析的实用类，XStream用的比较常用
+			对于xml解析的实用类，XStream用的比较常用，//把xml为转换为实体对象 对于嵌套的xml内容使用内部类接收
+			
+		redis相关
+		内存读写
+		作用：一个是缓存常用的数据，另一个核心的问题是数据一致性和访问控制。
+		存命中率高的，读操作多的，小数据量的数据
+		
+		老版的使用jedis自己加载客户端，后面boot都建议使用集成的StringRedisTemplate,不要自定义了
+		不要将整个对象存到redis中，性能差
+		
+		使用它就能够帮助把对象通过序列化储到 Redis 中，也可以把 Redis 存储的内容转换为 Java 对象，为 Spring 供的 RedisTemplate 还有两 属性。
+		? KeySerializer一键序列器
+		? ValueSerializer一值序列器。
+		
+		Redis 还支持一些事务 订阅消息模式、主从复制、持久化作为 Java 开发人员需要知道的功能
+		
+		发布订阅整个一般也交给mq做，实际一般不使用
+		
+		这里有一个问题需要讨论 如果 key, 超时了， Redis 会回收 key 的存储空间吗 ？
+			答案是不会。
+			***** Redis的key 超时不会被其自动回收，它只会标识哪些键值对超时了。*****
+			Redis 提供两种方式回收这些超时键值对， 它们是定时回收和惰性回收。
+			定时回收，在确定的某个时间触发段代码，回收超时的键值对
+			惰性回收，一个超时的键，被再次用get命令访问时将触发 Redis 其从内存中清空。
+		
+		
+		内存回收，主要是针对键值对的回收
+			noeviction	内存达到最大的，它就只能读而不能写。
+			
+			Redis在默认情况下会采用 noeviction 策略。换句话说，如果内存己满，则不再提供入操作，而只提供读取操作。
+			显然这往往并不能满足我们的要求，因为对于互联网系统而言常常会涉及数以百万甚至更多的用户，所以往往需要设置回收策略。
+			
+		主从操作，一般用在数据库和redis这种存储型结构中	
+		redis一般做主从，好处是减轻压力和更加稳定
+			主写从读，主机是一台，而从机可以是多台
+			主服务器在写入数据后，即刻将写入数据的命令发送给从服务器，从而使得主从数据同步。
+			从挂了不收影响，主挂了会在从服务器中选举一台来当主服务器
+			
+			默认采用 Redis当前目录的 dump.rbd 文件进行同步。
+			
+			*****绝大多数的迁移步骤，先迁移整体，同时开启临时记录区域，同步进行*****
+			主从同步的过程重点
+				1.同步开始，主会备份数据，主将备份文件发送给从，并同时将新增命令放进缓存区，
+				2.从会丢弃所有现有的数据，开始载入发送的快照文件
+				3.待从执行完备份文件，主会将缓冲区的也发过去执行，后面就主收到一条写就发给从一条同步写(从在解析完备份文件，接收命令，等待命令写入)
+				
+			主从切换技术，一般不手动换，费劲
+			一主(master)二从(slave)三sentinel的架构模式,  三个哨兵监控三个服务器
+			
+			哨兵模式
+			
+			哨兵的配置在sentinel.conf配置文件中配置，一般2个及以上的哨兵投票才能切换主机(默认超时3分钟后才会进行投票切换主机)
+			
+			哨兵，以独立的进程监控3台服务器Redis是否正常运行,实际使用一般多个哨兵共同监控(除了监控各个Redis服务外，各个哨兵之间还会相互监控)
+				这里的哨兵有两个作用
+				通过发送命令，让 Redis服务器返回监测其运行状态，包括主服务器和从服务器。
+				当哨兵监测到master宕机，会自动将slave切换成master，然后通过发布订阅模式通知到其他的从服务器，修改配置文件，让它们切换主机
+
+			redis和数据库一致。
+				对于时效性不高的，可以每隔一段时间取更新，但是时效性要求高的，就直接从数据库中查询，并同步写入redis
+				redis和数据库的简单同步，不变的不变，微变的间隔变，实时变的直接数据库读后同步redis
+				
+			redis推荐使用模板操作，RedisTemplate，一般来说简单的string类型的操作使用StringRedisTemplate即可，前者可以操作hash等其他结构
+			
+			key的类型只能为字符串，value支持五种数据类型：String、list、set、hash、sorted set
+			
+			字符串定义了key(包括 hash 数据结构)，而值则使用了序列化，这样就能够保存 Java对象了。但是不推荐保存一个java类对象，容易反序列化各系统不兼容	
+
+			命中：可以直接通过缓存获取到需要的数据。
+			使用缓存的前提是要高命中率，有效提高性能
+
+			缓存适合“读多写少”的业务场景，反之，使用缓存的意义其实并不大，命中率会很低。
+			业务需求决定了对时效性的要求，直接影响到缓存的过期时间和更新策略。时效性要求越低，就越适合缓存。在相同key和相同请求数的情况下，缓存时间越长，命中率会越高。
+				
+			自调用失败，类似spring事务
+				那是因为缓存注解也是基于SpringAOP实现的，对SpringAOP 基础是动态代理技术，也就是只有代理对象的相互调用，AOP 有拦截的功能，才能执行缓存注解提供的功能。
+				而这里的自调用是没有代理对象存在的，所以其注解功能也就失效了。
+			
+			request->防火墙->负载均衡->转发到服务器		
+		负载均衡
+			请求分发，在关卡处可以通过配置禁止一些无效的请求，比如封禁经常作弊的ip地址，这里是初级过滤
+			限流	，负载均衡器有限流的算法，对于请求过多的时刻，可以告知用户系统繁忙，稍后再试，从而保证系统持续可用。
+			
+		有效请求和无效请求
+			1.针对一个用户的无效恶意请求，可以增加图片验证码
+			2.短信验证，进一步的限制请求，比如限制用户在单位时间的操作次数，降低请求量， 
+			3.一人多账号的，最终集中到实名那步，限制到人信息即可
+			4.多人多账号的，僵尸账号排除法，平
+			时没交易，只在特殊节日交易
+			5.当然还能使IP封禁，尤其是通过同一IP或者网段频繁请求的，但是可能误伤有效请求，需注意
+		
+		一般系统还是做服务化，偏向按照业务划分
+		
+		分库主要是一个路由算法，也可以将数据对应数据库信息单独存放，这样路由时直接查询即可。
+		
+		sql优化，建立索引等优化	这个可以作为一个重点看的
+			时刻记住更新是表锁定还是行锁定
+			1.有主键和唯一索引，优先使用主键，后者会锁表，前者是行锁定				这个待确认
+			2.使用连接查询代替子查询，not in 和 not exist性能低下
+		
+		cdn,内容分发网络，就近缓存数据到节点，就近分发数据
+		
+		悲观锁，利用数据库内部机制提供的锁的方法，对更新的数据加锁，并发时一旦一个事务持有了数据库记录的锁，其他的线程将不能再对数据进行更新了，这就是悲观锁的实现方式
+			常见操作 select for update				主键查询，所以只会对行加锁。如若是非主键查询，要考虑是否对全表加锁的问题，加锁后可能引发其他查询的阻塞
+			当一条线程抢占了资源后，其他的线程将得不到资源，那么这个时候，CPU就会将这些得不到资源的线程挂起，挂起的线程也会消耗的资源，尤其是在高井发的请求中
+			只能有一个事务占据资源，其他事务被挂起等待持有资源的事务提交并释放资源
+			使用悲观锁就会造成大量的线程被挂起和恢复，CPU频繁切换线程上下文，这将十分消耗资源，性能不佳。
+			
+		乐观锁
+			使用乐观锁的弊端在于导致大量的SQL被执行，对于数据库的性能要求较高，容易引起数据库性能的瓶颈，而且对于开发还要考虑重入机制，从而导致开发难度加大。
+			
+			CAS原理并不排斥并发，也不独占资源，只是在线程开始阶段就读入线程共享数据，保存为旧值。其中可能存在ABA问题
+				当处理完逻辑，需要更新数据的时候，会进行一次比较，即比较各个线程当前共享的数据是否和旧值保持一致。不一致考虑重试或者放弃。有时候可重试，这样就是一个可重入锁，
+				ABA问题，场景两个线程同时判断一个变量，线程2变成了B后又变成了A,但是线程1中无感知，
+					前提1，线程1,2并不是想spring事务一样完成后才提交，外层没事务影响
+					前提2，基于单独的业务字段判断，并且能回退
+					解决，加入不能回退的非业务字段version，只能增。
+					总的来说就是对值变化后还原无感知，导致的更新错误
+					解决，加入不能回退的非业务字段version。
+				
+			解决并发失败数量多的场景
+				使用重入机制
+					不能重入太多次，限制1.按规定时间内重入，入成功为止，过时退出  2.按规定次数重入 ，while(true){} 实现限制重入
+				
+		 stream of elements -> filter ->sorted -> map -> collect
+				
+		 在jdbc的数据库处理中，批量操作，尽量一批一批的整量操作		
+		 
+		Spring Java 多种 Redis 连接 API 进行了封装，各连接的实现类都继承了抽象类AbstractRedisConnection(实现RedisConnection 接口)。所以对于使用者
+		而言，只需要知道 RedisConnection 接口的 API 就可以消除各个 API 的差异了。
+		有了这个接口我们自然可以想到 Spring 会提供创建这个接口对象的工厂一RedisConnectionFactory 。它也是类似的一个简易模型，RedisConnectionFactory，通过工厂就可以生成 RedisConnection 以通过各命令操 Redis各命令
+					
+		所有的key(key和hashKey), 设置为StringRedisSerializer			
+		hashValue:? ? ? ?推荐使用? ? ?GenericJackson2JsonRedisSerializer:类似Jackson2JsonRedisSerializer，但使用时构造函数不用特定的类   默认是JdkSerializationRedisSerializer
+			
+			
+		StringRedisSerializer：对String数据进行序列化。序列化后，保存到Redis中的数据，不会有像上面的“\xAC\xED\x00\x05t\x00\x09”多余字符。就是"frequency".	
+			
+		如果不进行设置的话，默认使用JdkSerializationRedisSerializer进行数据序列化。
+		（把任何数据保存到redis中时，都需要进行序列化）
+		用视图的形式查了一下，发现实际保存的内容如下：
+		key-value：
+		  key:\xAC\xED\x00\x05t\x00\x08test_key
+		  value:\xAC\xED\x00\x05t\x00\x0Dtest_value111	
+		所有的key和value还有hashkey和hashvalue的原始字符前，都加了一串字符。查了一下，这是JdkSerializationRedisSerializer进行序列化时，加上去的。
+		原以为只会在value或hashvalue上加，没想到在key和hashkey上也加了，这样的话，用原来的key就取不到我们保存的数据了。所以，我们要针对我们的需求，设置RedisSerializer。  
+		  
+		1，用StringRedisSerializer进行序列化的值，在Java和Redis中保存的内容是一样的
+		2，用Jackson2JsonRedisSerializer进行序列化的值，在Redis中保存的内容，比Java中多了一对双引号。
+		3，用JdkSerializationRedisSerializer进行序列化的值，对于Key-Value的Value来说，是在Redis中是不可读的。对于Hash的Value来说，比Java的内容多了一些字符。
+					
+
+	redis
+		作为缓存系统，Redis还可以限定数据占用的最大内存空间，在数据达到空间限制后可以 按照一定的规则自动淘汰不需要的键
+		
+		列表中 LPUSH 和 RPUSH 可以想左右两边增加元素，对应还有弹出功能LPOP 和 RPOP
+		
+		redis事务、队列处理暂不操作
+		
+		lpush test_redis_list 1 2 4
+		查看、获取list  lrange test_redis_list  0 3   
+		
+		持久化
+			rdb	
+				进行快照的条件可以由用户在配置文件中自定 义，由两个参数构成：时间和改动的键的个数。当在指定的时间内被更改的键的个数大于指定 的数值时就会进行快照。RDB是Redis默认采用的持久化方式
+				Redis默认会将快照文件存储在当前目录的dump.rdb文件中，可以通过配置dir和 dbfilename两个参数分别指定快照文件的存储路径和文件名
+				Redis启动后会读取RDB快照文件，将数据从硬盘载入到内存。
+				通过RDB方式实现持久化，一旦Redis异常退出，就会丢失最后一次快照以后更改的所有数据。如果数据很重要以至于无法承受任何损失，则可以考虑使用AOF方式进行持久化。
+		aof
+				开启AOF持久化后每执行一条会更改Redis中的数据的命令，Redis就会将该命令写入硬 盘中的AOF文件。AOF文件的保存位置和RDB文件的位置相同，都是通过dir参数设置的，默认 的文件名是appendonly.aof，可以通过appendfilename参数修改：
+				可见AOF文件是纯文本文件，其内容正是Redis客户端向Redis发送的原始通信协议的内容
+				实际上Redis也正是 这样做的，每当达到一定条件时Redis就会自动重写AOF文件，重写是为了删除冗余命令，比如多条覆盖，只保留最后一条即可
+			
+				
+				执行命令由于缓存机制，不是直接写入磁盘(现在硬盘缓存，随后写入硬盘,AOF文件中)
+				在默认情况下系统每30秒会执行一次同步操作，以便将硬盘缓存中的内容真正地 写入硬盘，在这30秒的过程中如果系统异常退出则会导致硬盘缓存中的数据丢失。
+				一般来讲 启用AOF持久化的应用都无法容忍这样的损失，这就需要Redis在写入AOF文件后主动要求系 统将缓存内容同步到硬盘中。
+				在Redis中我们可以通过appendfsync参数设置同步的时机：
+				默认情况下Redis采用规则
+				everysec		即每秒执行一次同步操作。这个推荐使用
+				always  		每次执行写入 都会执行同步，这是最安全也是最慢的方式。
+				no 				不主动进行同步操作，而是完全交由操作系统来做（即每30秒一次），这是最快但最不安全的方式。
+				
+		主从复制
+			基于快照文件和缓存的命令实现
+			当一个从数据库启动后，会向主数据库发送SYNC命令，主数据库接收到SYNC命令后会
+			开始在后台保存快照（即RDB持久化的过程），并将保存期间接收到的命令缓存起来。当快照 完成后，Redis会将快照文件和所有缓存的命令发送给从数据库。从数据库收到后，会载入快 照文件并执行收到的缓存的命令。当主从数据库断开重连后会重新执行上述操作，不支持断 点续传
+			在复制的过程中，快照无论在主数据库还是从数据库中都起了很大的作用，只要执行复制就会进行快照，即使我们关闭了RDB方式的持久化（通过删除所有save参数）。更进一步，无 论是否启用了RDB方式的持久化，Redis在启动时都会尝试读取dir和dbfilename两个参数指定 的RDB文件来恢复数据库。
+			
+		redis删除策略
+			两个定是主动，惰性是被动。
+			redis实际使用是惰性删除+定期删除的组合。
+			定时删除：创建一个定时器，当key设置有过期时间，且过期时间到达时，由定时器任务立即执行对键的删除操作   性能不佳
+			定期删除：redis默认是每隔100ms就随机抽取一些设置了过期时间的key，检查其是否过期，如果过期就删除。注意这里是随机抽取
+			惰性删除：定期删除可能会导致很多过期key到了时间并没有被删除掉。所以就有了惰性删除。
+					  假如你的过期key，靠定期删除没有被删除掉，还停留在内存里，除非你的系统去查一下那个key，才会被redis给删除掉。这就是所谓的惰性删除
+				
+				
+		122
+			在创建新的额rdb文件时，会检查键，已经过期的键不会被保存到新建的rdb文件中。在aof重写过程中也是
+			当一个过期键被删除后，服务器会追加一条del命令到现有的aof文件末尾，显示删除过期键。
+			主服务器删除过期键，会向从发送del命名，统一由主发起删除
+			
+			Redis 主从复制、哨兵和集群三者区别
+				主从复制是为了数据备份，哨兵是为了高可用，Redis主服务器挂了哨兵可以切换，集群则是因为单实例能力有限，搞多个分散压力，简短总结如下：
+				主从模式：备份数据、负载均衡，一个Master可以有多个Slaves。
+				sentinel发现master挂了后，就会从slave中重新选举一个master。
+				cluster是为了解决单机Redis容量有限的问题，将数据按一定的规则分配到多台机器。
+				sentinel着眼于高可用，Cluster提高并发量。
+				1. 主从模式(数据备份)：读写分离，备份，一个Master可以有多个Slaves。解决数据备份问题
+				2. 哨兵sentinel(高可用)：监控，自动转移，哨兵发现主服务器挂了后，就会从slave中重新选举一个主服务器。解决故障切换问题
+				3. 集群(数据分片,f分布式存储)：为了解决单机Redis容量有限的问题，将数据按一定的规则分配到多台机器，内存/QPS不受限于单机，可受益于分布式集群高扩展性。解决单机容量问题
+		
+	
+			sentinel高可用性。将数据存储到多个Redis实例中。
+			cluster模式的出现就是为了解决单机Redis容量有限的问题（主从模式或sentinel模式就不能满足需求），这时数据进行分片，将Redis的数据根据一定的规则分配到多台机器redis实例中。
+			每个集群中至少需要三个主数据库才能正常运行，Redis集群至少需要3个节点，每个节点又需要一个从备份节点，所以Redis集群至少需要6台服务器。
+			
+			
+			因为redis的集群是把内容存储到各个节点上，而哨兵的作用就是监控redis主、从数据库是否正常运行，主出现故障自动将从数据库转换为主数据库
+			集群不必另外使用 Redis Sentinel，内置了哨兵功能
+			
+			主从模式 可以实现读写分离，数据备份。但是并不是「高可用」的
+			哨兵模式 可以看做是主从模式的「高可用」版本，其引入了 Sentinel 对整个 Redis 服务集群进行监控。但是由于只有一个主节点，因此仍然有写入瓶颈。
+			Cluster 模式 不仅提供了高可用的手段，同时数据是分片保存在各个节点中的，可以支持高并发的写入与读取。
+			虚拟槽分区是Redis Cluster采用的分区方式，Redis Cluster的节点之间会共享消息，每个节点都会知道是哪个节点负责哪个范围内的数据槽
+			客户端访问任意节点时，对数据key按照CRC16规则进行hash运算，然后对运算结果对16383进行取作，如果余数在当前访问的节点管理的槽范围内，则直接返回对应的数据
+			如果不在当前节点负责管理的槽范围内，则会告诉客户端去哪个节点获取数据，由客户端去正确的节点获取数据
+			把16384个槽平均分配给节点进行管理，每个节点只能对自己负责的槽进行读写操作
+			由于每个节点之间都彼此通信，每个节点都知道另外节点负责管理的槽范围			
+			保证高可用，每个主节点都有一个从节点，当主节点故障，Cluster会按照规则实现主备的高可用性
+			
+			redis的动态扩容操作都是通过redis-trib.rb脚本文件来完成的
+			当添加新节点成功以后，新的节点不会有任何数据，因为他没有分配任何的数据Slot(哈希slots),这一步需要手动操作。
+			
+			
+			扩容需要新节点没有slot，需要重新分配
+			常用的数据分片的方法有：范围分片，哈希分片，一致性哈希算法，哈希槽等
+			分配槽位，可以自定义指定节点的分槽范围，一般要均分。slot 0-5460
+			多少个节点，自己针对16384个哈希槽，自己分配
+			Redis集群有16384个哈希槽，每个key通过CRC16校验后对16384取模来决定放置哪个槽(Slot)，集群的每个节点负责一部分hash槽
+			在Redis Sentinel模式中，每个节点需要保存全量数据，冗余比较多，而在Redis Cluster模式中，每个分片只需要保存一部分的数据，
+			Redis Cluster数据分区规则采用虚拟槽方式(16384个槽)，每个节点负责一部分槽和相关数据，实现数据和请求的负载均衡
+			通过对Key进行CRC16(key)%16384运算得到对应的槽是哪一个，从而将读写操作转发到该槽所对应的服务节点
+			Redis集群使用数据分片(sharding)而非一致性哈希(consistency hashing)来实现：一个Redis集群包含16384个哈希槽(hash slot)，数据库中的每个键都属于这16384个哈希槽的其中一个，集群使用公式CRC16(key)%16384来计算键key属于哪个槽，其中CRC16(key)语句用于计算键key的CRC16校验和。
+			Redis官方推荐使用redis-trib.rb工具快速搭建Redis Cluster
+			集群自动故障转移过程分为故障发现和节点恢复。节点下线分为主观下线和客观下线，当超过半数节点认为故障节点为主观下线时，标记这个节点为客观下线状态。从节点负责对客观下线的主节点触发故障恢复流程，保证集群的可用性
+			
+			那么每个节点都和其他N-1个节点保持连接和心跳，节点之间采用Gossip协议进行通信。通信主要确认节点是否存活、节点的数据版本、投票选择新的master等内容。
+			
+			扩容步骤
+				一、添加两个服务节点到集群
+					redis-cli --cluster add-node 192.168.8.196:5007 192.168.8.196:5001
+					redis-cli --cluster add-node 192.168.8.196:5008 192.168.8.196:5001
+				二、为master节点添加分片，重新分配槽
+					redis-cli --cluster reshard 192.168.8.196:5007
+					指定slot数量和槽来源,选择all，就是全节点指定数量迁移
+				三、设置从节点
+				
+			Redis 集群中内置了 2^14=16384 个哈希槽，当需要在 Redis 集群中放置一个key-value时，redis 先对key使用crc16算法算出一个结果，
+			然后把结果对 16384 求余数，这样每个 key 都会对应一个编号在 0-16383 之间的哈希槽，redis 会根据节点数量大致均等的将哈希槽映射到不同的节点。	
+			当你往Redis Cluster中加入一个Key时，会根据crc16(key) mod 16384计算这个key应该分布到哪个hash slot中，一个hash slot中会有很多key和value。
+			
+			
+			
 			
 	排除core-dao后	编译正确，运行异常
 	同名路径的依赖问题，注意jar和另一个类。
@@ -4202,10 +5102,79 @@ InputStream is = item.getInputStream();
 		Utils.log("HTTPS,服务器响应结果是: \n" + strBuff.toString());
     	
 	
-	
-	
+		简化if  else   return timeFlag ? true:false;
+
+		字符串比较
+			String s4 = s3+",world!";  s3+=",world!"; 类似  变量引用会开新地址
+			
+		MediaType,即是Internet Media Type,互联网媒体类型；也叫做MIME类型， 
+		在Http协议消息头中，使用Content-Type来表示具体请求中的媒体类型信息。（推荐使用这个，下二）
+		常见的媒体格式类型如下
+		text/html:HTML格式
+		text/xml:XML格式
+
+		以application开头的媒体格式类型：
+			application/xml:XML数据格式
+			application/json:JSON数据格式
+			application/octet-stream:二进制流数据（常见的文件下载)
+			application/x-www-form-urlencoded:表单中默认的encType,表单数据被编码为key/value格式发送到服务器
+
+		另外一种常见的媒体格式是上传文件时使用：
+		multipart/form-data:需要在表单中进行文件上传时，就需要使用该格式
+		
+		
+		小鱼儿系统
+			每次来一个线程就存一次context，每次覆盖一个新的CommonConstant.PAGE_SERVICE_SESSION_KEY, uuid 来存值setContext中存。相当于将信息存在了session中
+			private GenericResult<Object> invokePageService(OpService opService)
+				throws IOException
+			{
+				String uuid = UUID.randomUUID().toString();
+				ApplicationContext context = ApplicationContext.getContext();
+				HttpServletRequest request =((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+				request.getSession().setAttribute(uuid, context);
+				request.getSession().setAttribute(CommonConstant.PAGE_SERVICE_SESSION_KEY, uuid);
+				LOGGER.info("设置session{},UUID是:{}", request.getSession().getId(),uuid);
+				GenericResult<Object> result = new GenericResult<Object>();
+				result.setObject(opService.getPageTarget());
+				return result;
+			}
+				
+		小程序登录相关信息返回
+		   String url = "https://api.weixin.qq.com/sns/jscode2session?appid="
+                    + appId + "&secret=" + appSecrect + "&js_code=" + wmpcode + "&grant_type=authorization_code";
+            resultStr = HttpClientUtil.httpGet(url);		
+			
+		element ui 有axure原型资源，可以直接套用	
+		
+		@Deprecated  手动添加  标注废弃而已	
+		
+		git ls-files -v | grep "^[a-z]"   找出   git 中的 assume-unchanged 的文件
+		
+		反射相关
+			Field field=clazz.getDeclareField("name");
+			field.set(this,"Test")；
+			如果属于类的静态属性，那么set和get方法的第一个参数就可直接设置为null；因为静态不需要实例，跟着类走的。
 			
 			
+		8位是一个字节，8bit=1byte,一位就是二进制数的一个数字。byte类型的数据是8位带符号的二进制数
+		
+		
+			
+		加速使用cdn
+		目前主要用来缓存静态数据
+			其实就是一种网络缓存技术
+			cdn作用是把用户需要的内容分发到离用户近的节点，使用户就近获取所需内容。
+			cdn系统分为cdn源站，cdn节点。源站提供节点使用的数据源头，而节点部署在距离最终用户比较近的地方。
+			
+		防止表单重复提交
+			请求表单页面创建一个token存入缓存中，带到页面的hidden token中  提交的时候校验
+			
+		观察者模式，也叫发布-订阅模式，就是时间监听机制。
+		代理模式，给某个对象创建一个代理对象，对原对象的调用增加一些额外操作
+		
+		
+		
+		
 			
 120.前后端分离
 		前端从后端剥离，形成一个前端工程，前端只利用Json来和后端进行交互，后端不返回页面，只返回Json数据。前后端之间完全通过public API约定
@@ -4290,8 +5259,16 @@ InputStream is = item.getInputStream();
 			
 			String result = list.stream().collect(Collectors.joining(","));  //逗号拼接
 			
+			map.entrySet().stream().sorted(Comparator.comparing(Person::getKey)).collect(Collectors.toList())  //排序
 			
-			方法引用又包括实例方法、静态方法。双冒号（::）,语法格式类名：：方法名。
+			//使用map方法获取list数据中的name，这里map就是获取一个新的集合，原集合不变
+			List<String> names = list.stream().map(Student::getName).collect(Collectors.toList());
+			
+			
+			
+			
+			
+			方法引用又包括实例方法、静态方法。双冒号（::）,语法格式 	类名 :: 方法名。
 			[双冒号运算表达式]是个什么类型。答案是：Function<T,R>类型。也是lambda的简写方式
 			
 			这种[方法引用]或者说[双冒号运算]对应的参数类型是Function<T,R> T表示传入类型，R表示返回类型。
@@ -4419,6 +5396,10 @@ InputStream is = item.getInputStream();
 		局部内部类和匿名内部类访问的局部变量必须由final修饰，java8开始，可以不加final修饰符，由系统默认添加。java将这个功能称为：Effectively final 功能
 
         可以操作引用类型的值，但是不能改变地址
+		
+		主要用的就是list 和string，都能实现
+		map foreach 的遍历拼接string， 使用StringBuilder实现;  String 是final，在内部不可更改
+
 
 		针对基本类型可以
 			1）把 limit 变量声明为 static。
@@ -4591,7 +5572,7 @@ InputStream is = item.getInputStream();
 		
 		测试在虚拟机上使用root用户是可以的，jstack 和 jstat 相关命令 
 		jstat   	查看类加载，内存管理，gc情况
-		jstack  	打印异常进程的堆枝信息 dump线程快照，定位死锁，超时问题
+		jstack  	打印异常进程的堆栈信息 dump线程快照，定位死锁，超时问题
 		jmap        查看堆内存使用情况，可生成JVM堆的转储快照，dump文件较大，消耗大量资源
 		
 		
@@ -4616,6 +5597,15 @@ InputStream is = item.getInputStream();
 		rocketmq producer 发送消息失败，总是连接不上服务器地址
 		1. 目前这种写法Rocket默认开启了VIP通道，VIP通道端口为10911-2=10909。若Rocket服务器未启动端口10909，则报connect to <> failed。
 		2. 解决方式：增加一行代码producer.setVipChannelEnabled(false);
+		
+		
+		
+		消息中间件
+		消息存储：消息的Header信息(投递次数等基本信息)，消息的Body(主要内容)，消息的投递对象。
+			
+		消息的可靠性
+		一定要业务处理成功之后，再返回确认消息。否则消息就丢失了。
+		分布式系统的三个重要点，服务框架，消息中间件，和数据访问层。
 		
 131.ELK
 	建立 ELK ( Elasticsearch + Logstash + Kibana ）日志集中分析平台，便于快速搜索、定位日志
@@ -4917,7 +5907,20 @@ InputStream is = item.getInputStream();
 
 		tomcat的发布指定内存是在catalina.sh中指定jvm的内存大小，jar执行  就直接在启动命令中追加即可
 
+		
+		实际ddos防护
+			高防ip 180.188.20.5
+			高防ip拦截了快钱的请求,快钱、建周 回调失败问题确认（高防平台拦截，原因TLS1.0版本太老）
+			dnspod 可以配置购买的域名转到哪个ip
+			dnspod 配置www.xiaoyuer.com转到 美橙高防ip，美橙后台配置来源域名转到服务器ip
+		
+		域名解析ip(180.97.15.66)->接收66,防火墙打出到250->转到192.168.8.250(keepalived配置的虚拟ip)内部服务器,指定跳到31->31nginx-机器，转发到相应的服务器。
+		
+		https://help.aliyun.com/knowledge_detail/43742.html			个别请求绕过防火墙和高防ip
 
+		高防ip拦截异常处理，更换为https://makersxye20141118.xiaoyuer.com/xye-netpay/callback/quickServerCallBack.htm，该路径没有经过高防，dnspod直接转发到服务器。
+		
+		
 135.开源工具，开源jar
 		Hutool 工具类可以留意下，常用的工具类封装
 		
@@ -4944,4 +5947,854 @@ InputStream is = item.getInputStream();
 		编码识别正常使用，不识别就默认使用gbk。gb2312没收录的也使用gbk，很可能是因为会去寻找系统默认的编码
 		电脑的记事本在打开时候会根据编码自动选择对应编码打开，联通是特殊(默认ANSI保存，编码形同utf8，打开是ut8就会乱码)
 		就是说只要编码和解码都是用系统默认就不会有问题
+		
+		idea中文件是gbk的  汉字显示正常后再转为utf8格式，再复制到eclipse中
+		
+		
+	
+138.三方对接，接收参数，请求头信息查看，请求头，参数接收
+		@RequestMapping("/eZxServerCallBack")
+		public void eZxServerCallBack(HttpServletRequest request, HttpServletResponse response) throws Exception {
+			
+			LOG.info("--e管家-server-回调开始--");
+	 
+		//1.查询请求头的信息，这在三方对接的时候，参数接收方式很有用
+			  Enumeration headerNames = request.getHeaderNames();
+			  while (headerNames.hasMoreElements()) {
+			   String paramName = (String) headerNames.nextElement();
+			   String value = request.getHeader(paramName);
+			   LOG.info("header参数：" + paramName + "=" + value);
+			  }
+			   
+			   @RequestBody 
+		//2.这个可以接收到xml格式的信息，从流中获取相关的信息	比如:application/xml
+		// 这个也可以接受application/json,是一个json串，可以自己转，也可以@RequestBody接收，该注解最好使用对象接收
+			 BufferedReader in = new BufferedReader(new InputStreamReader(request.getInputStream()));
+			 StringBuffer strBuff = new StringBuffer();
+			 String line;
+			 while ((line = in.readLine()) != null) {
+				 strBuff.append(line);
+			 }
+			 Utils.log("HTTPS,服务器响应结果是: \n" + strBuff.toString());
+			  
+			  
+		 //3.key-value格式接收参数 类似form表单
+			Map<String,String[]> parameterMap = request.getParameterMap();
+			try {
+				parameterMap.forEach((key,value)-> LOG.info("key="+key+"-----------value="+value[0]));
+			} catch (Exception e) {
+				LOG.error("yuichang",e);
+			}
+			 response.addHeader("HTTP/1.1 200", "OK");
+			 response.addHeader("Content-type", "text/html");
+			 response.getWriter().write("success");
+			 response.getWriter().flush();
+			 
+			 LOG.info("--e管家-server-回调结束--");
+		}
+	
+		
+		res.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));  这个是跨域接收
+
+		
+		//发送json格式的请求
+		//在请求头中指定contentType
+		httpPost.setHeader(new BasicHeader("Content-Type","application/json"));
+
+		//设置请求体参数, 请求体直接使用raw json
+		String bodyString = JSONObject.toJSONString(bodyParamMap);
+		StringEntity postingString = new StringEntity(bodyString);
+		httpPost.setEntity(postingString);
+			
+	
+	<?xml version=\"1.0\" encoding=\"UTF-8\"?>    xml头  标识是一个xml结构
+	如果是xml格式(application/xml)返回给浏览器<ROOT><RSP_CODE>00000</RSP_CODE></ROOT>，是能识别xml结构的
+	若text/html格式返回，<ROOT><RSP_CODE>00000</RSP_CODE></ROOT>，浏览器只能显示00000，因为无法正确解析标签
+		
+	
+	
+	
+	
+	
+139.流操作，写文件，流文件，文件流
+		拿到字节，直接输出字节，将字节输入流通过输出流转化
+		直接存文本格式，输入流转输出流
+			private void zxParseReturnMsg(String msg, HttpServletRequest request, String date) {
+				String path = request.getSession().getServletContext().getRealPath("");
+				String filePath = path + "/zxPay" + date + ".txt";
+				try {
+					writeBill(msg, filePath, "UTF-8");
+				} catch (Exception e) {}
+				Scanner s = null;
+				try {
+					s = new Scanner(new BufferedReader(new FileReader(filePath)));
+					while (s.hasNextLine()) {
+						lineString=s.nextLine();
+						} catch (FileNotFoundException e) {} finally {  
+					 if (s != null) {   
+						 s.close();   
+					 }   
+				}
+			}
+			
+			private void writeBill(String billContext, String filePath, String encoding)throws Exception {
+				InputStream bis =null;
+				try{
+					if(encoding==null||"".equals(encoding)){bis = new ByteArrayInputStream(billContext.getBytes("GBK"));}else{bis = new ByteArrayInputStream(billContext.getBytes(encoding));}
+					OutputStream os = new FileOutputStream(filePath);
+					IOUtils.copy(bis, os);
+					bis.close();
+					os.close();
+					LOGGER.info("保存文件:"+filePath);
+				}catch(IOException e){}
+			
+			}
+			
+		fileAsString = new String(EntityUtils.toByteArray(response.getEntity()),"utf-8"); 这是http请求返回的
+
+		s = new Scanner(new FileInputStream(new File(filePath)),"GBK");// 解析指定编码，读取文件
+		s = new Scanner(new BufferedReader(new FileReader(filePath)));
+		
+		
+		拿到字符串内容后，写文件，直接输出流写字节内容
+		 byte[] buffer = new BASE64Decoder().decodeBuffer(base64Code);  
+		 FileOutputStream out = new FileOutputStream(targetPath);  
+		 out.write(buffer);  
+		 out.close(); 
+		 log("文件转换完成！  " + targetPath);
+		 
+		 
+		 解压zip就是ZipInputStream 和 FileOutputStream操作
+		 
+		 
+		 
+140.	金额转换，分转元，元转分，分元转换，元分转换，BigDecimal
+		
+		BigDecimal.ROUND_HALF_UP 这个就是 以前的四舍五入
+		OrderCodeUtil 老版的就是   完全的String 在那判断.和0的index，然后拼接后返回(没有运算的概念)。不用重复造轮子。正规点
+
+		32.6589这种直接取点后两位，3265 其余的直接忽略  新老都是这样处理的
+		
+		BigDecimal bigDecimalLong = new BigDecimal(3269874l);
+		
+		BigDecimal bigDecimal23 = new BigDecimal(3.3d); //这个精确会有问题
+		BigDecimal bigDecimal23 = new BigDecimal(String.valueOf(3.3d));
+		BigDecimal bigDecimal25 = BigDecimal.valueOf(3.3d);//推荐使用
+		
+		long longValue = bigDecimal.multiply(new BigDecimal(100)).longValue();	//元转分
+		double doubleValue = bigDecimalLong.divide(new BigDecimal(100)).doubleValue();//分转元
+		
+141. k8s
+	k8s调试注意点
+	数据库base_config中的
+		url_web_host_newadmin  	http://admin1.xiaoyuer.net -> https://admin2.xiaoyuer.net  登录更新
+		
+		url_web_host			https://www1.xiaoyuer.net  -> https://www2.xiaoyuer.net
+		url_web_host_for_admin	http://www1.xiaoyuer.net -> http://www2.xiaoyuer.net
+		url_web_hosts			https://www1.xiaoyuer.net ->https://www2.xiaoyuer.net
+		
+	启动后第一次发需求访问会超时；容器内部是可以相互访问的
+	内部环境manager可以访问外面的soa
+	
+	
+	查看当前运行的所有机器	 	kubectl get pod -nsit
+	替换文件名进入容器		kubectl exec -it tomcat-xye-manager-cf9bf4887-24dpr -nsit /bin/bash
+	查看容器的ip 			kubectl get pod -nsit -owide
+
+	192.168.6.135 root 123456
+
+	k8s的容器中locale环境配置不生效，是没有删除之前的镜像，使用了旧的镜像。
+	 upstream xye-ids_upstream {
+			server 192.168.6.136:30812 weight=1 max_fails=2 fail_timeout=60s;
+			server 192.168.6.137:30812 weight=1 max_fails=2 fail_timeout=60s;
+		}
+
+		
+142.查看出网IP
+	curl http://ifconfig.me
+	curl http://icanhazip.com	
+	curl http://cip.cc
+
+	出网ip和本机ip不一样，一个是 221.226.49.186本地  221.226.49.188是pre 
+				
+	命令行查询(详细):
+	UNIX/Linux:#curl cip.cc
+	windows环境直接百度ip就有了	
+
+	telnet IP 端口 或者 telnet 域名 端口    telnet就是查看某个端口是否可访问
+	ping + ip： 查看某一个ip地址是否能够连通，如： ping 114.80.67.193	用来检查网络是否通畅或者网络连接速度的命令 
+　　telnet ip port ： 查看某一个机器上的某一个端口是否可以访问，如：telnet 114.80.67.193 8080
+　　退出命令： exit---退出dos窗口，q!,wq---Linux下退出vi编辑器
+　　　　　　　ctrl+]，之后在按q ---退出telnet界面
+　　　　　　　quit---退出mysql.......
+	
+	
+143.并发相关
+	代码1
+		a.lock();
+		b.lock();
+	代码2
+		b.lock();
+		a.lock();
+	这样两个简单的线程出现的死锁场景就出现了。这种交叉获取容易产生，若同样顺序先a后b就不会出现
+	
+144.io相关
+	java.io操作类主要有4种(前两种属于数据格式，后两种属于传输方式)
+			1.基于字节操作的I/O接口：inputSteam 和outputStream
+		    2.基于字符操作的I/O接口：writer 和 Reader
+			3.基于磁盘操作的I/O接口：file
+			4.基于网络操作的I/O接口：socket
+			
+			
+		磁盘和网络传输，最小的存储单元都是字节，不是字符。
+		数据持久化或者网络传输都是以字节进行的。
+			InputStreamReader是字节到字符的转化桥梁
+			OutputStreamWriter完成字符到字节的编码过程
+			
+			reader类是java的I/O中读字符的父类，inputStream类是读字节的父类
+			writer类对应是写字符的父类，outputStream类是写字节的父类
+			
+		序列化的注意点
+			1.父类实现serializable，所有子类都可以被序列化
+			2.子类实现Serializable接口，父类没有，?中的属性不能序列化(不报错，数据会丢失)，但是子类中属性能正确序列化
+			3.序列化的属性是对象，这个对象也必须实现序列化接口
+			4.序列化过程中对应的序列化id不要变
+			
+		网络优化的几个点
+			1.减少网络交互的次数。能用缓存用缓存，能批量处理就批量处理
+			2.减少网络传输数据量的大小。文件的话压缩后再传输
+			3.尽量减少编码。尽量提前字符转字节。
+			
+		编码相关
+			计算机中存储信息的最小单元是一个字节，即8bit们表示的字符范围是0~255个
+			ascII,gbk,utf8等可以被看做字典，规定了转化的规则。
+			通常不要使用操作系统默认的编码，否则跨环境会出现乱码。
+		
+			string类的字符字节转换
+				String str="海绵宝宝";
+				byte[] bytes = str.getBytes("UTF-8");
+				String strr = new String(bytes, "UTF-8");
+			访问数据库中的编码，在url中指定即可
+			
+145.filter相关，servlet相关，interceptor相关
+	一次请求只会成功匹配到一个servlet，但是filter只要匹配成功，这些filer都会在请求链filterchain上被调用。
+		当filterchain上所有的filter对象执行完成后，会执行最终的servlet。
+		servlet中配置的url-pattern,若请求没有匹配到所有的servlet，那么这个请求就直接返回，也不会有后续的调用任何filter对象。
+		url-pattern解析规则，对于servlet和filter是一样的
+			1.精确匹配	如/foo.htm，只会匹配foo.htm这个url
+			2.路径匹配	如/foo/*会匹配以foo为前缀的url
+			3.后缀匹配	如*.htm会匹配所有以.htm的url    ()
+			
+		备注： /foo/、/*.htm 和 */foo 都是不对的
+		
+		优先精确匹配，其次是最常路径匹配，最后是后缀匹配。但一次请求只会成功匹配到一个servlet
+		getsession时候，不存在会直接创建新的，所哟如果getattrubute取不到前设置的session，很可能已经过期，重新创建一个新的session了
+		
+		
+		
+146.mybatis相关
+	mybatis中的主要操作对象 sqlsession
+				redis是操作是原子性的，可存储 字符串，列表，集合多种数据类型
+				
+				jdk的动态代理需要绑定代理对象和真是对象的关系，可以封装在代理的操作类中，就是说再invocationhandler中直接加上代理创建方法
+				cglib创建代理，只需要一个非抽象的类就能实现动态代理，主要代理操作类是实现MethodInterceptor接口，通过加强这Enhancer实现代理
+				*Enhancer是cglib中使用频率很高的一个类，它是一个字节码增强器，可以用来为无接口的类创建代理。它的功能与java自带的Proxy类挺相似的。它会根据某个给定的类创建子类，并且所有非final的方法都带有回调钩子。
+
+				public class UserServiceCglib implements MethodInterceptor {
+					private Object target;
+					public Object getInstance(Object target) {
+						this.target = target;
+						Enhancer enhancer = new Enhancer();
+						enhancer.setSuperclass(this.target.getClass());
+						enhancer.setCallback(this);// 设置回调方法
+						return enhancer.create();// 创建代理对象
+					}
+					/**
+					 * 实现MethodInterceptor接口中重写的方法，回调方法
+					 */
+					@Override
+					public Object intercept(Object object, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+						System.out.println("事务开始。。。");
+						Object result = proxy.invokeSuper(object, args);
+						System.out.println("事务结束。。。");
+						return result;
+					}
+				}
+				
+				两种方法相似，通过geProxy方法生成代理对象，执行代理的逻辑类（需要实现一个接口，一个是invocationhandler,一个是MethodInterceptor），决口定义的方法就是代理对象的逻辑方法。可以控制真实对象的方法
+				
+				拦截器设计思路，用封装设计好的拦截器来实现动态代理的功能。拦截器底层还是动态代理。简化开发
+				设计拦截器，让开发者直接使用，隐藏底层动态代理的实现。对于开发者来说就简单了
+				interceptor实现原理，就是getProxy方法的参数中(target,interceptorClass)传连个参数,然后invoke中根据情况实现逻辑。这里被代理的类还是target，只不过增加的interceptorClass的一层判断，根据判断结果执行target的相关方法
+				这里说明代理的类还是比较灵活的，只要确认代理的类是啥，其他因素也可以添加进来
+				
+				多个拦截器的处理链即各proxy依次作为下个拦截器代理的target，链式调用。
+				
+				观察者模式，在Java语言的java.util库里面，提供了一个Observable类以及一个Observer接口，构成Java语言对观察者模式的支持。
+				暂不细看，目前还没啥用
+
+				工厂模式，硬是要将对象的创建封装进一个工厂类中
+				
+				mybatis的几个核心组件
+				
+					sqlsessionfactorybuilder	构造器，创建sqlsessionfactory
+					sqlsessionfactory			工厂接口，用来创建sqlsession，						
+							相当于一个数据库连接池，一旦创建长期保存使用
+							占据数据库的连接资源，一般是单例
+							在mybatis-spring中，使用SqlSessionFactoryBean 支持 SqlSessionFactory 的配置
+							
+					sqlsession					会话，SqlSession中定义的全是对数据库增删改查的各种方法，mybatis的核心接口对象
+							类似jdbc中的connection对象，代表一个连接资源的启用。1.获取mapper接口，2.发送sql给数据库 3.控制数据库事务
+							存在一个业务请求中，操作事务，请求完成，关闭连接，归还给sqlsessionfactory。
+							
+					sql mapper					映射器，由java接口和xml构成，需要给出对应sql和映射规则，发送sql执行，并返回结果
+						主要作用就是将查询结果映射到一个pojo中，或者将pojo插入到数据库中。
+						mybatis会为mapper接口生成一个动态代理，去处理相关的实现逻辑
+				
+				这里有点用拦截器代替动态代理的意思，只需要执行拦截器的方法，不需要考虑底层代理实现，都封装好了。
+				mybatis默认情况下提供自动映射，只要sql返回的列名能和pojo对应起来即可。
+				user_name like concat('%',${userName},'%')
+				
+				使用接口mapper中注解sql，复杂的sql不好弄，不灵活，难维护，不推荐
+				
+				
+				
+				
+				mapper的动态代理，核心就接口和sql中的配置，一个方法对应一个mapperMethod
+				基于InvocationHandler配置类，生成了实现接口的实现类
+				
+				public class MapperProxy implements InvocationHandler, Serializable {
+					private static final long serialVersionUID = -6424540398559729838L;
+					private final SqlSession sqlSession;
+					private final Class<T> mapperInterface;
+					private final Map<Method, MapperMethod> methodCache;
+
+					public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethod> methodCache) {
+						this.sqlSession = sqlSession;
+						this.mapperInterface = mapperInterface;
+						this.methodCache = methodCache;
+					}
+								
+				  //执行方法				
+				  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						try {
+							if (Object.class.equals(method.getDeclaringClass())) {
+								return method.invoke(this, args);
+							}
+
+							if (this.isDefaultMethod(method)) {
+								return this.invokeDefaultMethod(proxy, method, args);
+							}
+						} catch (Throwable var5) {
+							throw ExceptionUtil.unwrapThrowable(var5);
+						}
+
+						MapperMethod mapperMethod = this.cachedMapperMethod(method);
+						return mapperMethod.execute(this.sqlSession, args);
+					}
+					
+					
+					//创建方法和sql配置的执行映射
+					private MapperMethod cachedMapperMethod(Method method) {
+						MapperMethod mapperMethod = (MapperMethod)this.methodCache.get(method);
+						if (mapperMethod == null) {
+							mapperMethod = new MapperMethod(this.mapperInterface, method, this.sqlSession.getConfiguration());
+							this.methodCache.put(method, mapperMethod);
+						}
+						return mapperMethod;
+					}
+					
+				  public T newInstance(SqlSession sqlSession) {
+					final MapperProxy<T> mapperProxy = new MapperProxy<T>(sqlSession, mapperInterface, methodCache);
+					return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[]{mapperInterface}, mapperProxy);
+				  }
+				}
+				
+				自定义mapper代理，实现单一接口的代理，执行自定义逻辑
+				Testmapper testceshi = (Testmapper) TestMapperProxy.newInstance("测试接口代理",Testmapper.class);
+				如果不使用泛型T,那么外层就需要强转。执行了泛型,外层就不用转
+				
+				public class TestMapperProxy<T> implements InvocationHandler {
+					private String  sqlSession;
+					private final Class mapperInterface;
+					public TestMapperProxy(String sqlSession, Class mapperInterface) {
+						this.sqlSession = sqlSession;
+						this.mapperInterface = mapperInterface;
+					}
+					public static <T> T newInstance(String sqlSession,Class<T> mapperInterface) {
+						 TestMapperProxy mapperProxy = new TestMapperProxy(sqlSession, mapperInterface);
+						return  (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[]{mapperInterface}, mapperProxy);
+					}
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						if (Object.class.equals(method.getDeclaringClass())) {
+				//            System.out.println("Object方法"+method.getName());
+							method.invoke(proxy,method,args);
+						}else{
+							System.out.println("拿到操作对象:"+mapperInterface.getName());
+							//进行自定义操作
+							System.out.println("操作了对象参数:"+sqlSession);
+						}
+						return null;
+					}
+				}		
+				
+				****
+				<T> T 表示不限制类型，不限制类型时候用这个			不受static影响，因为不需要编译期完成指定
+				T 这个表示编译时候就要限制类型，限制特定类型，编译就指定，使用这个，受static影响，因为编译期需要完成，和static同时期，但是static修饰后又使用T,冲突
+				
+				<T> T 	不需要 类上泛型标注，可以使用static修饰
+				T 		需要类上使用泛型标注，不可以使用static修饰
+				****
+				
+				如果对数据库用户名和密码加密了(加密后存放在属性文件中)，可以再java程序方式创建数据库连接sqlsessionfactory过程中，解密后，创建数据库的连接。
+				之前也有在xml中加密解密的。
+				
+				
+				typeAliases 别名， 用来简化全限定名称，一般也不用。
+				typeHandler 类型转换器，用来转换javaType 和 jdbcType
+				
+			
+				映射器定义命名空间(namespace)的方法，对应一个接口的全路径，就是mapper接口。
+				映射器能有效消除jdbc的底层代码
+				
+				两种自动映射
+				自动映射，如果编写sql的列名和对象pojo的属性名一致，就会形成自动映射。默认开启
+				驼峰映射，严格要求user_name 对应userName属性。不太灵活。不推荐 默认为false
+				实际开发中，一般使用的是resultmap，建立结果集映射。
+				
+				多值传参也可以传map，但是可读性差，难维护，不推荐
+				多值传参也可以使用javabean，当只有一个参数对象，可以指定类型后，直接写属性。多个参数，不行
+				一般用的是@param单值传输，多于5个就不推荐用了
+				sql中，#{userName}也可以不用给出parameterType类型，mybatis会自动识别
+				
+				
+				<resultMap id = "cargo" type="cargo">
+					<id property="cargoId" column="cargo_id"/>
+					<result property="cargoTypeId" column="cargo_type_id"/>
+				</resultMap>
+				
+				子元素id代表resultMap的主键，而result代表其属性。
+				在自定义的resultMap中第一列通常是主键id。
+				id和result都是映射单列值到一个属性或字段的简单数据类型。
+				唯一不同的是，id是作为唯一标识的，当和其他对象实例对比的时候，这个id很有用，尤其是应用到缓存和内嵌的结果映射。级联
+				
+				
+		rowbounds是一次性取出数据放入内存再分割数据，一次获取所有符合条件的数据，然后在内存中对大数据进行操作
+		
+		在 mybatis 中，使用 RowBounds 进行分页，不需要在 sql 语句中写 limit。但是由于它是在 sql 查询出所有结果的基础上截取数据的，所以在数据量大的sql中并不适用，它更适合在返回数据结果较少的查询中使用
+		最核心的是在 mapper 接口层，传参时传入?RowBounds(int offset, int limit)?对象，即可完成分页
+		注意：由于 java 允许的最大整数为 2147，483，647，所以 limit 能使用的最大整数也是?2147483647，一次性取出大量数据可能引起内存溢出，所以在大数据查询场合慎重使用
+		mapper 接口层代码如下
+		List<Book> selectBookByName(Map<String, Object> map, RowBounds rowBounds);
+		
+		PageHelper： 物理分页， 通过拦截器加 limit 语句进行分页
+			物理分页依赖的是某一物理实体，这个物理实体就是数据库，比如MySQL数据库提供了limit关键字，程序员只需要编写带有limit关键字的SQL语句，数据库返回的就是分页结果。
+			每次都要访问数据库，对数据库造成的负担大
+			每次只读取一部分数据，占用的内存空间较小
+			每次需要数据时都访问数据库，能够获取数据库的最新状态，实时性强
+			数据库量大、更新频繁的场合
+		RowBounds： 逻辑分页，数据量大的时候压力较大。一般不用
+			逻辑分页依赖的是程序员编写的代码。数据库返回的不是分页结果，而是全部数据，然后再由程序员通过代码获取分页数据，常用的操作是一次性从数据库中查询出全部数据并存储到List集合中，因为List集合有序，再根据索引获取指定范围的数
+			只需要访问一次数据库
+			一次性将数据读取到内存，占用较大的内存空间。如果使用java开发，Java本身引用的框架就占用了很多内存，这无疑加重了服务器的负担
+			因为一次性读入到内存，数据发生了改变，数据库逇最新状态无法实时反映到操作中
+			数据量较小、数据稳定的场合
+			总结：Mybatis的逻辑分页比较简单，简单来说就是取出所有满足条件的数据，然后舍弃掉前面offset条数据，然后再取剩下的数据的limit条
+
+
+		1.逻辑分页   逻辑内存中，   查询所有数据 List, list.subList 截取你需要数据
+			查出所有的数据，使用程序进行分页。它是针对ResultSet结果集执行的内存分页。
+			占用内存大、数据更新不能及时反馈、不用频繁查询数据库
+
+		2.物理分页,直接通过SQL进行在数据库中直接分页,得到的数据就是我们想要分页之后的数据,就是物理分页;其实是依赖物理数据库实体。limit直接数据库查出需要的数据
+			每次查询数据库，使用limit
+			占用内存小、数据更新及时反馈、频繁查询数据库
+			
+			1.mybatis自带的分页RowBounds;
+
+? ? ? 		2.mybatis插件或者直接书写sql进行分页;
+	????? ????(1).通过自己的封装SQL根据beginNum(开始条数)和endNum(需要的条数)来进行分页  一般不用，不需要造轮子
+					有点类似老系统的插件，自己封装查询limit 参数,需要手动进行封装总数以及分页信息,数据返回页面;
+					自己创建分页插件，老系统，不推荐这样造轮子。
+					
+	? ? ? ????(2).PageHelper分页插件
+					将pageNum和pageSize封装为page对象，保存在ThreadLocal中，实现线程间数据隔离。
+					Pagehelper实现了Mybatis的Interceptor接口，调用拦截StatementHandler（Sql语法的构建处理）方法，按照物理库的不同重构SQL实现分页。
+					
+					插件拦截的对象：
+					Executor：拦截执行器的方法（log记录）
+					StatementHandler：sql语法构建处理
+					ParameterHandler：拦截参数的处理
+					ResultSetHandler：拦截结果集的处理
+					
+					PageHelper首先将前端传递的参数保存到page这个对象中，接着将page的副本存放入ThreadLoacl中，这样可以保证分页的时候，参数互不影响，接着利用了mybatis提供的拦截器，取得ThreadLocal的值，重新拼装分页SQL，完成分页。
+
+		主键回填，useGeneratedKeys="true"
+		update delete insert 返回的int 都表示影响的行数
+		${},这样就不会当做普通的参数处理，不会转译这个值，不作为参数设置，变为直出。相当于不限定为参数，直出类型。
+
+		结果集映射，集合，级联，关联，关联查询
+		 
+		MyBatis的级联分为3种。级联过多会降低查询性能   直接join查询出来关联
+		鉴别器（discriminator）：根据某些条件决定采用具体实现类。不常用，忽略。
+
+		1. 关联-association				用于一对一
+		2. 集合-collection				用于一对多
+		
+		
+		mybatis不支持多对多，可以拆分成两个一对多级联处理。暂时忽略
+		
+		比如同时有User.java和Card.java两个类
+		public class User{
+			private Card card_one;
+			private List<Card> card_many;
+		}
+		在映射card_one属性时用association标签, 映射card_many时用collection标签.
+
+		RIGHT JOIN 关键字会从右表 (Orders) 那里返回所有的行，即使在左表 (Persons) 中没有匹配的行。先查出右表值，再关联左表。一般用left join
+			
+			
+		column 是查询出来的结果集中的列名	
+		<association property="reqUserInfo" column="req_User_Id" javaType="com.xiaoyuer.core.dmo.UserInfo">    一般这里column没有必要写
+			<id property="id" column="req_User_Id"></id>
+			<result property="nickName" column="rNick_Name" />
+		</association>	
+			
+			
+		mybatis默认有两级缓存，一级在sqlsession上，一级在sqlsessionfactory上。一般不用
+		
+		
+		<where>和<trim>，<set>都可以达到去除多余 and 和or的效果。
+		<if test="">对于字符串类型的判断，需要加上toString()方法
+		模糊查询，mysql中常用的是concat方法
+		
+	mybatis的运行过程两大步，1.服务配置文件缓存到Configuration对象，用以创建sqlsessionfactory
+							 2.sqlsession的执行过程。
+							 
+	sqlsessionfactorybuilder构建sqlsessionfactory两步。
+		1.通过xmlconfigbuilder解析配置的xml文件(或注解)，存入Configuration类对象
+		2.configuration创建sqlsessionfactory。
+
+	mybatis中一条sql和它相关的配置信息由3个部分组成
+		MappedStatement			用来获取某条sql的所有配置信息
+		Sqlsource				获取BoundSql对象
+		BoundSql				建立sql和参数的地方，
+			插件功能中常修改这个地方
+			
+	mapper的动态代理，最后核心处理方法是sqlsession对象去运行对应的sql。mapper通过关联xml中的namespace，找到对应的执行方法。
+	sqlSessioη.getMapper(RoleMapper.class);
+	configuration.<T>getMapper(type, this)
+	最终代理的是sqlsession的操作。通过namespace将sql和代理对象绑定起来
+	
+	一条查询SQL的执行过程 ：
+		1.预编译sql。Executor调用StatementHandler的prepare()方法预编译SQL，同时设置些基本运行的参数。
+		2.设置参数。用parameterize()方法启用ParameterHandler设置参数，
+		3.执行sql。完成预编译，执行sql 。
+		如果是查询MyBatis会使用ResultSetHandler 封装结果返回给调用者。
+		
+		
+	mybatis中要使用插件，需要实现Interceptor接口。一般不推荐使用插件。
+
+	mybatis的四大对象
+		1.Executor				执行sql的全过程，包括组装参数、组装结果返回集和执行sql过程
+		*2.StatementHandler		是执行SQL的过程，我们可以重写执行SQL的过程它是插件最常用的拦截对象
+		3.ParameterHandler		主要拦截执行SQL参数组装，我们可以重写组装参数规则
+		4.ResultSetHandler		用于拦截执行结果的组装，我们可以重写组装结果的规则
+	
+	分页插件的思路，拦截StatementHandler对象的prepare()方法，在预编译sql之前修改sql，得到结果的返回数量被限制。
+	@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class }) })
+	public class PagePlugin implements Interceptor {
+	
+	其中，＠Intercepts 说明它是个拦截器。＠Signature 是注册拦截器签名的地方，只有签名满足条件才能拦截type是四大对象中一个，这里是 StatementHandler。
+	method 代表要拦截四大对象的某种接口方法，而args表示该方法参数，要根据拦截对象的方法参数进行设置
+	mappedStatement.getId().matches(".*ListPage.*")
+	
+	
+147.spring相关
+	
+	ioc主要是基于BeanFactory 和 ApplicationContext 两个接口，其中ApplicationContext是BeanFactory(BeanFactory)子接口之一，而 ApplicationContext是其高级接口之一，并扩展BeanFactory功能，一般都会使用 applicationContext作为Spring IoC容器
+
+		WebApplicationContext也扩展了它ApplicationContext。
+		ClassPathXmlApplicationContext 是 ApplicationContext 的一个子类
+		
+		ioc容器
+			通过xml或者注解，资源丁文，载入beanDefinition，初始化bean。
+			
+			BeanPostProcessor针对全部Bean,DisposableBean针对spring IoC 容器，其他的接口只针对单－Bean 。
+		
+		以简写成＠Component(”role”)，甚至直接写成＠Component ，对于不写的，Spring IoC 容器就默认类名，但是以首字母小写的形式作为 id ，为其生成对象，配置到容器中
+		
+		ComponentScan 代表进行扫描 默认是扫描当前包的路 POJO 包名和它保持一致才能扫描，否则是没有的。不要采用多个＠ComponentScan注解进行配置，有重复的包或子包就会产生重复的对象
+		
+		＠Bean相对于＠Component，可以注册源码bean，而后者没法做。方法返回对象
+
+		＠ImportResource 引入xml
+		＠Import 可以注入配置类
+		@PropertySource 要和xml对应起来看
+		
+		********其实整体上看是xml和注解的两种不同方式。********
+		
+		使用注解的方式需要用到注解＠Value 在属性文件的读取中使用的是“$，而在 SpringEL中则使用“＃”
+		@Value搭配Spring EL使用，可扩展高级点的用法。
+		@Value("${query_info_url}")	 最常用
+		
+		@Value(”#{role .id}”)
+		
+		@Value("#{'${test.payChannel.pcCode}'.split(',')}")			Spring EL
+		private List<String> testPayChannel;
+		
+		interceptor实现原理，就是getProxy方法的参数中(target,interceptorClass)传连个参数，代理操作类中，针对target的方法，补充interceptorClass的操作。
+		代理操作类中有target 和对应的拦截器，在invoke中会实现调用
+		
+		实现类再容器中有个代理类。至于被代理的obj和拦截器的映射关系，应该已经加入容器了，这样在obj调用的时候能关联对应的拦截器。
+		
+		aop编程有着重要的意义，首先它可拦截些方法 ,然后将各个对象组织成一个整体，
+		
+		 mybatis封装的数据库操作
+			public void savePurchaseRecord (Long productid, PurchaseRecord record) {
+				SqlSession sqlSession = null;
+				try{
+						sqlSession = SqlSessionFactoryUtils.openSqlSession() ;
+						ProductMapper productMapper = sqlSession.getMapper(ProductMapper.class) ;
+						Product product= productMapper.getRole(productid);
+						//1.mapper操作  2.commit
+						sqlSession .commit() ;
+					}catch (Exception ex) {
+					//异常回滚事务
+						ex.printStackTrace();
+						sqlSession.rollback();
+					} finally{
+						//关闭资源
+						if (sqlSession != null) {
+							sqlSession.close();
+						}
+					}
+			}
+						
+		使用aop，这样主要都集中在业务处理上，而不是数据库事务和资源管控上。
+		当方法标注为＠Transactional时，则方法启用数据库事务功能。事务操作和，数据库的资源关闭都是封装在aop事务调用中。
+		
+		这些约定的方法加入默认实现后，你要做的只是执行SQL这步而已。没有数据库资源的获取和关闭，没有事务提交和回滚相关代码。这些 AOP 框架依据约定的流
+		程默认实现了，这样对于开发者而言就更为关注业务开发，而不是资源控制、事务异常处理，这些 AOP 框架都可以完成。
+		
+		AOP是通过动态代理模式，带来管控各个对象操作的切面环境，管理包括日志、数据库事务等操作，让我们拥有可以在反射原有对象方法之前正常返回、异常返回事后插入自
+		己的逻辑代码的能力，有时候甚至取代原始方法。在一些常用的流程中，比如数据库事务，AOP会提供默认的实现逻辑。
+		
+		静态代理是在编译 class 文件时生成的代码逻辑
+
+		SpringAOP 基于方法拦截的 AOP ，换句话说 Spring 只能支持方法拦截的 AOP
+		注：有一点非常重要，Spring的AOP只能支持到方法级别的切入。换句话说，切入点只能是某个方法。
+		Spring中有4种方式去实现 AOP 拦截功能。
+			1.使用＠AspectJ 注解驱动切面			（常用）					@Aspect 创建切面
+			2.使用 XML 配置 AOP						（复制，少用）				<aop:aspectj-autoproxy />    <aop:aspect>中定义切面类
+			3.使用 ProxyFactoryBean 和对应的接口实现 AOP
+			4.使用 AspectJ 注入切面。
+		
+		从而组织切面，把各类通知织入到流程当中 (在切面类中操作各种before、after等操作)
+		对于方法1，主要是以某个类的某个方法作为切点，用动态代理的理论来说，就是要拦截哪个方法织入对应AOP通知。
+		@Around  环绕通知，它将被最原有方法，允许你通过反射调用@Around环绕通知取代它原有方法。  jp.proceed(),方法灵活，功能多(环绕通知=前置+目标方法执行+后置通知，proceed方法就是用于启动目标方法执行的)
+		实际使用 使用@Pointcut,只需要切一个点即可，简化了代码。不需要每个@Before这样的注解都切一次方法
+		
+		spring4版本执行顺序，aop的执行顺序   切面,切点入口-around(before插入其中)-after-afterReturning，  spring5版本不一样，after和afterReturning顺序有变化
+				around before advice
+			before advice
+				target method 执行
+				around after advice
+			after advice
+			afterReturning
+
+		Class 加上@Aspect
+		@Pointcut（”execution(*com.ssm.service.serviceAImpl.printRole(..))”)            通过动态代理生成一个切面(这切面相当于一个拦截器，工作环境)
+		public void print(){}
+		
+		@Before (”print()”) 
+		public void before() { doSomething()}
+		
+		JointPoint是程序运行过程中可识别的点，用作AOP切入点。JointPoint对象则包含了和切入相关的很多信息。比如切入点的对象，方法，参数等。
+		
+		Proceedingjoinpoint 继承了 JoinPoint。是在JoinPoint的基础上暴露出 proceed 这个方法。proceed很重要，这个是aop代理链执行的方法。
+		这也是@Around 和其他的前后置通知的重要区别。
+		
+		切点处可以将被代理的方法的参数，传进来使用，这个用的不多
+		obj.getClass().getInterfaces() 意味着代理对象挂在多个接口之下。
+		
+		多切面执行（责任链模式）
+		Aspect1类加入＠Order(1),Aspect2 类加入＠Order(2),Aspect3加入Order(3)，再次对其进行测试，得到
+		before 1 
+		before 2 
+		before 3 
+		method.do
+		after 3 
+		afterReturning 3 
+		after2 
+		afterReturning 2 
+		after1 
+		afterReturning 1
+		
+		jdbcTemplate是不能操作事务的
+		Spring中数据库事务是通过PlatformTransactionManager进行管理的,而能够支持事务的是TransactionTemplate模板，它是 Spring 所提供的事务管理器的模板
+		MyBati框架用得最多的事务管理器是 DataSourceTransactionManager
+		
+		
+		Springboot内部提供的事务管理器是根据autoconfigure来进行决定的。(@EnableTransactionManagement这个也是自动配置的，不需要在boot上添加)
+		当我们使用spring-boot-starter-jdbc的时候，构造的事务管理器则是DataSourceTransactionManager。
+		这个事务管理器都实现了spring中提供的PlatformTransactionManager接口，这个接口是spring的事务核心接口。
+		
+		
+		@EnableTransactionManagement是 spring-tx 的注解，不是 spring-boot 的
+		spring-boot 会自动配置事务，相关的配置在 org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
+		在自动配置类里已经写好了 @EnableTransactionManagement。
+		*****这个是在boot的 spring-boot-autoconfigure模块中自动配置的*****
+
+		
+		transactionTemplate.execute() 加上jdbcTemplate 操作数据库 这种属于编程式的
+		
+		
+		编程式，实际上pay中transactionTemplate(也实现了TransactionDefinition，继承了DefaultTransactionDefinition)就是对下面的进行了封装，
+		
+		ApplicationContext ctx ＝ new ClassPathXmlApplicationContext("spring-cfg.xml");
+		JdbcTemplate jdbcTemplate = ctx.getBean(JdbcTemplate.class);
+		TransactionDefinition def = new DefaultTransactionDefinition();
+		PlatformTransactionManager transactionManager =ctx.getBean(PlatformTransactionManager.class);
+		TransactionStatus status = transactionManager.getTransaction(def);
+		try {
+		//        jdbcTemplate.update();     			//sql执行
+				transactionManager.commit(status);
+			} catch (Exception ex){
+				transactionManager.rollback(status)
+			}
+			
+		在spring的事务管理高层抽象层中主要包含3个接口：
+			TransactionDefinition：用于描述隔离级别、超时时间、是否为只读事务和事务传播规则
+			TransactionStatus：代表一个事务的具体运行状态、以及还原点
+			PlatformTransactionManager：一个高层次的接口，包含3个方法。commit、rollback和getTramsaction
+			
+		XML 配置声明式事务管理，不推荐，费事
+			TransactionInterceptor是Spring框架内置实现的一个MethodInterceptor,用于声明式事务管理
+			
+			
+			
+		本质是通过动态代理实现
+			1.在 Spring IoC 容器初始化时，Spring 会读入这个注解配置的事务信息，并且保存到 事务定义类里面（TransactionDefinition 接口的子类），以备将来使用。
+			2.当运行时会让Spring 拦截注解标注的某个方法或者类的所有方法，将自己编写的代码编织到aop流程中
+			3.首先Spring通过事务管理器(PlatformTransactionManager子类)创建事务
+			4.启动开发者提供的业务代码，Spring会通过反射调度开发者的业务代码，根据结果正常或者异常，决定commit或者回滚
+
+		传播属性NESTED，启用了保存点技术，
+		但是由于保存点技术并不是每个数据库都能支持的，所以当你 传播行为设置为NESTED时,sring 会先去探测当前数据库是否能够支持保存点技术。
+		如果数据库不予支持，它就会和 REQUIRES_NEW 样创建新事务去运行代码，以达到内部方法发生异常时并不回液当前事务的目的
+
+		@Transactional失效
+			对于静态static方法 和 public 方法 注解＠Transactional 是失效
+			自调用也会失效，因为并没有使用spring容器提供的代理对象
+			
+		典型的事务问题优化，@Transactional
+			1.在一个controller中，两次调用serviceA.do(),注意这里两次调用是两个不同的事务。
+			2.过长时间占用事务，尽量不要把io等长时间操作放在serviceA的事务操作中，因为serviceA方法没执行完，数据库资源就不会释放。应该移到上层controller中操作。
+				这么一说在controller中只要调用的serviceA中do方法执行完，数据库资源就会释放。
+			
+			重测
+			3. 上层有事务，try{serviceA.do();serviceB.do()}，如果b异常(先update后异常)这时候，最终a会提交事务，并没有一致。个人认为service中A和B是没有默认事务的，不然会报错(已经验证)。
+			   外层没事务，A提交，B回滚；
+			   外层有事务，A,B没事务，A,B都提交了
+		
+		
+	SpringMVC	
+		SpringMVC基于Servlet 的技术，提供了核心控制器 DispatcherServlet 和相关组件，
+		请求到来时， DispatcherServlet 首先通过HandlerMapping找到对应的处理器(Handler), 运行执行链(处理器和拦截器组成),处理器的适配器(HandlerAdapter),提供对应的环境，
+		在处理器返回模型和视图给 DispacherServlet后，DispacherServlet 就会把对应的视图信息传递给视图解析器（ViewResolver ）
+		
+		Spring MVC会在启动期 就通过＠RequestMapping 的注解解析和处理器的对应关系 在运行的时候通过请求找到对应HandlerMapping然后HandlerExecutionChain对象，它是一个执行的责任链对象
+		
+		当 Spring MVC 启动的时候就会去解析 MyController 注解，然后生成对应URI和请求的映射关系，并注册对应的方法。
+		当请求来到的时候，首先根据 URI 找到对应的 HandlerMapping ，然后组织一个执行链，通过请求类型找到 RequestMappingHandlerAdapter ，它的实例是
+		DispatcherServlet 初始化的时候进行创建的。然后通过它去执行 HandlerExecutionChain 的内容，最终在 MyController 方法中将 index 图返回 DispatcherServlet 。
+		DispacherServlet 就会把对应的视图信息传递给视图解析器（ViewResolver ），上层渲染展示。
+		
+		xml中  contextConfigLocation的配置会告诉 SpringMVC spring IoC 的配文件在哪里，这样 Spring 就会找到这些配置文件去加载它们。
+		
+		Java Web 容器为其生命周期中提供 ServletContextListener 接口，这个接口可以在 Web容器初始化和结束期中执行一定的逻辑 
+		换句话说，通过实现它可以使得在DispatcherServlet 初始化前就可以完成 Spring IoC 容器的初始化，
+		也可以在结束期完成对Spring IoC 容器的销毁，只要实现 ServletContextListener 接口方法就可以了。 SpringMVC交给了类 ContextLoaderListener，大部分都用这个初始化。
+		
+		Spring MVC 需要初始 Ioc 容器和DispatcherServlet 请求两个上下文,其中 DispatcherServlet 请求上下文是SpringIoC 上下文扩展,这样就能使得 Spring 各个 Bean 能够形成依赖注入。
+		
+		mvc中的ModelMap实际上继承LinkedHashMap<String Object>
+		
+		Web 容器刚开始的时候对其初始化，因为在整个 Web的初始化中，不只是DispatcherServlet 需要使用到 Spring IoC 资源 他的组件可能也需要。在最开始就初始化可以让 Web 中的各个组件共享资源。
+
+		当启动Spring MVC 时候 Spring MV 就会去解析＠Controller 中的
+		RequestMapping的配置再结合所配置的拦截器，这样它就会组成多个拦截器和一个控制器的形式 存放到HandlerMapping中去。当请求来到服务器，首先是通过请求信息找到对应的HandlerMapping，进而可以找到对应的拦截器和处理器，这样就能够运行对的控制器和拦截器。
+		
+		ajax中
+			contentType: 告诉服务器，我要发什么类型的数据
+			dataType：告诉服务器，我要想什么类型的数据
+			
+		1.实际mvc接收中，直接(String name)也能接收，没有@requestParam(可以自定义别名)也可以。SpringMV 目前也比较智能化，如果传递过来参数名称和 HTTP 的保存，那么无须任何注解也可 获取参数。这样方式允许参数为空。
+		2.使用一个POJO来接收这些参数，显然这个POJO属性和HTTP请求参数名一一对应了。在没有任何注解的情况下SpringMVC也能映射POJO。
+			即使没有任何注解 们也能够有效传递参数，但是有时候前端的参数命和后台的不一致，比如前端传参数命名为role_name，这个时候就要进行转换(一般不用转换)
+		3.处理url参数类型，@PathVariable
+		4.传json类型，这里传的data 是一个data对象，其中pageParams属性也是一个对象。传参的data和接收的pojo保持一致即可
+				var data = { 
+					roleName :’role ’, 
+					note :’note ’ , 
+					pageParams: { 
+						start: 1 , 
+						limit: 20 
+					}
+				}
+				//此处需要告知传递参数类型为json,不能缺少
+				contentType：” application/json ”，
+				//将JSON 转化为字符串传递     	data:{"dataParam":JSON.stringify(data)},   这种就接收的字符串自己转,这种和放url中拼接一样的接收方式，这种类似表单form提交格式
+				data: JSON.stringify(data),    //这种是正规点，传递的是一个json串，而不是json对象。传list<T>类型，后端就@RequestBody List<T>接收
+				后端直接json接收方式，，1.@RequestBody方式接收会快点，2.也可以传一个字符串，然后后端自己转成对象
+		5.表单提交，serialize()，后端直接类接收也行。
+			通过表单序列化也可以将表单数据转换为字符串传递给后台，因为一些隐藏表单需要一定的计算，所以我们也需要在用户点击提交按钮后，通过序列化去提交表单。
+			将数据以 roleName=xxx&namee=xxx 传递
+		
+		重定向
+			内部可以将参数传递给重定向地址
+			Spring MVC有个约定， 当返回的字符串带有redirect时候，它就会认为需要的是一个重定向。
+			public String addRole(Model model) (){					//ModelMap类似
+				model.addAttribute(”id”, role.getid()) ;
+				return ”redirect:./do.htm”；
+			}
+	
+			public ModelAndView addRole2 (ModelAndView mv ){
+				mv.addObject (” note ”, note);
+				mv.setViewName(”redirect:./do.htm”);
+				return mv;
+			}
+	
+		拦截器顺序
+			preHandle1
+			preHandle2
+			preHandle3
+
+			postHandle3
+			postHandle2 
+			postHandlel 
+			
+			afterCompletion3
+			afterCompletion2 
+			afterCompletionl
+	
+		Spring会先从第一个拦截器开始进入前置方法(前置方法是按配置顺序运行的)，然后运行处理器的代码，最后运行后置方法。注意，后置方法和完成方法则是按照配置逆序运行的，这和责任链模式的运行顺序是 致的，
+	
+		注意，当其中的一个preHandle方法返回为 false 后，按配置顺序，后面的 preHandle方法都不会运行了，而控制器和所有的后置方法postHandle也不会再运行。执行过 preHandle 
+		方法且该方法返回为true的拦截器的完成方法afterCompletion会按照配置的逆序运行
+		比如拦截器2中的preHandle 中返回false，那么
+			preHandlel 
+			preHandle2 
+			afterCompletionl
+			
+		SpringMVC 文件上传是通过MultipartResolver (Multipart解析器）处理的。
+		对于 MultipartResolver 而言它只是个接口，它有两个实现类CommonsMultipartResolver 和 StandardServletMultipartResolver。前者依赖第三方包，一般用后者，可以xml配置，也可以java配置。
+		controller中可以选择request间接接收，也可以选择MultipartFile直接接收
+		MultipartFile是Spring MVC提供的类，而Part是ServletAPI 提供的类。
+	
+		表单中要设置为enctype=”multipart/forrn-data”
+	
+	
 	
