@@ -861,7 +861,7 @@
 	
 	
 24.数据库相关，mysql相关
-			mysql   158
+			mysql   
 				工具也能操作
 					SHOW COLUMNS FROM log_job    
 					SHOW CREATE TABLE log_job
