@@ -1632,9 +1632,8 @@
 			CAS ：即 Compare And Swap ，这是一种类似于乐观锁的机制 每次更新值的时候都使用旧值与变量的当前值做比较，如果相同则进行更新，否则重试直到成功
 			Threadlocal ：本地存储变量，这样每 个线程都有一份数据的副本，也就不会存在并发问题了
 			不可变对象： 不可变对象自然不会有并发问题
-				
-		
-		
+			
+			cas重要的缺点是，强迫调用者处理竞争(重试，回退或放弃)，然而在锁被获得之前，却可以通过阻塞自动处理竞争
 		
 		
 31.前后端缓存相关
@@ -1715,7 +1714,7 @@
 		
 		
 32.线程相关
-	每个cpu（或者多核cpu中的每核cpu）在同一时间只能执行一个线程，
+	每个cpu（或者多核cpu中的每核cpu）在同一时间只能执行一个线程，默认优先级是5
 	线程上下文切换(抢占式)，当io阻塞或者有高优先级线程要执行时，就会切换，切换时要存储目前线程的执行状态，并且恢复要执行线程的状态。
 	
 	实现异步future+callable 实现返回值线程请求，对执行结果进行监听. 
@@ -1768,8 +1767,8 @@
 	
 	
 
-33.单例模式，延迟加载
-
+33.单例模式，延迟加载，懒加载
+		
 		构造私有化 + synchronized	实现单例模式的获取（防止多线程同时获取）
 		synchronized保证了代码块的串行执行。(内部执行wait 和notify)
 	
@@ -1808,8 +1807,9 @@
 				}
 		}
 		
-		
-		懒汉改进：双重检查（避免对除第一次调用外的所有调用都实行同步），因为创建一次后就不用创建了
+		懒汉改进：双重检查（避免对除第一次调用外的所有调用都实行同步），因为创建一次后就不用创建了，这里使用lock也一样
+		双重检查锁
+		注意一个实例化同步问题，避免创建了两个实例。
 		if (instance == null)						1
 		  {
 			synchronized(Singleton.class) {
@@ -1819,8 +1819,16 @@
 		  }
 		  
 	  指令重排序：
+		重排序是一种性能优化
 		编译期重排序的典型就是通过调整指令顺序，做到在不改变程序语义的前提下，尽可能减少寄存器的读取、存储次数，充分复用寄存器的存储值。
-	  
+		单线程中只要重排序不影响最后结果，就不能保证按照程序执行顺序执行，即使这样会对其他线程产生影响
+		单线程中，会遵守数据依赖性，编译器和处理器不会改变存在数据依赖关系的两个操作的执行顺序
+		单线程中，不会对存在数据依赖关系的操作做重排序。对不存在数据依赖的，可能会重排序
+		不管怎么重排序（编译器和处理器为了提高并行度），（单线程）程序的执行结果不能被改变
+		单线程程序是按程序的顺序来执行的，其实不是这样的，但是也可以近似这样认为，不影响结果。
+		
+		
+		这里重排序对多线程的影响 感觉和时间片的切换执行有点类似的结果
 	  
 	  new 对象不是原子操作
 	  实际上当程序执行到2处的时候，如果我们没有使用volatile关键字修饰变量singleton，就可能会造成错误。这是因为使用new关键字初始化一个对象的过程并不是一个原子的操作，它分成下面三个步骤进行：
@@ -1898,6 +1906,7 @@
 			注意：id字段一定是主键或者唯一索引，不然是锁表
 			
 			两者本质上是一样的 只不过是封装了下，这个和理解的是一致的
+			Executors是线程池的工厂类
 			ExecutorService executorService = Executors.newFixedThreadPool(11);
 			new ThreadPoolExecutor(nThreads, nThreads,0L, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>()); 这样默认的是最大的队列值
 			
@@ -2078,7 +2087,17 @@
 	其中的 Hessian 是基于 HTTP协议的 
 	Dubbo 是基于 TCP 协议的，
 	而thrift则同时支持两种协议
-
+	tcp三次握手的
+		服务器监听请求，客户端发起连接请求（第一次连接），
+		请求在路上可能存在丢失的风险，所以当请求到了服务器后如果服务器同意建立连接会给客户端一个回信（第二次连接），告诉它：我已经收到请求，可以连接。
+		但是回信也存在一个问题，那就是回信能不能到客户端？它需要客户端给他一个回信说我已经收到批准通知了，如果客户端一直不回复的话意味着客户端没有收到批准通知。因此客户端一收到批准通知就立马回复（第三次握手）：OK老铁我收到你的批准通知了。至此，三次握手结束
+		
+		TCP服务器进程先创建传输控制块TCB，时刻准备接受客户进程的连接请求，此时服务器就进入了LISTEN（监听）状态；
+		1.client发送server，TCP规定，SYN报文段（SYN=1的报文段）不能携带数据，但需要消耗掉一个序号
+		2.server接收数据，如果同意连接，则发出确认报文，这个报文也不能携带数据，但是同样要消耗一个序号
+		3.client收到确认后，还要向服务器给出确认。此时，TCP连接建立，客户端进入ESTABLISHED（已建立连接）状态。TCP规定，ACK报文段可以携带数据，但是如果不携带数据则不消耗序号。当服务器收到客户端的确认后也进入ESTABLISHED状态，此后双方就可以开始通信了。
+		
+		tcp关闭的时候是四次握手，这个不深究了。
 
 	不使用事务就是直接提交 没法控制
 	
@@ -2159,6 +2178,19 @@
 				3.使用公钥解密传来的密文得到明文串(字节转16进制字符串)
 				4.两个字符串一致，即可
 
+		中信证书加密解密
+			加密过程
+				发送方公钥证书		PTNRtest.cer				这个给中信报备了，接收方解密用
+				发送方私钥证书		PTNRtest.key				配合密码加载
+				发送方私钥密码文件	PTNRtest.pwd				一般内容是字符串
+				中信公钥证书		中信公钥.cer				这个和1类似，报备后，用来解密用
+
+				sign加密的，使用了PTNRtest.pwd，PTNRtest.key，PTNRtest.cer加密   PKCS7Signature.sign()
+				
+			解密过程
+				中信返回结果信息，接收方解密验签，使用了中信公钥证书.cer，这个和之前加密流程是相对应的，双方都需要报备证书.cer。		
+				
+				
 		
 38.浏览器敲get  对应的sessionid放哪里了
 	第一次访问服务器，浏览器会带回一个sessionid，
@@ -2538,9 +2570,17 @@ dubbo.port=2881
 
 54.main方法而言，虽然写在类中，它是游离于任何类之外的，因此某类的非静态内部类对它而言是不直接可见的，也就无法直接访问 。
 
-
 55.  Executor(实现线程池的功能)
-	3个组成部分
+	 Executor, ExecutorService 都是接口，ExecutorService继承于Executor，Executors是工具类(创建线程池)，他提供对ThreadPoolExecutor的封装产生ExecutorService的具体实现类。
+	 
+	 1.ExecutorService 接口继承了Executor 接口，是Executor 的子接口。
+　　 2.Executor定义的execute()方法，用来接收一个Runnable接口的对象，无返回结果；而ExecutorService中定义的submit()方法可以接收Runnable和Callable接口对象，通过一个 Future 对象返回运算结果。
+　　 3.Executor和ExecutorService除了允许客户端提交一个任务，ExecutorService 还提供用来控制线程池的方法。
+　　   　　比如：调用 shutDown() 方法终止线程池。
+	 
+	 ***ThreadPoolExecutor实现了ExecutorService接口，所以Executors创建的线程池对象是ExecutorService的实现类
+	 
+	 3个组成部分
 		1.工作任务：Runnable/Callable 接口
 		2.任务的执行。包括执行机制的核心接口Executor(ExecutorService接口是其子接口)。Executor框架有两个关键类，ThreadPoolExecutor和ScheduledThreadPoolExecutor。
 		3.异步计算的结果。包括接口Future和实现Future接口的FutureTask类。
@@ -2548,17 +2588,29 @@ dubbo.port=2881
 		线程池的任务是异步执行的，只要提交完成就能快速返回，可以提高应用响应性
 		Executor框架把工作任务与执行机制分离开来：工作任务包括Runnable接口和Callable接口，而执行机制由Executor接口提供。
 	
-		ScheduledThreadPoolExecutor 是任务调度的线程池实现，可以在给定的延迟后运行命令，或者定期执行命令(它比Timer更灵活)
 		ForkJoinPool是一个并发执行框架
 		异步计算的结果：Future接口
-		实现Future接口的FutureTask类，代表异步计算的结果
+		实现Future接口的FutureTask类，代表异步计算的结果，持有计算结果
 		
 		原始的new Thread(new RunnableTask())).start()，但在Executor中，可以使用Executor而不用显示地创建线程：executor.execute(new RunnableTask());
 		
 		Executor：			execute()方法用来接收一个Runnable接口的对象，不返回任何结果
-		ExecutorService(Executor的子接口)：submit()可以接受Runnable和Callable接口的对象，返回Future 对象运算结果
+		ExecutorService(Executor的子接口)：submit()可以接受Runnable和Callable接口的对象，返回Future 对象运算结果,真正的线程池接口，Executors创建线程池后的对象
+			当将Callable的对象传递给ExecutorService的submit方法，则该call方法自动在一个线程上执行，并且会返回执行结果Future对象。
+			当将Runnable的对象传递给ExecutorService的submit方法，则该run方法自动在一个线程上执行，并且会返回执行结果Future对象，但是在该Future对象上调用get方法，将返回null。
+
+		
 		 
-		Executors 类提供工厂方法创建不同类型的线程池(本质上使用了ThreadPoolExecutor的构造方法)。比如:?1.newSingleThreadExecutor()?创建一个只有一个线程的线程池，2.newFixedThreadPool(int numOfThreads)来创建固定线程数的线程池，3.newCachedThreadPool()   缓存线程池，线程数量不限制，可能oom
+		ExecutorService executorService = Executors.newCachedThreadPool(); 
+		Future<String> future = executorService.submit(new TaskWithResult(i)); 
+
+		Executors 类提供工厂方法创建不同类型的线程池(本质上使用了ThreadPoolExecutor的构造方法，内部实际使用了ThreadPoolExecutor创建线程池)。
+		对比我们使用层面在Executors就可以了。比如:
+		1.newSingleThreadExecutor()?创建一个只有一个线程的线程池，
+		2.newFixedThreadPool(int numOfThreads)来创建固定线程数的线程池，
+		3.newCachedThreadPool()   缓存线程池，线程数量不限制，可能oom
+		4.Executors.newScheduledThreadPool(int corePoolSize) 创建一个线程池(任务调度的线程池实现)，以在给定的延迟后运行命令，或者定期执行命令(它比Timer更灵活)。不常用
+		
   
 		ThreadPoolExecutor(是最核心的线程池实现，用来执行被提交的任务，是ExecutorService的实现类),可以使用execute和submit两个方法向线程池提交任务,前者不带返回值(参数是runable)，后者带返回值(参数是futuretask，实现callable接口)
 		
@@ -2581,9 +2633,10 @@ dubbo.port=2881
 			executor.shutdown();  
 		共用一个CountDownLatch，调用await，一直阻塞等待，直到这个CountDownLatch对象的计数值减到0为止
 		
-		ListenableFuture顾名思义就是可以监听的Future，它是对java原生Future的扩展增强。我们知道Future表示一个异步计算任务，当任务完成时可以得到计算结果。
-		如果我们希望一旦计算完成就拿到结果展示给用户或者做另外的计算，就必须使用另一个线程不断的查询计算状态。这样做，代码复杂，而且效率低下。
-		使用ListenableFuture Guava帮我们检测Future是否完成了，如果完成就自动调用回调函数，这样可以减少并发程序的复杂度。
+		Future的扩展增强，有点是监听任务完成，不用手动获取
+			ListenableFuture顾名思义就是可以监听的Future，它是对java原生Future的扩展增强。我们知道Future表示一个异步计算任务，当任务完成时可以得到计算结果。
+			如果我们希望一旦计算完成就拿到结果展示给用户或者做另外的计算，就必须使用另一个线程不断的查询计算状态。这样做，代码复杂，而且效率低下。
+			使用ListenableFuture Guava帮我们检测Future是否完成了，如果完成就自动调用回调函数，这样可以减少并发程序的复杂度。
 		
 		可见虽然主线程中的多个任务是异步执行，但是无法确定任务什么时候执行完成，只能通过不断去监听以获取结果，所以这里是阻塞的。这样，可能某一个任务执行时间很长会拖累整个主任务的执行。
 		一个任务的执行结果:Future接口中的isDone()方法来判断任务是否执行完，如果执行完成则可获取结果，如果没有完成则需要等待。 
@@ -2724,7 +2777,8 @@ concurrentHashMap和HashMap相关
 			java8中对HashMap进行了优化，如果链表中元素超过8个时，就将链表转化为红黑树，以减少查询的复杂度，将时间复杂度降低为O(logN)。
 			Java 8 中使用 Node 模型来代表每个 HashMap 中的数据节点，都是 key，value，hash 和 next 这四个属性。Node 用于链表，红黑树用 TreeNode。
 			
-			HashTable 那样不管是 put 还是 get 操作都需要做同步处理，效率低。
+			HashTable 那样不管是 put 还是 get 操作都需要做synchronized同步处理，效率低。线程安全
+			concurrentHashMap相对使用的不是方法锁，允许多个并发操作（分布在不同的段上），效率高，内部使用了段segment，每个小段就是hashtable
 			
 			总结，无论是 1.7 还是 1.8 其实都能看出 JDK 没有对它做任何的同步操作，所以并发会出问题，甚至出现死循环导致系统不可用。
 		
@@ -2743,7 +2797,11 @@ concurrentHashMap和HashMap相关
 				jdk1.7版本	使用了segment中继承的ReentrantLock实现锁控制
 				jdk1.8版本	使用synchronized+cas实现锁控制
 					
-				
+				锁分段技术
+					首先将数据分成一段一段地存 储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数 据也能被其他线程访问
+					一个Segment里包含一个HashEntry数组，每个HashEntry是一个链表结构的元 素，每个Segment守护着一个HashEntry数组里的元素，当对HashEntry数组的数据进行修改时， 必须首先获得与它对应的Segment锁，
+					输入参数initialCapacity是ConcurrentHashMap的初始化容量(默认16)，loadfactor是每个segment的负载因子(默认0.75)
+					
 		
 			Segment的优缺点
 				段Segment继承了重入锁ReentrantLock，有了锁的功能，每个锁控制的是一段，当每个Segment越来越大时，锁的粒度就变得有些大了。
@@ -2947,8 +3005,61 @@ concurrentHashMap和HashMap相关
 		降级多是大量请求且不能扩容进行的功能限制，可能针对某功能，也可能根据不同使用者。
 		切换更多是依赖的下层出现故障，需要手工切换。
 
-		
-		
+		linux权限，文件权限，用户权限
+			Linux的文件基本上分为三个属性：可读（r），可写（w），可执行（x）。
+			类型后面紧接着的3*3个字符分3组，各指示此文件的读、写、执行权限，对于owner、group、others而言
+
+			| d | rwx | r-x | r-x |
+			|文件类型 | 所有者权限|用户组权限 |其他用户权限|
+
+			drwxr-xr-x   2 root root 48 2013-11-27 16:34 test/
+			第一个栏位，表示文件的属性，
+			第二个栏位，表示文件个数。
+			第三个栏位，表示该文件或目录的拥有者
+			第四个栏位，表示所属的组（group），每一个使用者都可以拥有一个以上的组，不过大部分的使用者应该都只属于一个组
+			第五栏位，表示文件大小
+			第六个栏位，表示最后一次修改时间
+			第七个栏位，表示文件名
+
+			（以-rwxr-xr-x为例）：　　  
+			rwx(Owner)r-x(Group)r-x(Other)　
+			这个例子表示的权限是：使用者自己可读，可写，可执行；同一组的用户可读，不可写，可执行；其它用户可读，不可写，可执行。
+			另外，有一些程序属性的执行部分不是X,而是S,这表示执行这个程序的使用者，临时可以有和拥有者一样权力的身份来执行该程序。
+
+			egj是yunwei创建，egjjjj是开发创建，在kaifa用户下查看权限，yunwei和kaifa都是同一个组的
+			哪个用户创建就属于哪个owner
+			drwxrwxr-x.   3 prd_yunwei prd_yunwei  4096 May 12 10:48 egj		yunwei建目录，所有者属于运维，同组有写操作
+			drwxr-xr-x.   2 kaifa      prd_yunwei  4096 May 12 10:59 egjjjj		kaifa建目录，所有者属于kaifa，yunwei用户不能写操作(因为同组没有写操作)
+
+			创建权限
+			who 
+			u 表示“用户（user）”，即文件或目录的所有者。
+			g 表示“同组（group）用户”，即与文件属主有相同组ID的所有用户。
+			o 表示“其他（others）用户”。
+			a 表示“所有（all）用户”。它是系统默认值。
+
+			+ 添加某个权限。
+			– 取消某个权限。
+			= 赋予给定权限并取消其他所有权限（如果有的话）。
+
+			chmod ［who］ ［+ | – | =］ ［mode］ 文件名     有对应的数字简化版
+			例如：chmod g+r，o+r example使同组和其他用户对文件example 有读权限
+			******在配置文件写权限的时候，必须要拥有上层目录的读权限******
+			
+			groups 查看当前用户所属组
+			chmod +rwx file	给file的所有用户增加读写执行权限     	不写用户就默认所有
+			
+	linux和windows文件传输
+		1.使用winscp工具
+		2.安装xftp后自动集成到xshell的插件中
+		3.	rz和sz
+			sz  下载(命令格式：  sz filename   下载文件filename || sz file1 file2   下载多个文件 || sz dir/*　　　下载dir目录下所有文件)	　
+			rz 上传	(命令格式： 	rz)
+			注意：
+			1.如果机器上没有安装过 lrzsz 安装包，则无法使用rz和sz命令。
+			　可使用yum命令安装：yum install -y lrzsz  或者下载源码进行安装。下载地址：https://ohse.de/uwe/software/lrzsz.html	
+				
+			
 65.http 和 htps 的cookie  ， 没有区分，主要是满足domain中的值
 
 66.	 java.lang.Error: Unresolved compilation problem
@@ -3033,6 +3144,7 @@ concurrentHashMap和HashMap相关
 		格式化
 			时间 	DATE_FORMAT(si.date_insert,'%Y-%m-%d %T') AS releaseTime
 			数字 	CAST( 120.6 AS DECIMAL(15,2))		
+					FORMAT(13625.265,2)	13,625.27     
 			
 			当天时间
 				Calendar calendar = Calendar.getInstance();
@@ -3233,6 +3345,138 @@ concurrentHashMap和HashMap相关
 			kill掉有锁表的进程   kill trx_mysql_thread_id         innodb_trx中的trx_mysql_thread_id字段，这里就是对应的上面的进程id 
 				对应的就是mysql的Connection is closed
 			
+			
+			mysql索引结构，sql优化，limit优化，回表，索引覆盖
+				参看链接
+				https://blog.csdn.net/mu_wind/article/details/110128016
+				https://blog.csdn.net/sinat_14913533/article/details/115537106  
+				https://www.cnblogs.com/myseries/p/11265849.html 
+
+				叶子节点(深度为0的节点)才会有data，其他都是索引(附带指针指向了下个节点)
+				聚集索引 和 普通索引的区别
+					本质区别：表记录的排列顺序和与索引的排列顺序是否一致
+					聚集（clustered）索引，也叫聚簇索引，聚集索引clustered index(id), 非聚集索引index(username)
+					类似字典中的拼音就是聚集索引，偏旁部首查汉字，就是非聚集索引。
+					
+					1.聚集索引：索引顺序和表中数据排序一致(聚集索引的顺序就是数据的物理存储顺序) ,一个表只能有一个聚族索引(因为数据在物理存放时只能有一种排列方式)。 
+						
+						聚集索引的叶子节点就是对应的数据节点，叶子节点中保存存了索引列和具体的数据
+						InnoDB中,把数据data存放在B+树中的叶子节点上(存储了表中行数据)，而B+树的键值就是主键(索引和数据行保存在同一个B-Tree中)。命中叶子节点可以直接取出数据，相比非聚簇索引需要第二次查询
+						
+						InnoDB默认对主键建立聚簇索引。
+							如果你不指定主键，InnoDB会用一个具有唯一且非空值的索引来代替。
+							如果不存在这样的索引，InnoDB会定义一个隐藏的主键，然后对其建立聚簇索引。
+						
+					2.非聚集索引(辅助索引，普通索引，二级索引)： 索引顺序与物理存储顺序不同
+						除了聚集索引以外都是非聚集索引，细分：普通索引，唯一索引，全文索引
+						
+						叶节
+						B+Tree的叶子节点仍然是索引节点，其上的data，不是数据本身，而是数据存放的地址（不是指向行的物理指针，而是行的主键值）。
+						回表二次查询
+							查找时，存储引擎需要在二级索引中找到相应的叶子节点，获得行的主键值，然后使用主键去聚簇索引中查找数据行，这需要两次B-Tree查找，检索两次索引
+						
+						查询过程	扫描两次索引 
+							要查询name = C 的数据，其搜索过程如下：
+							1.辅助索引B+树中检索Name，到达其叶子节点获取对应的主键。
+							2.使用主键在主索引B+树种再检索一次，最终到达叶子节点定位到行数据
+							
+				回表查询	先从普通索引定位主键值，再从聚集索引定位行数据，一般是查询列不在索引覆盖范围情况下				
+				覆盖索引
+					定义：如果一个索引覆盖所有需要查询的字段的值。即索引的叶子节点中已经包含要查询的数据。
+					只需要在一棵索引树上就能获取SQL所需的所有列数据，无需回表。
+					从非主聚簇索引中就能查到的想要数据，而不需要通过回表从主键索引中查询其他列
+					尽量不要使用select *
+					实现方法是：将被查询的字段，建立到联合索引里去。    使用联合索引  一定要使用索引并且带上查询列
+					使用场景：Limit分页查询
+					
+					Using where' 在非索引的列上可能仍然会做全表扫描，where相对影响会大点
+						EXPLAIN
+						SELECT req_code FROM require_info WHERE req_title='测试鱼食——先发后托6'
+						这种使用了where 后面没有索引，但是查询列是单个索引列，这种不走索引覆盖，走的全表
+
+						EXPLAIN
+						SELECT user_id FROM require_info 
+						这种不加where的直接查询，user_id会走索引覆盖
+						索引覆盖，必须要使用索引
+
+						EXPLAIN
+						SELECT req_code,req_title FROM require_info
+						这种没有使用索引，不走索引覆盖
+					
+				mysql中的extra(有没有使用索引要看type)
+					using idex						使用了覆盖索引				避免访问了表的数据行，效率不错
+					using where 					只表示发生了where过滤		过滤条件字段无索引；如果type是all 就是扫全表， 常见的优化方法为，在where过滤属性上添加索引
+					using where using index			发生了where过滤，索引覆盖了查询
+					extra为null， type为ref，		表明虽然用到了索引，但是没有索引覆盖，产生了回表，常见于，where后面使用索引，但是查询的列回表了
+						有点类似Using index condition
+						
+				升级联合索引(name, sex)，联合索引也是一棵B+树，不同的是联合索引的键值数量不是1，而是大于等于2.相当于创建了多个索引
+					select id,name … where name=‘shenjian’;
+					select id,name,sex … where name=‘shenjian’;
+					都能够命中索引覆盖，无需回表。
+
+				索引失效场景
+					sql查询中使用like %a 时候索引会失效，因为%表示全匹配，如果已经全匹配就不需要索引，还不如直接全表扫描。a%不确定
+					IN可以使用索引， NOT IN 无法使用索引
+					查询条件中使用函数，索引将会失效
+
+				B+ 树
+					B+ 树非叶子节点上是不存储数据的，仅存储键值，不存储数据，那么就会存储更多的键值，相应的树的阶数（节点的子节点树）就会更大，树就会更矮更胖，
+					B+ 树索引的所有数据均存储在叶子节点，而且数据是按照顺序排列的。
+
+
+				索引覆盖来优化SQL？
+					全表count查询优化
+					列查询回表优化				单列索引(name)升级为联合索引(name, sex)，即可避免回表
+					分页查询					将单列索引(name)升级为联合索引(name, sex)，也可以避免回表
+
+				索引覆盖
+
+
+				SELECT * FROM require_info   是按照id asc
+				SELECT id FROM require_info		排序就乱了
+
+				大数据量的limit优化思路
+					1.尽可能的减少筛选出来的数据，不要扫描大量无用行。想过办法通过索引覆盖查询来查出必要的需要扫描的行，然后再去扫描实际的数据行
+					2.避免回表(常发生在查询的列不在索引覆盖范围内)
+					3.除了使用覆盖索引，优化查询速度外，我们还可以使用 Redis 缓存，将热点数据进行缓存储存。
+					
+					方法：1.采取的是限制分页(只查看前几千条数据)和增加缓存(记录上次查询的最大id，带到下次查询中筛选)。
+						  2.子查询的分页方式或者JOIN分页方式,用到的是索引覆盖，这两种逻辑一样，功能也一样
+							想过办法通过索引覆盖查询来查出必要的需要扫描的行，然后再去扫描实际的数据行
+							select orderNo,ctime from `order` order by orderNo limit 2000000,20
+							select orderNo,ctime from `order` inner join ( select orderNo from `order` order by orderNo limit 2000000, 20 ) as o using(orderNo);    //using等价于join操作中的on
+							分析：inner join的表通过索引覆盖查询直接通过索引找到了需要返回的数据行，然后order表通过与这个派生表进行关联，只扫描20行数据就可以了(第一种跨越大量数据块并取出)
+							子查询是在索引上完成的，而普通的查询时在数据文件上完成的
+							*****对limit的优化，不是直接使用limit，而是首先获取到offset的id，然后直接使用limit size来获取数据。*****
+							  
+							SELECT * FROM tableName ORDER BY id LIMIT 500000 , 2
+							
+							-- 基于排序做条件过滤，有一定限制，主键id必须有序，同样适用创建时间等其他字段，但是必须要设置索引
+							SELECT * FROM tableName
+							WHERE id >= (SELECT id FROM tableName ORDER BY id LIMIT 500000 , 1)
+							LIMIT 2;
+							时间: 0.274s
+							
+							SELECT * FROM tableName AS t1
+							JOIN (SELECT id FROM tableName ORDER BY id desc LIMIT 500000, 1) AS t2
+							WHERE t1.id >= t2.id ORDER BY t1.id  LIMIT 2;
+							时间: 0.278s
+						
+							-- 基于索引覆盖，这种更为高效
+							SELECT * FROM tableName AS t1
+							JOIN (SELECT id FROM tableName ORDER BY id desc LIMIT 500000, 2) AS t2
+							WHERE t1.id = t2.id;
+			
+			 
+			子查询		将子查询语句包装成外查询的条件		将select * from a where id>(select id from a where id=1)
+			自联结		自己关联自己的表结构				实际使用场景是省市区   自联结比子查询快
+
+
+			子查询和join 目前看可以转换
+			内连接：(INNER) JOIN，返回两张表都匹配上的行
+			join = inner join = from a, b where 过滤条件
+			
 	
 	
 71.nexus 搭建
@@ -3290,6 +3534,41 @@ concurrentHashMap和HashMap相关
 			netpay中的hessian接口也是，使用的是xye-open-dmo的手工上传的copy 的jar，导致报错，应该使用最新的jar，因为自己copy过来的肯定没有install后的实时全面，手工上传容易出错。
 			因为可能open-dmo是从打包好的lib下直接拖过来的，但是install本身会传递一个依赖关系。到了lib下，jar已经update完了，不一定存在这种依赖关系。所以copy，不一定存在这种依赖关系。
 
+		maven deploy，上传，部署
+			-e 	打印完成的错误日志
+			-U 	强制检查快照版本更新，没有就默认是天为检查
+				老版本
+				<distributionManagement>
+					<repository>
+						<id>my-nexus-releases</id>	//maven得setting.xml中配置的server验证信息
+						<url>http://192.168.6.251:8087/nexus/content/repositories/releases/</url>
+					</repository>
+					<snapshotRepository>
+						<id>my-nexus-snapshot</id>
+						<url>http://192.168.6.251:8087/nexus/content/repositories/snapshots/</url>
+					</snapshotRepository>
+				</distributionManagement>
+				分环境版本
+				 <profiles>
+					 <profile>
+						<id>pre</id>
+						<distributionManagement>
+							<snapshotRepository>
+								<id>my-nexus-snapshot</id>
+								<url>http://192.168.6.251:8087/nexus/content/repositories/pre/</url>
+							</snapshotRepository>
+						</distributionManagement>
+					</profile>
+				</profiles>
+	
+			maven deploy 错误
+				1、部署的仓库类型错误
+					nexus的repository分三种类型：Hosted、 Proxy和Virtual，另外还有一个repository group(仓库组)用于对多个仓库进行组合，部署的时候只能部署到Hosted类型的仓库中。
+				2、部署的仓库部署策略为禁止部署
+					releases仓库的部署策略默认为禁止部署，如果要部署到这个仓库中需要修改部署策略为Allow Redeploy
+				3、仓库发布版本与部署的项目发布版本不相符
+					项目的发布版本如果为<version>1.0-SNAPSHOT</version>，则不能部署到发布版本为Release的仓库中
+					
 		
 72.跨域		https://blog.csdn.net/itcats_cn/article/details/82318092
 	跨域问题是针对JS和ajax的，html本身没有跨域问题
@@ -3348,6 +3627,7 @@ InputStream is = item.getInputStream();
 	指令重排也是有限制的，即不会出现下面的顺序，进行重排时候，必须考虑到指令之间的数据依赖性
 	
 	编译期重排序的典型就是通过调整指令顺序，做到在不改变程序语义的前提下，尽可能减少寄存器的读取、存储次数，充分复用寄存器的存储值。
+		只要程序的最终结果等同于他在严格的顺序化环境中执行的结果那么上诉的所有行为就是被允许的。
 	
 74.list 转逗号分割
 	StringUtils.join(orderPayStrs.toArray(), ",");
@@ -3365,6 +3645,42 @@ InputStream is = item.getInputStream();
 
 	ThreadLocal无法在父子线程之间传递--内容保存在线程对象中，子线程无法继承父线程的内容
 	父线程的概念(创建线程,类似main中开线程)，只是一种逻辑称呼，创建线程的当前线程就是新线程的父线程，新线程的一些资源来自于这个父线程
+	
+	op系统gateway传值
+		重定向redirect，服务器端在响应第一次请求的时候，让浏览器再向另外一个URL发出请求，从而达到转发的目的。它本质上是两次HTTP请求，对应两个request对象。
+		转发forward，客户端浏览器只发出一次请求，Servlet把请求转发给Servlet、HTML、JSP或其它信息资源，由第2个信息资源响应该请求，两个信息资源共享同一个request对象。	
+	
+		1.将参数放进threadlocal中
+		2.在接下来的另一个方法中，取出threadlocal中存的data信息，放进session中
+		3.重定向后从session中取出data信息。
+		那么这里threadlocal的使用，只不过是为了再后面的方法中不带参数的传递信息，后面方法直接取线程变量，不需要由前传到后。本质上还是从session中取数据。
+		重定向后，因为是同一个域名，www.xiaoyuer.com,所以是同一个sessionid
+		这其实可以直接存session，然后重定向后获取。
+
+			1.存入线程变量
+			private void setContext(Map<String, Object> parameters, OpPartner opPartner, OpService opService,OpPartnerService ops)
+			{
+				ApplicationContext.getContext().setParameters(parameters);
+				ApplicationContext.getContext().setPartnerService(ops);
+				...
+			}
+
+			2.存入session
+			private GenericResult<Object> invokePageService(OpService opService)throws IOException
+			{
+				String uuid = UUID.randomUUID().toString();
+				ApplicationContext context = ApplicationContext.getContext();
+				HttpServletRequest request =((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+				request.getSession().setAttribute(uuid, context);
+				request.getSession().setAttribute(CommonConstant.PAGE_SERVICE_SESSION_KEY, uuid);
+				return result;
+			}
+			
+			3.
+			重定向之后  重定向之后，
+			uuid = String.valueOf(request.getSession().getAttribute(CommonConstant.PAGE_SERVICE_SESSION_KEY));
+			context= (ApplicationContext)request.getSession().getAttribute(uuid);
+			
 
 76.freemarker静态化生成html
 	// 当前系统绝对路径
@@ -4689,7 +5005,8 @@ InputStream is = item.getInputStream();
 				 
 				可以压缩cookie来节省带宽流量，就是将多个k-v作为文本压缩
 	
-	
+		INVALID BOUND STATEMENT (NOT FOUND)
+		检查过了，最后随意在xml文件中加一个空格或者空行然后保存，就好了
 	
 	
 	
@@ -5173,6 +5490,10 @@ InputStream is = item.getInputStream();
 		代理模式，给某个对象创建一个代理对象，对原对象的调用增加一些额外操作
 		
 		
+		10M的宽带的带宽是1280KB/s。
+		ISP提供的线路带宽使用的单位是比特（bit），而一般下载软件显示的是字节（Byte）（1Byte=8bit），所以要通过换算，才能得实际值。
+		1Mb/s=1024Kb/s=1024/8KB/s=128KB/s  
+		上行宽带(速度)和下行宽带(速度)是不对称的，一般是下行速度大于上行的速度。我们平时所使用的宽带说多少M，都是指的下行宽带，
 		
 		
 			
@@ -5546,12 +5867,11 @@ InputStream is = item.getInputStream();
 128.jvm,内存溢出
 			
 	虚拟机枝和本地方法枝溢出
-		StackOverflowError ：线程请求的战深度大于虚拟机所允许的最大深度 循环递归会触发这种 OOM
+		StackOverflowError ：线程请求的战深度大于虚拟机所允许的最大深度 循环递归会触发这种 OOM   	常见递归操作
 		OutOfMemoryError ：虚拟机在扩展棋时无法申请到足够的内存空间，一般可以通过不停地创建线程触发这种 QOM
 		Java 堆溢出： 在创建大量对象并且对象生命周期都很长的情况下，会引发OutOfMemoryError
 		方法区溢出： 方法区存放 class 等元数据信息，如果产生大量的类（使用CGLIB ），那么就会引发此内存溢出，即 OutOfMemoryError:PermGen space ，在使Hibernate 等动态生成类的框架时会容易引发这种情况
-
-
+						运行期间，jvm不会在主程序运行期间清理。一般发生在启动阶段
 	对象访问（句柄访问，指针访问）
 	hotspot采用的是直接指针访问：直接保存的是对象实例的地址，对象实例中保存了类型数据的指针。其中实例在堆中，对象类型数据在方法区中。
 
@@ -5577,6 +5897,16 @@ InputStream is = item.getInputStream();
 		
 		
 		jps   		查看进程和运行的主类，cmd下测试可用
+		
+		jstack
+			jstack用于生成java虚拟机当前时刻的线程快照。注意是当前时刻
+			线程快照是当前java虚拟机内每一条线程正在执行的方法堆栈的集合，用于定位线程出现长时间停顿的原因，如线程间死锁、死循环、请求外部资源导致的长时间等待等。
+				
+			jstack命令的语法格式： jstack  <pid>。可以用jps查看java进程id。
+			jstack 31177 > /home/tengfei.fangtf/dump17
+			在实际运行中，往往一次 dump的信息，还不足以确认问题。建议产生三次 dump信息，如果每次dump都指向同一个问题，我们才确定问题的典型性。
+	
+		
 		
 		**********现在用VisualVM 比较多点，直接线程的客户端，比较好用(直接继承了上面的命令)**********
 		目前连接远程，有两种方式，1.服务器上启动jstatd  2.服务器上配置jmx。然后客户端连接
@@ -5606,6 +5936,9 @@ InputStream is = item.getInputStream();
 		消息的可靠性
 		一定要业务处理成功之后，再返回确认消息。否则消息就丢失了。
 		分布式系统的三个重要点，服务框架，消息中间件，和数据访问层。
+		
+		rocketmq  后台可以新增消息发送   topic选项新增消息发送
+		rocketmq常见异常 	https://blog.csdn.net/weixin_43439073/article/details/95746775
 		
 131.ELK
 	建立 ELK ( Elasticsearch + Logstash + Kibana ）日志集中分析平台，便于快速搜索、定位日志
@@ -6109,7 +6442,6 @@ InputStream is = item.getInputStream();
 			server 192.168.6.137:30812 weight=1 max_fails=2 fail_timeout=60s;
 		}
 
-		
 142.查看出网IP
 	curl http://ifconfig.me
 	curl http://icanhazip.com	
@@ -6128,15 +6460,464 @@ InputStream is = item.getInputStream();
 　　　　　　　ctrl+]，之后在按q ---退出telnet界面
 　　　　　　　quit---退出mysql.......
 	
+	系统出网ip是防火墙的出网ip
 	
-143.并发相关
-	代码1
-		a.lock();
-		b.lock();
-	代码2
-		b.lock();
-		a.lock();
-	这样两个简单的线程出现的死锁场景就出现了。这种交叉获取容易产生，若同样顺序先a后b就不会出现
+143.并发相关，线程相关
+	死锁
+		代码1
+			a.lock();
+			b.lock();
+		代码2
+			b.lock();
+			a.lock();
+		这样两个简单的线程出现的死锁场景就出现了。原因在于用不同的顺序请求了相同的锁(交叉获取),若能保证请求锁的顺序一致，就不会发生死锁(统一先a后b)。
+		数据库能再发生死锁的时候，选择一个事务牺牲，释放资源让另一个事务继续下去
+		
+		1.控制访问锁的顺序
+		2.trylock，通过timeout获取锁，时间过长就失败
+		3.线程转储thread dump分析
+	
+		避免死锁的几个常见方法。 
+			1.避免一个线程同时获取多个锁。 
+			2.避免一个线程在锁内同时占用多个资源，尽量保证每个锁只占用一个资源。 
+			3.尝试使用定时锁，使用lock.tryLock（timeout）来替代使用内部锁机制。 
+			4.对于数据库锁，加锁和解锁必须在一个数据库连接里，否则会出现解锁失败的情况。
+	
+	
+	上下文切换,cpu时间片
+		cpu时间片轮转机制
+			时间片分配算法循环执行任务
+			线程任务的状态保存及再加载, 这段过程就叫做上下文切换
+			CPU分配给线程cpu时间片(即该进程允许运行的时间，时间很短，所以cpu会不停切换线程执行)，并将当前任务状态保存下来(以便下次切回时可以再次加载该任务状态)，再加载下一任务的状态并执行。
+			当前任务执行一个时间片后切换到下一个任务(切换前保存上个任务状态，以便下次切回加载状态)。任务从保存到加载的过程就是一次上下文切换。
+			时间片的就是系统分配给线程的时间限额。运行和阻塞两个状态之间的转换需要上下文切换。
+			线程有创建和上下文切换的开销。
+		
+		减少线程切换的几个方法
+			1.避免竞争无锁开发，比如id按照hash取模分段，不用线程处理不同段数据
+			2.cas算法，java的atomic包使用cas更新，不需要加锁
+			3.使用线程池，创建适量的少线程
+	
+		
+		
+		
+	线程生命周期
+		新建
+		就绪	等待被分配cpu时间片，具备运行条件，但还没有被分配到cpu
+		运行
+		阻塞	让出cpu，暂停执行.	sleep   wait(notify)  suspend(resume)
+		死亡	正常run()结束，异常终止，kill等
+		
+		yied(),暂停执行，让出cpu，给同priority线程执行，并未阻塞，没有同级别的priority，该方法无效
+	
+	守护线程
+		简单理解是后台线程，是一种支持型线程，主要被用作程序中后台调度以及支持性工作，一般都是一些后台功能。像jvm垃圾回收和内存管理都是守护线程。
+		当一个Java虚拟机中不存在非Daemon线程的时候，Java虚拟机将会退出
+		注意的是进程结束的判断是前台线程是否结束，即使进程结束了，守护线程可能依然未退出。
+	
+	
+	同步辅助类
+		Countdownlatch  倒数计数器，线程阀，无法被重置，类似执行多少次，允许一个或多个线程等待其他线程完成操作
+			new countdownlatch(3),作为多个线程共享的变量，主要就是countDown()，倒数一次和await()方法，变为0才能继续，否则阻塞。场景比如上传三个文件，都上传好了才继续执行
+			使用场景：比如有一个任务A,它要等到其它3任务完成才能执行,此时就可以用CountDownLatch来实现。 
+			*****CountDownLatch也可以实现join的功能。近似的实现了join()功能***** 
+			 
+			 
+		Semaphore （信号量）  限流器，可以阻塞线程并且可以控制同时访问线程的个数
+			Semaphore维护了一个许可集合，在创建Semaphore的时候，设置上许可数，每条线程在只有在获得一个许可的时候才可以继续往下执行逻辑（申请一个许可，则Semaphore的许可池中减少一个许可），没有获得许可的线程会进入阻塞状态。
+			final Semaphore semaphore = new Semaphore(5);
+			semaphore.acquire();			//申请一个许可  许可池-1   若许可池为0则申请许可失败，阻塞线程
+			semaphore.release();			//释放一个许可  许可池+1
+			也可使用非公平信号量，暂不细看
+
+		CountDownLatch比较适合保证线程执行完后再执行其他处理，因此模拟并发时，使用两者结合起来是最好的。
+		Semaphore可以用来做流量分流，特别是对公共资源有限的场景，比如数据库连接。
+		
+	
+	
+	
+	
+	线程池
+		Executors线程的工厂类，用来创建线程池
+		线程池可以复用线程，统一分配，管理，监控，防止资源浪费
+		其中有两个核心的队列，1是线程等待池，即线程队列blockingqueue 2是任务处理池，正在工作的thread列表，hashset<Worker>
+		
+		线程池在单例模式下使用，不要重复new多个实例出来。
+		线程池的数量不要设置过大，限流方面 可以抛弃请求，稍后重试，服务器忙拒绝请求
+		
+		ExecutorService
+			shutdown() 				只是关闭了提交通道，用submit()是无效的；而内部该怎么跑还是怎么跑，跑完再停。优雅关闭
+			shutdownNow() 			能立即停止线程池，正在跑的和正在等待的任务都停下了。
+			awaitTermination()		当等待超过设定时间时，会监测ExecutorService是否已经关闭，若关闭则返回true，否则返回false。一般和shutdown组合使用
+		
+		线程池在需要创建一个线程的时候，会调用Threadfactory创建。
+		
+		
+		任务job提交进线程池，进入到工作队列中，等待工作者线程处理
+		线程池的本质就是使用了一个线程安全的工作队列连接工作者线程和客户端线程，客户端线程将任务放入工作队列后便返回，而工作者线程则不断地从工作队列上取出 工作并执行。
+		当工作队列为空时，所有的工作者线程均等待在工作队列上，当有客户端提交了 一个任务之后会通知任意一个工作者线程，随着大量的任务被提交，更多的工作者线程会被唤醒。
+	
+	
+	
+		核心线程池，工作队列，饱和策略
+		线程池工作流程
+			1.核心线程池corePoolSize是否满，未满就创建核心线程执行任务，满了就跳2
+			2.队列workQueue是否满，没满就任务添加到队列，满了就跳3
+			3.线程池是否满，没满就创建非核心线程执行任务，满了就交给饱和策略
+	
+		corePoolSize（线程池的基本大小）：当提交一个任务到线程池时，线程池会创建一个线 程来执行任务，即使其他空闲的基本线程能够执行新任务也会创建线程，等到需要执行的任 务数大于线程池基本大小时就不再创建。如果调用了线程池的prestartAllCoreThreads()方法， 线程池会提前创建并启动所有基本线程
+		runnableTaskQueue(任务队列)：用于保存等待执行的任务的阻塞队列。
+		maximumPoolSize(线程池最大数量)：线程池允许创建的最大线程数。如果队列满了，并且已创建的线程数小于最大线程数，则线程池会再创建新的线程执行任务。
+		RejectedExecutionHandler(饱和策略)：当队列和线程池都满了，说明线程池处于饱和状态，那么必须采取一种策略处理提交的新任务。这个策略默认情况下是AbortPolicy，表示无法 处理新任务时抛出异常。
+		keepAliveTime(线程活动保持时间)：线程池的工作线程空闲后，保持存活的时间。所以， 如果任务很多，并且每个任务执行的时间比较短，可以调大时间，提高线程的利用率。
+	
+
+		
+	join()	
+		让父线程等待子线程结束之后才能继续运行。
+		子线程结束后，子线程的this.notifyAll()会被调用，join()返回，父线程只要获取到锁和CPU，就可以继续运行下去了。
+		当我们调用某个线程的这个方法时，这个方法会挂起调用线程，直到被调用线程结束执行，调用线程才会继续执行。
+		main{
+			threadA.join();
+		}
+		这里就是A执行完了，main才执行完
+		当调用原生的join方法时，也是调用了wait方法，也就是会阻塞调用的线程（切记不是调用join方法的那个线程对象，这只是一个普通对象而已）
+	
+		join用于让当前执行线程等待join线程执行结束。其实现原理是不停检查join线程是否存活，
+		如果join线程存活则让当前线程永远等待。其中，wait(0)表示永远等待下去。
+		直到join线程中止后，线程的this.notifyAll()方法会被调用，调用notifyAll()方法是在JVM里实现的，所以在JDK里看不到，大家可以查看JVM源码。
+	
+
+		
+	futrue机制和futuretask
+		future是一个接口，futuretask是其唯一的实现类(实现了runnable和future)。
+		futuretask特点在于，ExecutorService.submit()runnable和future都需要future接收操作，但是futuretask直接get()即可，相当于，结果封装进了入参中，不需要future接收。
+		如果submit的是futuretask对象，那么获取结果直接futuretask对象.get()方法即可。而不是返回一个future对象再get()。
+		
+		Future<V>接口是用来获取异步计算结果的(操作具体的Runnable或者Callable对象任务执行的结果)，是ExecutorService.submit()返回的对象
+		Executor就是Runnable和Callable的调度容器，Future就是对于具体的Runnable或者Callable任务的执行结果进行取消、查询是否完成、获取结果、设置结果操作
+		
+		future提供了三种功能：
+			1.isDone()			判断任务是否完成
+			2.cancel()			中断任务
+			3.get()				获取任务执行结果
+			
+		future.get()方法的阻塞优化
+			场景：		普通的Future.get()是按照加入线程池的顺序来获取的，如果前一个没完成会一直阻塞后面future的.get()，一般是用list收集future后面遍历
+						使用Future和Callable可以获取线程执行结果，但获取方式确实阻塞的，根据添加到线程池中的线程顺序，依次获取，获取不到就阻塞。
+			
+			解决方法：	为了解决这种情况，可以采用轮询的做法。CompletionService 来实现异步快速收集线程执行结果。
+						CompletionService是按照完成顺序获取，解决了Future.get()按照加入线程池顺序(submit顺序)的阻塞问题。
+						CompletionService的好处在于主线程总是能够拿到最先完成的任务的返回值，即take()按照线程完成顺序获取，如果就没有完成的就阻塞，这样优先完成的输出，减小了get的阻塞问题
+		
+			
+		
+	wait，notify，notifyall
+		wait，notify，notifyall 是Object的方法,不是Thread类的固有方法
+		所有的对象都会有一个wait set，用来存放调用该对象wait方法之后进行block状态的线程。
+		线程被notify之后，不一定立即得到执行，这是因为可能会抢不到LOCK锁。
+		线程从wait set中唤醒的顺序不一定是FIFO。
+		线程被唤醒后，必须重新获取锁
+		notify，notifyall是对实例调用，interrupt是对线程调用
+			
+
+			
+		lock和wait实际场景
+			public class WaitNotify {
+				static boolean flag = true;
+				static Object lock = new Object();
+				public static void main(String[] args) throws Exception {
+					Thread waitThread = new Thread(new Wait(), "WaitThread");
+					Thread notifyThread = new Thread(new Notify(), "NotifyThread");
+					waitThread.start();
+					notifyThread.start();
+					
+					static class Wait implements Runnable {
+						public void run() {
+							// 加锁，拥有lock的Monitor
+							synchronized (lock) { // 当条件不满足时，继续wait，同时释放了lock的锁
+								while (flag) {
+									try {
+										System.out.println(Thread.currentThread() + " flag is true. wait@");
+										lock.wait();
+									} catch (InterruptedException e) {
+										// 条件满足时，完成工作}
+									}
+								}
+							}
+						}
+					}
+					static class Notify implements Runnable {
+						public void run() {
+							// 加锁，拥有lock的Monitor
+							synchronized (lock) {
+								// 获取lock的锁，然后进行通知，通知时不会释放lock的锁， 
+								// 直到当前线程释放了lock后，WaitThread才能从wait方法中返回
+								System.out.println(Thread.currentThread() + " hold lock. notify@");
+								lock.notifyAll();
+								flag = false;
+								SleepUtils.second(5);
+							}
+						}
+					}
+				}
+				
+		notify 和wait的流程
+		1.WaitThread首先获取了对象的锁，然后调用对象的wait()方法，从而放弃了锁 并进入了对象的等待队列WaitQueue中，进入等待状态。
+		2.由于WaitThread释放了对象的锁，NotifyThread随后获取了对象的锁，并调用对象的notify()方法，将WaitThread从WaitQueue移到 SynchronizedQueue中，此时WaitThread的状态变为阻塞状态。
+		3.NotifyThread释放了锁之后，WaitThread再次获取到锁并从wait()方法返回继续执行。		
+		
+		
+		抽象出来的模型
+			等待方遵循如下原则。 
+			这里的对象是同一个锁对象，可由其他线程唤醒
+				1.获取对象的锁。2.如果条件不满足，那么调用对象的wait()方法，被通知后仍要检查条件。 3.条件满足则执行对应的逻辑 
+				 对应的伪代码如下。 
+				 synchronized(对象) {
+					 while(条件不满足) {
+						对象.wait(); 
+					 }
+					 对应的处理逻辑 
+				 }
+				 
+				 通知方遵循如下原则。 
+				1.获得对象的锁。 2.改变条件。 3.通知所有等待在对象上的线程。 
+				 对应的伪代码如下。 
+				 synchronized(对象) {
+					 改变条件 
+					 对象.notifyAll(); 
+				 }		
+					
+			即加锁、条件循环和处理逻辑3个步骤
+		
+		注意事项
+			等待/通知机制依托于同步机制，其目的就是确保等待线程从 wait()方法返回时能够感知到通知线程对变量做出的修改。
+			1.使用wait()、notify()和notifyAll()时需要先对调用对象加锁。
+			2.调用wait()方法后，线程状态由RUNNING变为WAITING，并将当前线程放置到对象的 等待队列
+			3.notify()或notifyAll()方法调用后，等待线程依旧不会从wait()返回，需要调用notify()或 notifAll()的线程释放锁之后，等待线程才有机会从wait()返回。
+			4.notify值之后，将等待队列中的等待线程从等待队列中移到同步队列中，被移动的线程状态由WAITING变为 BLOCKED
+			5.从wait()方法返回的前提是获得了调用对象的锁。
+			6.wait可以设置超时时间
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+	线程中断
+		线程中断，interrupt()方法，暂时用的不多
+			synchronized没有timeout，也不能中断
+			interrupt只是会改变线程的中断状态(表示线程有没有被中断而已)，只是改变中断状态，不会中断一个正在运行的线程。
+		中断可以理解为线程的一个标识位属性，它表示一个运行中的线程是否被其他线程进行了中断操作。
+		
+		
+			
+	java的内存模型
+			涉及多线程环境中的可见性和有序性
+				jvm有主内存和工作内存
+				主内存就是常说的java堆内存，存放类实例和静态数据等，是多线程共享的
+				工作内存是线程从主内存中拷贝来的变量以及访问方法所取得的局部变量，简单就是拷贝副本，是线程私有的
+				线程都是先从主内存中拷贝到工作内存中操作，然后回写。线程之间不直接通信，只能通过共享变量进行
+				
+			Java的并发采用的是共享内存模型，Java线程之间的通信总是隐式进行
+			JMM(内存模型)定义了线程和主内存之间的抽象关系：
+				当前线程只有把本地内存写过的值刷新到主内存后，其他线程才能看到最新值
+				线程之间的共享变量存储在主内存（Main Memory）中，每个线程都有一个私有的本地内存（Local Memory），
+				本地内存中存储了该线程以读/写共享变量的副本。本地内存是JMM的一个抽象概念，并不真实存在。
+					
+				这两个步骤实质上是线程A在向线程B发送消息，而且这个通信过程必须要经过主内存。JMM通过控制主内存与每个线程的本地内存之间的交互，来为Java程序员提供内存可见性保证
+					1.线程A把本地内存A中更新过的共享变量刷新到主内存中去。 
+					2.线程B到主内存中去读取线程A之前已更新过的共享变量
+			
+			当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主 内存中读取共享变量。
+			
+			happens-before原则,先行发生原则	是JMM核心的概念
+				如果A happens-before B，那么A执行结果将对B可见，而且A的执行顺序排在B之前。(两个操作既可以是在一个线程之内，也可以是在不同线程之间)
+				两个操作之间存在happens-before关系，并不意味着一定要按照happens-before原则制定的顺序来执行。如果重排序之后的执行结果与按照happens-before关系来执行的结果一致，那么jmm允许这种重排序。
+		
+			as-if-serial语义的意思是：不管怎么重排序，单线程程序的执行结果不能被改变。
+			
+			as-if-serial语义和happens-before这么做的目的，都是为了在不改变程序执行结果的前提 下，尽可能地提高程序执行的并行度。
+
+			这里有个顺序一致性内存模型，是个理性的模型，线程依次连接主内存，线程安全
+				
+				
+				
+				
+				
+	锁，lock和synchronized
+		锁是用来控制多个线程访问共享资源的方式，
+		*****用锁来访问协调对象，每次访问都需要同一个锁，这里强调并发针对同一把锁的控制*****
+		Reentrantlock相对于内部锁的使用条件：1.可定时，可轮询，可中断的锁获取 	2.公平锁，3.非块状结构锁   		一般建议使用内部锁，除非用这三个特点
+		***相比原生的锁，有点是超时，可中断，尝试非阻塞获取锁trylock，***
+		在Java中，synchronized就不是可中断锁(一个线程获取锁之后，其他锁只能等待那个线程释放之后才能有获取锁的机会)，而Lock是可中断锁	
+
+
+		
+		synchronized
+			synchronized()
+			1.在方法声明时使用，锁整个方法			等同于synchronized(this),默认锁当前对象
+			2.在代码块处使用，锁固定代码块
+			
+			synchronized是互斥锁
+			线程在执行synchronized代码块之前获得锁，正常控制路径退出，异常抛出，都会在放弃代码块控制时释自动放锁
+			当一个线程试图访问同步代码块时，它首先必须得到锁，退出或抛出异常时必须释放锁
+	
+			
+		lock,Reentrantlock
+			lock锁  常用Reetrantlock操作，一定要在finally中释放锁，不能忘
+			无条件、可轮询、可定时、可中断，lock的操作都是显式的，
+			
+			ReentrantLock的读写锁
+			ReentrantReadWriteLock 是 ReadWriteLock 的实现类，readLock() 和 writeLock() 用来获取读锁和写锁。
+			注意这里占用读写锁，使用的是同一个ReentrantReadWriteLock锁对象中的读写锁。
+			使用读写锁提升读操作的并发性，也保证每次写操作对所有的读写操作的可见性
+			ReentrantReadWriteLock.readLock(); 			//获取读锁
+			ReentrantReadWriteLock.writeLock();			//获取写锁
+			
+			场景：
+				使用单一ReentrantLock保证了线程安全，但是浪费了一定资源(多个读操作并行，无线程安全问题)，但是写操作不是线程安全的(多个线程同时写，或写的同时进行读操作)
+				然后引出读写锁就解决了这样的问题，可以保证多读高效，和写入线程安全
+				写锁(可以读数据又可以修改数据);读锁(只能读，可被多个线程同时拥有)
+
+			规则
+				Thread A占用了读锁，其他线程申请读锁，成功。
+				Thread A占用了读锁，其他线程申请写锁，则申请写锁的线程会一直等待释放读锁，因为读写不能同时操作。
+				Thread A占用了写锁，其他线程申请写锁或者读锁，会阻塞，需等待Thread A释放写锁，同样也因为读写不能同时，并且两个线程不应该同时写。
+				总结：	要么是一个或多个线程同时有读锁，要么是一个线程有写锁，但是读写不会同时出现。
+						也可以总结为：读读共享、其他都互斥（写写互斥、读写互斥、写读互斥）。	
+		
+			
+			ReentrantLock提供的获取锁的方式
+				1.lock()
+					不可中断，如果获取不到则一直休眠等待	
+					lock方法不能被中断。如果一个线程在等待获得一个锁时被中断，中断线程在获得锁之前会一直处于阻塞状态。如果出现死锁，那么lock方法就无法被终止。
+				2.tryLock() 	
+					用来尝试获取锁，如果获取成功，则返回true
+				3.tryLock(long timeout, TimeUnit unit)		会监测中断事件，定时获取，配合while可以轮询获取。
+					当获取锁时，锁资源在超时时间之内变为可用，并且在等待时没有被中断，那么当前线程成功获取锁，返回true，同时当前线程持有锁的count设置为1.
+					当获取锁时，在超时等待时间之内，被中断了，那么抛出InterruptedException，不再继续等待.
+					使用trylock实现可轮询和可定时，这个方法无论如何都会立即返回。在拿不到锁时不会一直在那等待。
+					
+				4.lockInterruptibly()						直到获取成功或者被中断为止
+					当获取锁时，锁资源不可用，那么该线程开始阻塞休眠等待，但是等待过程中如果有中断事件，那么会停止等待，立即返回.
+					线程A执行获得锁占用5秒，同时线程B执行lockInterruptibly()，这时候
+					A和B  	都start()
+					A中lock()  						//占用5秒
+					B中lockInterruptibly()			//等待中
+					主线程中B随后调用interrupt()	//这时候lockInterruptibly()发现有中断操作就直接终止等待锁了。	
+					
+					就是说等待的过程中可以被中断，如果中断发生，就会停止等待，立刻返回    	用的不多暂时不用
+					如果当前线程未被中断则获得锁,如果当前线程被中断则出现异常
+
+			锁降级是指把持住（当前拥有的）写锁，再获取到 读锁，随后释放（先前拥有的）写锁的过程
+			Condition对象是由Lock对象（调用Lock对象的newCondition()方法）创建出来的，暂时没看到用处，后面用到再说。		
+					
+					
+			减小锁的竞争
+				1.减少锁持有时间(减小锁范围)，2.减小请求锁的频率 3.协调机制取代独占锁
+			
+			sleep和wait
+				sleep()调用，没有释放锁,未让出系统资源。使得线程仍然可以同步控制。自动唤醒(interrupt方法强行打断,唤醒)。
+				wait(),是进入线程等待池中等待，让出系统资源。需要线程调用 notify / notifyAll 方法唤醒(并不立刻释放锁，执行完锁代码块才释放)，才会进入就绪队列中等待系统分配资源,重新参与获得锁的竞争
+
+			
+		可重入锁，
+			可重入就是说某个线程已经获得某个锁(并且该锁尚未释放)，可以再次获取锁而不会出现死锁。
+			重入是基于每线程而言，而不是每调用
+			实现原理是为每个锁关联一个计数器和占有的线程，初始为0。jvm会记录锁的占有者和计数器
+			synchronized和ReentrantLock都是可重入锁，ReentrantLock的时候一定要手动释放锁，并且加锁次数和释放次数要一致。
+			就是一个方法里，外层方法占用了锁，但是里面还有方法要获得锁，如果不是重入锁，程序无法继续运行，陷入死锁，是重入锁就继续执行。
+	
+		闭锁
+			是一种同步工具类，可以延迟线程的进度直到其到达终止状态。闭锁可以用来确保某些活动直到其他活动都完成后才继续执行。CountDownLatch是一种灵活的闭锁实现，它可以使一个或者多个线程等待一组事件发生
+	
+		自旋锁(spin lock)
+			是一种非阻塞锁，也就是说，如果某线程需要获取锁，但该锁已经被其他线程占用时，该线程不会被挂起，而是在不断的消耗CPU的时间，不停的试图获取锁(一般使用闭锁或者条件等待等待状态转换)
+			jvm既能自旋等待(不断尝试获取，直到成功)，也可以挂起，
+			一般搭配while使用(while获取会浪费资源，使用通知推送机制，会更加的高效点)
+			自旋CAS实现的基本 思路就是循环进行CAS操作直到成功为止。一般限制是超时或者重试次数
+
+		公平锁
+			如果在绝对时间上，先对锁进行获取的请求一定先被满足，那么这个锁是公平的，
+			锁获取是顺序的。等待时间最长的线 程最优先获取锁
+			公平锁能够减少“饥饿”发生的概率，等待越久的请求越是能够得到优先满足
+			
+	
+		
+	
+	
+	多线程安全的思路
+			1.不要跨线程共享变量		线程副本
+			2.使状态变量为不可变		final
+			3.访问状态变量使用同步		同步锁
+	
+	
+	Threadlocal	
+		
+		使用场景(在实际使用中，容器把一个事务上下文和一个可执行的线程关联起来。)
+			利用静态Threadlocal持有事务上下文，当框架需要使用当前线程所在的上下文中的事务中相关信息时，可以从threadlocal中获取事务上下文中信息，而不用从前到后显式传递，类似系统中的op-gateway那边。
+			降低了方法执行链上的过多参数传递，隐藏方法参数。
+		线程变量会引入晦涩的类间耦合，像全局变量和创建一种将方法的参数隐藏起来的方法，不要过多使用
+		threadLocal一般都是声明在静态变量中，如果不断的创造threadLocal而没有调用remove方法，会导致内存泄漏
+	
+	
+	常见的原子变量类  内部也是用了CAS比较交换原理处理的
+		i++操作不是原子操作，经历了3个操作，获取变量当前值，为该值加一，写回更新值
+		atomicInteger,atomicLong，atomicBoolean等
+		核心的方法是compareAndSet,用来比较交换
+		原子类的几种，1基本类型 2数组 3引用类型等,
+	
+	
+	
+	其他杂知识
+		fork/join 并行执行框架，将大任务分成小任务，然后将各小任务结果汇总成大任务结果。暂时用的不多，暂不考虑
+		
+		nginx可以配置单ip的访问限制。通过域名解析，建立很多子域名，不同业务模块由域名分发到不同的nginx服务器上
+		tomcat 可创建的最大线程数默认是200
+	
+		队列相关用的比较少，延迟队列delayqueue用的也不多，因为有了job的存在
+		DelayQueue<Worker> queue = new DelayQueue<Worker>();  其中Worker实现了delay接口，实现了compareTo(决定排序)和getDelay(决定是否到期出队)方法
+		配合while(true){queue.take()}，取出到时的对象。添加对象是queue.offer()
+		
+		线程thread中的属性priority优先级，是切换时优先考虑的因素，一般不要去修改线程的优先级，将程序行为和平台隔离开
+		
+		final不可变
+			对象不可变和到对象的引用不可变不是一回事
+			程序存储在不可变对象中的状态，仍然可以通过替换一个带有新状态的不可变对象的实例得到更新。
+		
+			去掉set方法，使用private，使用final
+			Integer和Long等基本类型的包装类也是final类型的
+			final类不嫩被继承
+			final方法，实例方法为final，子类无法覆盖该方法；若申明的是final是类方法，则子类无法隐藏
+			final字段，只赋值一次
+			
+		Thread类本身实现了Runnable接口，子类继承Thread后覆盖run()方法即可
+		
+		线程中suspend()、resume()和stop()都是过期的方法，不要使用
+
+		资源限制
+			硬件资源，带宽，硬盘，cpu资源影响着程序的上限。
+			硬件，机器，id对机器数取模,集群分发，软件使用资源池复用
+	
+		ReentrantLock的实现依赖于Java同步器框架AbstractQueuedSynchronizer（本文简称之为 AQS）。
+		AbstractQueuedSynchronized（AQS）
+			抽象的队列式的同步器，定义了一套多线程访问共享资源的同步器框架
+			它提供通用机制来原子性管理同步状态、阻塞和唤醒线程，以及维护被阻塞线程的队列
+			许多同步类实现都依赖于它，如常用的ReentrantLock/Semaphore/CountDownLatch
+			
+		阻塞队列
+			是一个支持两个附加操作的队列。这两个附加的操作支持阻塞 的插入和移除方法
+			1）支持阻塞的插入方法：意思是当队列满时，队列会阻塞插入元素的线程，直到队列不满。
+			2）支持阻塞的移除方法：意思是在队列为空时，获取元素的线程会等待队列变为非空。 
+			阻塞队列常用于生产者和消费者的场景，生产者是向队列里添加元素的线程，消费者是从队列里取元素的线程。
+	
+	
 	
 144.io相关
 	java.io操作类主要有4种(前两种属于数据格式，后两种属于传输方式)
@@ -6408,7 +7189,7 @@ InputStream is = item.getInputStream();
 			占用内存大、数据更新不能及时反馈、不用频繁查询数据库
 
 		2.物理分页,直接通过SQL进行在数据库中直接分页,得到的数据就是我们想要分页之后的数据,就是物理分页;其实是依赖物理数据库实体。limit直接数据库查出需要的数据
-			每次查询数据库，使用limit
+			每次查询数据库，使用limit，需要计算总数、页数、当前页。
 			占用内存小、数据更新及时反馈、频繁查询数据库
 			
 			1.mybatis自带的分页RowBounds;
