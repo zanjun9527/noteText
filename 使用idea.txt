@@ -346,7 +346,6 @@ elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 
 
 
-
 ==================markdown记录相关(vsc)===========================
 		特殊的字符\转义
 		一个tab键 貌似也是段落高亮
@@ -355,7 +354,7 @@ elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 		
 		文本缩进一般是一个tab
 		
-		常用插件 	Markdown Preview Enhanced 
+		常用插件 	Markdown Preview Enhanced 	md文件预览插件
 		标题	# 后面要保持空格					常规文本
 		换行	两个空格之后回车  这个有点不一样
 		
@@ -368,8 +367,11 @@ elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 
 		区域高亮：	单纯使用单个`,是语句高亮
 		
-					```java(这里还识别语法)
+		代码块:			```java(这里还识别语法)     顶格写```
 					 内容区(这是段落高亮)
 					```
 		水平分割线: *** 或者 - - -(连起来会加粗)
+
+		Markdown TOC	用来生成目录用
+		
 

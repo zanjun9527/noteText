@@ -80,7 +80,6 @@
 			Bean实现InitializingBean 接口，在 afterPropertiesSet 中做初始化工作
 		***
 		XML 中使用 init-method 指定 Bean 构造完成后调用的方法
-
 		***
 			销毁对应
 				1.@PreDestroy注释，注释回调方法上，销毁Bean之前调用；
@@ -353,7 +352,10 @@
 			主要是看是否受Class<T>的影响
 			要么自定义<T> T，要么跟着类的<E>走。必须要有泛型说明(1.自定义，2.跟类走)。
 		
-		
+			<T> T表示返回值是一个泛型，传递啥，就返回啥类型的数据，
+			而单独的T就是表示限制你传递的参数类型(用于共同操作一个类对象，就是说单独T 已经在类上限制了)，
+			单独的T 代表一个类型 ，而 Class<T>代表这个类型所对应的类， Class<？>表示类型不确定的类
+	
 		
 			/** 有的方法返回值为 <T> T ，有的方法返回值为 T ,区别在那里 ？ */
 			public class Request<E> {
@@ -469,6 +471,13 @@
 	运用：生产上dubbo server可以用这种方式部署。
 	搭配boot的时候：new SpringApplicationBuilder(XyeServiceCoreApplication.class).web(false).run(args);要以非web方式进行
 
+	//boot 2.3.2
+	public static void main(String[] args) {
+		new SpringApplicationBuilder(XyeServiceCoreApplication.class).web(WebApplicationType.NONE).run(args);
+		Main.main(args);
+	}
+	
+	
 
 	在使用spring-dubbo.xml中，service实现类 注入dubbo服务后，才会去读取配置的zookeeper地址
 	
@@ -1788,7 +1797,7 @@
 	Spring-session 技术是解决同域名下的多服务器集群 session 共享问题的，不能解决跨域 Session 共享问题
 	在使用spring session过程中，发现spring session 往客户端写sessionID的策略要么是cookies要么是header。
 	其实在开发中实际上有时候既要支持cookies，也要支持header方式，比如在PC端，
-	一般是使用cookies，这样可以实现单点登录（不过还是没有解决跨域，要跨域只能用cas单点登录方案），
+	一般是使用cookies，这样可以实现单点登录（不过还是没有解决跨域，要跨域只能用cas单点登录方案，本质还是公用sessionid），
 	手机app的话，不支持cookies，只能使用header，服务器响应请求的时候，往header里面写sessionId。
 	
 	cookie编码，sessionId的base64编码  boot中web工程设置cookie相关。
@@ -2079,8 +2088,11 @@
 				zookeeper中的数据是按照“树”结构进行存储的
 				zookeeper=文件系统+监听通知机制。
 
+				本身是一个树型的目录服务，支持变更推送，适合做注册中心	
+					
 				zookeeper通常有2n+1台server组成。用作投票机制
-
+				
+				2.2.0版本改为基于zkclient实现，需增加zkclient的依赖包，2.3.0版本增加了基于curator的实现，作为可选实现策略
 				主要的开源框架	两款开源框架ZKClient和Curator。可以用来操作zookeeper
 				
 				ZooKeeper目录树中每一个节点对应一个Znode。每个Znode维护着一个属性结构，它包含着版本号(dataVersion)，时间戳(ctime,mtime)等状态信息。
@@ -2359,7 +2371,14 @@
 			解密过程
 				中信返回结果信息，接收方解密验签，使用了中信公钥证书.cer，这个和之前加密流程是相对应的，双方都需要报备证书.cer。		
 				
-				
+		快钱证书
+			自己生成   
+				公钥证书cer，用于传给对方验签用，本地加签，对方验签
+				私钥证书pfx，用于本地加签使用，有密码和别名要对应
+				这两个是成对使用的。
+
+			快钱提供公钥证书
+				从快钱网站后台下载的公钥证书cer，到本地，用来验签使用。 是快钱提供的.快钱加签，本地验签。
 		
 38.浏览器敲get  对应的sessionid放哪里了
 	第一次访问服务器，浏览器会带回一个sessionid，
@@ -2487,6 +2506,359 @@
 	jenkins插件配置使用的是jenkins的maven_setting.xml文件，
 	pipeline使用了sh脚本。sh 'mvn clean install -P sit -Dmaven.test.skip=true -Dmaven.javadoc.skip=true'   这里使用的系统默认的setting.xml,有点不一样。
 
+	
+	https://www.jenkins.io/zh/doc/book/pipeline/jenkinsfile/   jenkins文档
+	
+	
+	问题，jenkins中maven编译找不到pom.xml
+		but there is no POM in this directory (/home/release/.jenkins/jobs/sit-xye-pay-quartz-pipeline/workspace)
+		maven命令	sh 'mvn -f xye-pay-quartz/pom.xml clean install -P sit -Dmaven.test.skip=true -Dmaven.javadoc.skip=true' 
+		原因：在git代码pull下来的第一层就需要有pom.xml(默认找第一层目录下的pom.xml)，否则需要使用 -f 指定pom.xml的位置。
+		
+	Jenkins Pipeline，ansible
+
+	
+	备份一个ansible发布的yml脚本
+		*docker发布版
+		- name: pay-quartz  main.yml
+		  shell: echo "pay-quartz deploy start..."
+		- name: stop docker container 6.154
+		  shell: docker stop docker_pay-quartz_tomcat
+		  register: result
+		  ignore_errors: True
+		- debug:
+		  var:  result
+		- name: wait for the container stop
+		  pause: seconds=5
+		- name: remove docker container
+		  shell: docker rm -f docker_pay-quartz_tomcat 2>&1
+		- name: delete old code
+		  file: path=/usr/local/webapps/xye-pay-quartz state=absent
+		- name: mkdir ids
+		  shell: mkdir -p /data/apps/xye-pay-quartz > /dev/null 2>&1
+		- name : copy file
+		  copy: src=/home/release/.jenkins/jobs/sit-xye-pay-quartz-pipeline/workspace/xye-pay-quartz/target/xye-pay-quartz.war dest=/data/apps/xye-pay-quartz force=yes backup=yes
+		- name: unzip project war
+		  shell: unzip /data/apps/xye-pay-quartz/xye-pay-quartz.war -d /usr/local/webapps/xye-pay-quartz
+		- name: run docker
+		  shell: docker run -itd -h "docker_pay-quartz_tomcat" --add-host docker_pay-quartz_tomcat:192.168.6.154 --net=none  -v /usr/local/webapps/xye-pay-quartz:/usr/local/tomcat/webapps/xye-pay-quartz -v /usr/local/logs/xye-pay-quartz:/usr/local/tomcat/logs  -v /etc/localtime:/etc/localtime  --name docker_pay-quartz_tomcat  192.168.6.138:5000/sit_pay-quartz_tomcat:v1;sudo /usr/local/bin/pipework br0 docker_pay-quartz_tomcat 192.168.6.154/24@192.168.6.1
+		- name: check tomcat start
+		  wait_for: host=192.168.6.154  port=8080 delay=10 state=present
+		- name: container 6.154 ok
+		  shell: echo 'pay-quartz deploy over'
+		
+		*普通发布版
+		- name: shutdown tomcat
+		  shell: /usr/bin/nohup /usr/local/tomcat/bin/shutdown.sh >/dev/null 2>&1 &
+		- name: check tomcat is closed
+		  wait_for: port=8080 delay=5 state=absent
+		- name: delete old .war
+		  file: path=/usr/local/tomcat/webapps/xye-pay-quartz.war state=absent
+		- name: scp new .war
+		  copy: src=/home/release/.jenkins/jobs/sit-xye-pay-quartz-pipeline/workspace/xye-pay-quartz/target/xye-pay-quartz.war dest=/data/apps/ force=yes backup=yes
+		- name: delete old code
+		  file: path=/usr/local/tomcat/webapps/xye-pay-quartz state=absent
+		- name: unzip project war
+		  shell: unzip /data/apps/xye-pay-quartz.war -d /usr/local/tomcat/webapps/xye-pay-quartz
+		- name: startup tomcat
+		  shell: /usr/bin/nohup /usr/local/tomcat/bin/startup.sh >/dev/null 2>&1 &
+		- name: check tomcat is started
+		  wait_for: port=8080 delay=10 state=present
+		- name: wait for the service to start successfully
+		  pause: seconds=10
+		  
+		  
+		*java  jar包运行启动
+			#!/bin/bash
+			#这里可替换为你自己的执行程序，其他代码无需更改
+			APP_NAME=e-manager-pay.jar
+			SERVICE_DIR=/usr/local/java_project/bin
+			JAR_HOME_DIR=/usr/local/java_project/webapps/
+
+			cd $SERVICE_DIR 
+
+			#使用说明，用来提示输入参数
+			usage() {
+				echo "Usage: sh java_project.sh [start|stop|restart|status]"
+				exit 1
+			}
+			 
+			#检查程序是否在运行
+			is_exist() { 
+				pid=`ps -ef | grep $APP_NAME | grep -v grep | awk '{print $2}'`
+				#如果不存在返回1，存在返回0
+				if [ -z "${pid}" ]; then
+				  return 1
+				else
+				  return 0
+				fi
+			}
+			 
+			#启动方法
+			start() {
+			   is_exist
+			   if [ $? -eq "0" ]; then
+				 echo "${APP_NAME} is already running. pid=${pid} ."
+			   else
+				 echo -n "Starting ${APP_NAME}: "
+				 echo 
+				 nohup java -Xms512m -Xmx512m -XX:PermSize=256M -XX:MaxPermSize=256M -jar $JAR_HOME_DIR$APP_NAME > /dev/null 2>&1 &
+			   fi
+			}
+			 
+			#停止方法
+			stop() {
+			   is_exist
+			   if [ $? -eq "0" ]; then
+				 echo -n "Killing ${APP_NAME}: "
+				 echo 
+			#     kill -9 $pid
+				 kill $pid
+				 sleep 10
+				 PID=`ps  -ef | grep $APP_NAME | grep -v grep | awk '{print $2}'`
+			#     if ["$pid" == ""];then
+			#     if [ -z "${pid}" ];then
+				 if [ ! ${PID} ]; then
+				   echo "=== Kill successfully "
+				 else
+				   echo "===== Kill fail and try to kill -9"
+				   echo "====  the pid is  $PID"
+				   kill -9 $PID
+				 fi
+			   else
+				 echo "${APP_NAME} is not running"
+			   fi
+			}
+			 
+			#输出运行状态
+			status() {
+			   is_exist
+			   if [ $? -eq "0" ]; then
+				 echo "${APP_NAME} is running. Pid is ${pid}"
+			   else
+				 echo "${APP_NAME} is not running."
+			   fi
+			}
+			 
+			#重启
+			restart() {
+			   stop
+			   start
+			}
+			 
+			#根据输入参数，选择执行对应方法，不输入则执行使用说明
+			case "$1" in
+			   "start")
+				 start
+				 ;;
+			   "stop")
+				 stop
+				 ;;
+			   "status")
+				 status
+				 ;;
+			   "restart")
+				 restart
+				 ;;
+			   *)
+				 usage
+				 ;;
+			esac
+		
+		Pipeline
+		Pipeline是Jenkins2.X的最核心的特性，运行于Jenkins上的工作流框架，将原本独立运行于单个或者多个节点的任务连接起来，实现单个任务难以完成的复杂流程编排与可视化。
+			这里的就是将多个分散的配置任务，通过脚本的方式集中到一起，更加可视化。集中管理
+		Stage：阶段，一个Pipeline可以划分成若干个Stage，每个Stage代表一组操作,Stage是一个逻辑分组的概念，可以跨多个Node
+		Node：节点，一个Node就是一个Jenkins节点，是执行Step的具体运行环境
+		Step：步骤，Step是最基本的操作单元，小到创建一个目录，大到构建一个Docker镜像，由各类Jenklins Plugin提供
+		Jenlins Pipeline的基础语法
+			Pipeline脚本是由Groovy语言实现（无需专门学习）
+
+			支持两种语法
+			Declarative 声明式（在Pipeline plugin 2.5中引入）
+			Scripted Pipeline 脚本式(推荐)
+		
+			声明式：
+				Jenkinsfile (Declarative Pipeline)
+				pipeline {
+					agent any 
+					stages {
+						stage('Build') { 
+							steps {
+								// 
+							}
+						}
+						stage('Deploy') { 
+							steps {
+								// 
+							}
+						}
+					}
+				}
+			
+			脚本式
+				Jenkinsfile (Scripted Pipeline)
+				node {  
+					stage('Build') { 
+						// 
+					}
+					stage('Deploy') { 
+						// 
+					}
+				}
+				
+			特点：stages 必须，包括顺序执行的一个或多个stage命令，在pipeline内仅能使用一次，通常位于agent/options后面
+				  steps 必须，steps位于stage指令块内部，包括一个或多个step。仅有一个step的情况下可以忽略关键字step及其{}	
+		
+		在jenkins中选择构建流水线的项目，然后参数化构建过程中选择git parameter中配置参数，然后脚本中替换分支为${branch}，这里第一次取得是配置，后面就是取的实际git分支了，这样可以灵活切换发布分支，不用固定在脚本中，每次更改配置。
+		流水线语法用流水线语法模板生成即可
+		
+		*ansible发布脚本 pipeline script
+			timeout(time: 600, unit: 'SECONDS') {
+				node {
+					stage('清理workspace') {
+						cleanWs()
+					}
+					stage('获取代码') {
+						checkout([$class: 'GitSCM', branches: [[name: '${Branch}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'e8e810d3-32f0-45b1-8a3e-0b1d975f1d46', url: 'git@gitlab.xiaoyuer.net:xye_pay/xye-pay-quartz.git']]])
+					}
+
+					stage('打包') {
+						sh 'mvn clean install -P sit -Dmaven.test.skip=true -Dmaven.javadoc.skip=true' 
+					}
+					 stage('发布') {
+						sh "/usr/bin/ansible-playbook /etc/ansible/roles/publish/sit/tomcat/docker_xye-pay-quartz/tomcat_xye-pay-quartz.yml -f 5"
+					}
+					   
+				}
+			}
+		
+		ansible-playbook
+		命令运行格式：ansible-playbook <filename.yml> ... [options]
+					  ansible-playbook playbook.yml -f 10
+		
+		playbooks 是一种简单的配置管理系统与多机器部署系统的基础.与现有的其他系统有不同之处,且非常适合于复杂应用的部署，用来进行多机器的部署
+		
+		https://blog.csdn.net/Doudou_Mylove/article/details/90520836    相关role的介绍
+		https://www.cnblogs.com/robertx/p/10840769.html
+		https://www.cnblogs.com/yanjieli/p/10969299.html
+		https://www.cnblogs.com/hanshanxiaoheshang/p/10206380.html
+		https://www.jenkins.io/zh/doc/									jenkins文档
+		roles(角色)思想就是把在一个playbook里不同的内容分门别类分别放到不同的目录下进行组织，便于更清晰的管理
+		roles能够根据层次型结构自动装载变量文件、tasks以及handlers等
+		
+		创建role的步骤
+			1.创建以roles命名的目录
+			2.在roles目录中分别创建以各角色名称命名的目录，如httpd等
+			3.在每个角色命名的目录中分别创建files、handlers、meta、tasks、templates和vars目录；用不到的目录可以创建为空目录，也可以不创建。其中tasks是必要的目录
+			4.在playbook文件中，调用个角色
+
+			步骤，1.执行脚本，sh "/usr/bin/ansible-playbook /etc/ansible/roles/publish/sit/java/docker_jar_emanagerpay/emanagerpay.yml -f 5"	
+				  2.具体脚本
+					- name: java service
+					  remote_user: sit_yunwei
+					  hosts: 192.168.6.32
+					  roles:
+						- publish/sit/java/jar_emanagerpay       #这里就是指定roles下的一个功能，指定功能的平级目录，会加载(files、handlers、meta、tasks、templates和vars这几个目录的内容)，task中的脚本是执行核心
+						
+
+		目录/etc/ansible中，配置了ansible中需要使用到的配置，和hosts文件，还有roles目录
+		
+		其中的- 更像是一个列表的结构
+		
+		在一个 play 之中,所有 hosts 会获取相同的任务指令,这是 play 的一个目的所在,也就是将一组选出的 hosts 映射到 task.
+		Roles 基于一个已知的文件结构，去自动的加载某些 vars_files，tasks 以及 handlers。基于 roles 对内容进行分组，使得我们可以容易地与其他用户分享 roles 。
+		Handlers 最佳的应用场景是用来重启服务,或者触发系统重启操作.除此以外很少用到了. 相对来说用task多点
+		定义在task上的用户优先级最高，一个play中可以定义多个task任务。
+		
+		task中的格式
+			推荐使用更常见的格式:”module: options” ,本文档使用的就是这种格式.
+			下面是一种基本的 task 的定义,service moudle 使用 key=value 格式的参数,这也是大多数 module 使用的参数格式:
+
+			tasks:
+			  - name: make sure apache is running
+				service: name=httpd state=running
+			
+		比较特别的两个 modudle 是 command 和 shell ,它们不使用 key=value 格式的参数,而是这样:
+		tasks:
+		  - name: disable selinux
+			command: /sbin/setenforce 0
+		使用 command module 和 shell module 时,我们需要关心返回码信息,如果有一条命令,它的成功执行的返回码不是0, 你或许希望这样做:
+
+		tasks:
+		  - name: run this command and ignore the result
+			shell: /usr/bin/somecommand || /bin/true
+	
+		
+		- name: check and scp new .jar
+		  copy: src=/home/release/.jenkins/jobs/pre-emanagerpay-jar-pipeline/workspace/target/e-manager-pay.jar dest=/usr/local/java_project/webapps/ force=yes backup=yes
+		  
+		  
+		实际的yml脚本中需要使用模块指令
+			  wait_for模块，等待一个事情发生，然后继续。
+					对象是端口的时候start状态会确保端口是打开的，stoped状态会确认端口是关闭的;
+					对象是文件的时候，present或者started会确认文件是存在的，而absent会确认文件是不存在的。
+					
+			  copy模块，主要用于将管理主机上的数据信息传送给多台主机
+			  
+			  pause模块，在playbook执行的过程中暂停一定时间或者提示用户进行某些操作
+					常用参数：minutes：暂停多少分钟，seconds：暂停多少秒，prompt：打印一串信息提示用户操作
+					
+			  fetch模块,目标主机上拉取文件到本机，则使用fetch模块。
+			  
+			  file模块,文件或文件夹的操作
+					path参数：必选项，定义文件/目录的路径
+					state参数：这个参数很灵活，不同的模块都会有state参数，模块不一样它的值也不一样，后面回结合实例说明state参数不同的值作用和它的作用。
+						touch：创建文件
+						absent：删除文件或目录
+						directory：创建目录
+						link：创建软链接。如果创建硬链接state的值就是hard
+					src参数：做软链接或硬链接的时候指定链接的源文件
+					
+			ansible register，当我们需要判断对执行了某个操作或者某个命令后，如何做相应的响应处理（执行其他 ansible 语句），则一般会用到register 。有点类似于shell 中的$?		
+					ignore_errors这个关键字很重要，一定要配合设置成True，否则如果命令执行不成功
+					register注册变量,ansible的模块在运行之后，其实都会返回一些”返回值”，我们可以把这些返回值写入到某个变量中，这样我们就能够通过引用对应的变量从而获取到这些返回值了，这种将模块的返回值写入到变量中的方法被称为”注册变量”，
+					
+			- name: check jar is closed
+			  wait_for: port=20886 delay=5 state=absent   					#wait_for模块，5秒后检查20886端口已经移除后继续
+			  
+			- name: shutdown jar
+			  shell: /usr/local/java_project/bin/java_project.sh stop		#执行普通的shell脚本
+			  
+			- name: wait on user input
+			   pause: prompt="Warning! Detected slight issue. ENTER to continue CTRL-C a to quit" 
+			   
+			- name: timed wait
+			  pause: seconds=30
+			 
+			- name: Retrieve SSH key from reference host
+			  fetch:
+				src: "/home/{{ user }}/.ssh/id_rsa.pub"
+				dest: "files/keys/{{ user }}.pub"
+
+			- name: Create a register to represent the status if the /dev/sda6 exsited
+			  shell: df -h | grep sda6
+			  register: dev_sda6_result
+			  ignore_errors: True
+			  tags: docker
+			 
+			- name: Copy docker-thinpool.sh to all hosts
+			  copy: src=docker-thinpool.sh dest=/usr/bin/docker-thinpool mode=0755
+			  when: dev_sda6_result | succeeded
+			  tags: docker
+			 
+			- name: test shell
+				shell: "echo test > /var/testshellfile"
+				register: testvar
+		    - name: shell module return values
+			  debug:
+			  var: testvar
+			  
+			  使用”register”关键字将当前shell任务的返回值写入了名为”testvar”的变量中，第二个任务使用debug模块输出了第一个任务中的注册变量的值，
+		
+		
+		
+	
 	多环境
 		sit环境真正执行的也就是打成war的不是resource下的，因为有webresouce在
 		以webresouce为优先覆盖，如果resource下有就会覆盖。resource有，webresource没有,resource中的这样也会打包到web-inf下，这样就解释通了，最好不要用webresouce，直接用resource即可
@@ -3266,7 +3638,7 @@ concurrentHashMap和HashMap相关
 	
 
 	
-64.linux 命令
+64.linux命令，linux相关
 		top查看系统的cpu
 		
 		执行当前文件夹下的文件是    ./version.sh
@@ -3278,7 +3650,12 @@ concurrentHashMap和HashMap相关
 		which   				查看系统命令是否存在，以及执行的到底是哪一个位置的命令。
 		whereis 				只能用于可执行文件的搜索，只能搜索二进制文件，说明文件，源代码文件。比which范围广
 		curl 					页面请求返回	
-
+		cat 					是一个文本文件查看和连接工具。查看一个文件的内容,cat后面直接接文件名。
+		cp						cp -r  递归复制，是相当于windows中的复制+粘贴，而mv相当于windows中的剪切+粘贴，也就是移动文件
+		mkdir -p ：递归创建目录，即使上级目录不存在，会按目录层级自动创建目录
+		vi和vim	   				都是Linux中的编辑器，不同的是vim比较高级，可以视为vi的升级版本。vi使用于文本编辑，但是vim更适用于coding。			
+								在vi编辑器中，按u只能撤消上次命令，而在vim里可以无限制的撤消。
+		
 		locale			
 
 		linux中的系统发布，优雅停机
@@ -3292,6 +3669,15 @@ concurrentHashMap和HashMap相关
 		切换更多是依赖的下层出现故障，需要手工切换。
 
 		linux权限，文件权限，用户权限
+			 chmod [-cfvR] [--help] [--version] mode file
+				mode : 权限设定字串，格式如下 : [ugoa...][[+-=][rwxX]...][,...]
+				--help : 显示辅助说明 
+				--version : 显示版本
+				-c : 若该档案权限确实已经更改，才显示其更改动作 
+				-f : 若该档案权限无法被更改也不要显示错误讯息 
+				-v : 显示权限变更的详细资料 
+				-R : 对目前目录下的所有档案与子目录进行相同的权限变更(即以递回的方式逐个变更) 
+		
 			Linux的文件基本上分为三个属性：可读（r），可写（w），可执行（x）。
 			类型后面紧接着的3*3个字符分3组，各指示此文件的读、写、执行权限，对于owner、group、others而言
 
@@ -3334,6 +3720,99 @@ concurrentHashMap和HashMap相关
 			
 			groups 查看当前用户所属组
 			chmod +rwx file	给file的所有用户增加读写执行权限     	不写用户就默认所有
+			
+			
+			setfacl命令可以用来细分linux下的文件权限。
+			chmod命令可以把文件权限分为u,g,o三个组，而setfacl可以对每一个文件或目录设置更精确的文件权限。 比较常用的用法如下：
+			setfacl –m u:apache:rwx  file 设置apache用户对file文件的rwx权限 
+			setfacl –m g:market:rwx  file  设置market用户组对file文件的rwx权限 
+			setfacl –x g:market file   删除market组对file文件的所有权限 
+			getfacl  file  查看file文件的权限
+						
+			setfacl -R -m  g:kaifa:r-x /usr/local/logs   // 赋权给 kaifa 查看日志   -R 递归目录    g: 用户组  u:用户    // 注意给文件w权限时须要给上级文件夹w权限，否则文件有w权限也无法写删
+			getfacl  /usr/local/logs     // 查看目录权限 
+			
+	
+	安装虚拟机
+		CentOS 7提供了三种ISO镜像文件：
+			DVD ISO 标准安装版，桌面版
+			Everything ISO 标准安装版的补充，增加了大量的应用软件
+			Minimal ISO 精简版，自带的应用软件最少，生产环境推荐使用			#额 精简版啥都没有，好多需要自己装，只有最小安装(基本功能)
+			
+		centos7			
+		安装虚拟机 https://www.bilibili.com/read/cv7593000
+		安装jdk，1.手动安装（下载.tar.gz） 2.yum安装(下载rpm包)
+		
+		service命令的功能基本都被systemct取代。直接使用systemctl命令即可
+		systemctl命令是系统服务管理器指令，它实际上将 service 和 chkconfig 这两个命令组合到一起。
+		systemctl是RHEL 7 的服务管理工具中主要的工具，它融合之前service和chkconfig的功能于一体。可以使用它永久性或只在当前会话中启用/禁用服务。
+		
+		解决CentOS安装VM Tools出现在客户机中装载CD驱动器启动终端，使用tar解压缩安装程序，然后执行vmware-insall.pl安装VMware Tools的问题
+			1.进入文件界面，找到左侧“设备”下面的名为“VM Tools“ 的驱动器，进入该CD驱动器中，找到文件名末尾为.tar.gz的文件。
+			2.将末尾为.tar.gz的文件拷贝到其他任意的文件夹，我直接拷贝到了桌面上，然后将该文件解压，解压方法有两种，随便选下面中的一种：
+			3.直接右键点击该文件，选择“提取到此处”选项。
+			4.进入命令行界面，使用tar 指令解压，解压后文件名为vmware-tools-distrib。
+			5.进入命令行界面，cd到vmware-tools-distrib或者直接在文件夹处打开终端；然后输入指令： sudo ./vmware-install.pl；
+			6.之后输入密码就可以下载VMware Tools了。下载中会出现很多询问的问题，只需要不断按回车以选择默认值即可。
+			7.安装完成后的界面如下图所示，出现了红圈中的enjoy字样，就说明安装成功   Enjoy, --the VMware team
+		
+		
+			centos7 安装jdk
+				/usr/java 下不能直接复制，要从其他文件中copy过去
+				1.删除自带的openjdk
+					rpm -qa|grep java			查出列表
+					rpm -e --nodeps xxx			依次卸载所有跟openjdk相关的包
+					
+				2.安装jdk即可，随便是手动解压还是rpm安装
+					vi /etc/profile  最下方添加环境变量，保存退出。
+					有时需要让 profile 起作用，需要执行 source /etc/profile命令生效
+					
+					export JAVA_HOME=/usr/java/jdk1.8.0_291-amd64
+					export JAVA_BIN=/usr/java/jdk1.8.0_291-amd64/bin
+					export PATH=$PATH:$JAVA_HOME/bin
+					export CLASSPATH=:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+					export JAVA_HOME JAVA_BIN PATH CLASSPATH
+					
+				3.java -version 检查版本
+
+			服务使用方法
+				gpm 是linux中的光标复制功能
+			启动gpm服务：
+			service gpm start
+
+			运行systemctl enable gpm.servicere 添加到后台服务。
+			
+			systemctl start [服务文件名]
+			systemctl restart [服务文件名]
+			systemctl stop [服务文件名]
+			systemctl status [服务文件名]
+			
+			设置开机启动
+			systemctl enable [服务文件名]
+			systemctl disable [服务文件名]			
+			
+			
+			systemctl命令兼容了service，替代service和chkconfig两个命令。
+			**centos7后都是用systemctl命令**
+			systemctl start docker.service
+			systemctl stop docker.service
+			服务名不带后缀默认就是.service单元，其他的单元比如.mount .sockets .device .target都必须指定类型
+			
+			Yum是rpm的前端程序，主要目的是设计用来自动解决rpm的依赖关系，建议使用yum 安装rpm包
+			rpm 只能安装已经下载到本地机器上的rpm 包. yum能在线下载并安装rpm包,能更新系统,且还能自动处理包与包之间的依赖问题,这个是rpm 工具所不具备的		
+			yum与rpm的区别：rpm适用于所有环境，而yum要搭建本地yum源才可以使用！yum是上层管理工具，自动解决依赖性，而rpm是底层管理工具。yum 基于 rpm，增加了自动解决依赖关系的方案	
+			yum [options] [command] [package …]
+			[options] 选项包括-h（帮助），-y（当安装过程提示选择全部为"yes"），-q（不显示安装的过程）
+			
+	linux网络配置
+		默认使用nat连接，主机ping不同虚拟机是因为，v8虚拟网卡没有开启，
+		虚拟机需要开放防火墙中的端口，才能对外提供访问，centos7需要yum install iptables-services后才能重启防火墙
+			vi /etc/sysconfig/iptables
+			systemctl restart iptables
+			
+		如果发现虚拟机的网卡没有ip地址，/etc/sysconfig/network-scripts/ifcfg-eth0(确认ONBOOT=yes),其中eth0是设备名，实际可能不一样
+		ONBOOT是指明在系统启动时是否激活网卡，只有在激活状态的网卡才能去连接网络，进行网络通讯	
+			
 			
 	linux和windows文件传输
 		1.使用winscp工具
@@ -3389,6 +3868,33 @@ concurrentHashMap和HashMap相关
 			result=$[a+b] # 注意等号两边不能有空格
 			echo "result 为： $result"
 				
+			echo -n 不换行输出	
+			
+			
+			nohup(no hang up,不挂起)，用于在系统后台不挂断地运行命令，退出终端不会影响程序的运行。
+				nohup 命令，在默认情况下(非重定向时)，会输出一个名叫 nohup.out 的文件到当前目录下，如果当前目录的 nohup.out文件不可写，输出重定向到 $HOME/nohup.out 文件中。
+				语法格式： nohup Command [ Arg … ] [　& ]
+				
+				在后台执行 root 目录下的 runoob.sh 脚本，并重定向输入到 runoob.log 文件
+					nohup /root/runoob.sh > runoob.log 2>&1 &
+					
+					如果是 > /dev/null 2>&1 &   
+						> 代表重定向到哪里
+						/dev/null 代表空设备文件，也就是不输出任何信息到终端，说白了就是不显示任何信息
+						& 表示等同于的意思，2>&1，表示2的输出重定向等同于1
+						标准错误输出重定向等同于标准输出，输出到同一文件中
+
+					2>&1 解释：
+					将标准错误 2 重定向到标准输出 &1 ，标准输出 &1 再被重定向输入到 runoob.log 文件中。
+					0 – stdin(standard input，标准输入)
+					1 – stdout(standard output，标准输出)，">/dev/null"等同于"1>/dev/null",默认是1
+					2 – stderr(standard error，标准错误输出)
+					
+					JAR_HOME_DIR=/usr/local/java_project/webapps/
+					APP_NAME=e-manager-pay.jar
+					nohup java -Xms512m -Xmx512m -XX:PermSize=256M -XX:MaxPermSize=256M -jar $JAR_HOME_DIR$APP_NAME > /dev/null 2>&1 &
+					这里实际grep的名字实际显示出来就是e-manager-pay.jar
+					
 			关系运算符
 				-eq	等于则为真
 				-ne	不等于则为真
@@ -3412,8 +3918,37 @@ concurrentHashMap和HashMap相关
 				-s file	检测文件是否为空（文件大小是否大于0），不为空返回 true。	[ -s $file ] 返回 true。
 				-e file	检测文件（包括目录）是否存在，如果是，则返回 true。	[ -e $file ] 返回 true。
 				其他检查符：
+				
+			整数变量表达式
+				if [ int1 -eq int2 ]    如果int1等于int2   
+				if [ int1 -ne int2 ]    如果不等于    
+				if [ int1 -ge int2 ]       如果>=
+				if [ int1 -gt int2 ]       如果>
+				if [ int1 -le int2 ]       如果<=
+				if [ int1 -lt int2 ]       如果<	
+			 
+			字符串变量表达式
+				If  [ $a = $b ]                 如果string1等于string2字符串允许使用赋值号做等号
+				if  [ $string1 !=  $string2 ]   如果string1不等于string2       
+				if  [ -n $string  ]             如果string 非空(非0），返回0(true)  
+				if  [ -z $string  ]             如果string 为空
+				if  [ $sting ]                  如果string 非空，返回0 (和-n类似)    
+				
+			变量符号
+				$0	当前脚本的文件名
+				$n	传递给脚本或函数的参数。n 是一个数字，表示第几个参数。例如，第一个参数是$1，第二个参数是$2。
 
-			-- if esls
+				$#	传递给脚本或函数的参数个数。
+				$*	传递给脚本或函数的所有参数。
+				$@	传递给脚本或函数的所有参数。
+				　　$* 和 $@ 的区别
+				　　	相同点：都是引用所有参数，不被双引号" “包含时，都以”$1" “$2"…"$n” 的形式输出所有参数，
+						被双引号" “包含时，”$*" 会将所有的参数作为一个整体；"@" 会将各个参数分开，以换行形式输出所有参数。
+						比如，假设在脚本运行时写了三个参数 1、2、3，，则"*"等价于"1 2 3"(传递了一个参数)，而 "@" 等价于 "1" "2" "3"(传递了三个参数)
+				$?	上个命令的退出状态，或函数的返回值。
+				$$	当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID
+
+			-- if else
 				if condition1
 				then
 					command1
@@ -3439,6 +3974,8 @@ concurrentHashMap和HashMap相关
 				*)  echo '你没有输入 1 到 4 之间的数字'
 				;;
 			esac
+			
+			
 
 				#使用 . 号来引用test1.sh 文件
 				. ./test1.sh
@@ -3455,8 +3992,14 @@ concurrentHashMap和HashMap相关
 				
 		以sh执行，那么，不必设定执行权限，也不用写shell文件中的第一行（指定bash路径）。因为方法三 是将hello.sh作为参数传给sh(bash)命令来执行的。这时不是hello.sh自己来执行，而是被人家调用执行。		
 				
-				
-				
+		sh带参数执行
+			/usr/local/java_project/bin/java_project.sh stop        #多个参数空格分隔
+			
+
+		1、/bin/sh是/bin/bash的软连接，在一般的linux系统当中，使用sh调用执行脚本相当于打开了bash的POSIX标准模式，也就是说 /bin/sh 相当于 /bin/bash --posix
+		2、/bin/sh执行过程中，若出现命令执行失败，则会停止执行；/bin/bash执行过程中，若命令执行失败，仍然会继续执行
+		
+		#!/bin/sh是#!/bin/bash的缩减版
 				
 		awk是一个强大的文本分析工具，简单来说awk就是把文件逐行读入，（空格，制表符）为默认分隔符将每行切片，切开的部分再进行各种分析处理		
 				
@@ -3464,9 +4007,29 @@ concurrentHashMap和HashMap相关
 		grep -v  			这里是查找，排除的意思
 		awk '{print $2}'	就是截取第二个字段输出
 		
-		linux 命令中的 |
-			利用Linux所提供的管道符“|”将两个命令隔开，管道符左边命令的输出就会作为管道符右边命令的输入。依次向后传递。
-						
+		
+		mkdir -p ：递归创建目录，即使上级目录不存在，会按目录层级自动创建目录
+		
+		vi命令下显示行号： set nu
+		
+		
+		linux 
+			命令中的 |
+				利用Linux所提供的管道符“|”将两个命令隔开，管道符左边命令的输出就会作为管道符右边命令的输入。依次向后传递。
+			命令> 和 >>
+					> 表示stdout标准输出信息重定向输出，覆盖写。
+						echo 'World' > test.txt
+					>> 表示内容追加写。
+						echo 'World' >> test.txt
+			命令&& 
+				command1 && command2, 即指令1执行成功, 才会执行指令2, 常用来连贯执行
+				cd dockertest/ && vi Dockerfile 
+			命令|| 
+				command1 || command2 指令1执行失败, 才会执行指令2, 
+				例如 cat filename || echo “fail”
+
+
+				
 		实际自己测试的shell脚本
 			简单的kill进程，然后重启
 				#!/bin/bash
@@ -5813,6 +6376,33 @@ InputStream is = item.getInputStream();
 			
 			
 			对于xml解析的实用类，XStream用的比较常用，//把xml为转换为实体对象 对于嵌套的xml内容使用内部类接收
+				解析list
+				实际获得的记录xml中的list
+				<?xml version="1.0" encoding="utf-8"?>
+				<ROOT>
+					<RSP_CODE>00000</RSP_CODE>
+					<LIST>
+						<ROW>
+							<USER_ID></USER_ID>
+						</ROW>
+						<ROW>
+							<USER_ID></USER_ID>
+						</ROW>
+					</LIST>
+					<SIGN_INFO>AAA==</SIGN_INFO>
+				</ROOT>
+				
+			
+				public static Object getObjectListFromXML(String xml, Class clazz,Class clazzt){
+					XStream xStreamForResponseData = new XStream();
+					xStreamForResponseData.alias("xml", clazz);
+					xStreamForResponseData.alias("ROW", clazzt);
+					xStreamForResponseData.ignoreUnknownElements();//忽略掉一些新增字段
+					return xStreamForResponseData.fromXML(xml);
+				}
+	
+
+			
 			
 		redis相关
 		内存读写
@@ -6503,8 +7093,6 @@ InputStream is = item.getInputStream();
 
 			目前看，只要使用lambda中没有提示外部变量，就可以使用
 
-			
-
 		Stream操作
 			形式：创建流+中间处理(intermediate)+终端处理（只能有一个terminal操作）
 			其中中间处理有很多如，filter(),map()的常用操作
@@ -6526,7 +7114,6 @@ InputStream is = item.getInputStream();
 			map(Function)：对Optional中保存的值进行函数运算，并返回新的Optional(可以是任何类型)
 			其中如果是空，就会返回一个new Optional<>()，value是null
 			目前看只能判断null，但是不能判断''这样的空串,可以使用filter过滤
-
 
 		consumer函数式接口中  void accept(T t); 		
 		strings.forEach(a -> System.out.println(a));
@@ -6714,6 +7301,8 @@ InputStream is = item.getInputStream();
 			elasticsearch			日志搜索
 			logstash				日志收集汇总分析
 			kibana					web界面展示
+			
+			三个组件的版本号要一致
 		
 	Elasticsearch
 		官网 https://www.elastic.co/cn/   
@@ -7776,6 +8365,8 @@ InputStream is = item.getInputStream();
 	其他杂知识
 		fork/join 并行执行框架，将大任务分成小任务，然后将各小任务结果汇总成大任务结果。暂时用的不多，暂不考虑
 		
+		检查局域网的ip有没有被占用，直接ping地址即可
+		
 		nginx可以配置单ip的访问限制。通过域名解析，建立很多子域名，不同业务模块由域名分发到不同的nginx服务器上
 		
 		tomcat 可创建的最大线程数默认是200
@@ -8141,6 +8732,7 @@ InputStream is = item.getInputStream();
 					
 					PageHelper首先将前端传递的参数保存到page这个对象中，接着将page的副本存放入ThreadLoacl中，这样可以保证分页的时候，参数互不影响，接着利用了mybatis提供的拦截器，取得ThreadLocal的值，重新拼装分页SQL，完成分页。
 
+
 		主键回填，useGeneratedKeys="true"
 		update delete insert 返回的int 都表示影响的行数
 		${},这样就不会当做普通的参数处理，不会转译这个值，不作为参数设置，变为直出。相当于不限定为参数，直出类型。
@@ -8276,7 +8868,7 @@ InputStream is = item.getInputStream();
 		周边功能在Spring的面向切面编程AOP思想里，即被定义为切面在面向切面编程AOP的思想里面，核心业务功能和切面功能分别独立进行开发然后把切面功能和核心业务功能 “编织” 在一起，这就叫AOP
 		
 		
-		 mybatis封装的数据库操作
+		 mybatis封装的数据库操作，对应的也是aop的事务操作
 			public void savePurchaseRecord (Long productid, PurchaseRecord record) {
 				SqlSession sqlSession = null;
 				try{
@@ -8341,14 +8933,15 @@ InputStream is = item.getInputStream();
 		Proceedingjoinpoint 继承了 JoinPoint。是在JoinPoint的基础上暴露出 proceed 这个方法。proceed很重要，这个是aop代理链执行的方法。
 		这也是@Around 和其他的前后置通知的重要区别。
 		
-		
-		
-		
 		do（分两个执行，逻辑差不多，应该往上提，上多，提到切面中，小改动某些参数后执行），pjp.proceed 执行两次
 		
 		
 		通过切接口的方法，这里可以改参数操作两次核心方法，
 		@Around(value = "execution(public com.xiaoyuer.pay.framework.lang.Result com.xiaoyuer.fpp.op.service.intf.IWithdrawService.submit(..))")
+			//分两部分提，一部分是老电商管家余额，一部分是e管家余额
+			Object[] citicWithdrawParams = new Object[] {pjp.getArgs()[userResultIndex],citicAccountRemain,new String[] {"Citic"}};
+			String egjWithdrawRemain = String.valueOf(Arith.formatMoney(MoneyUtil.money2Long(withdrawMoney) - MoneyUtil.money2Long(citicAccountRemain)));
+			Object[] egjWithdrawParams = new Object[] {pjp.getArgs()[userResultIndex],egjWithdrawRemain,new String[] {"Egj"}};
 
 		Result citicRes = (Result)pjp.proceed(citicWithdrawParams);
 		if(!citicRes.isSuccess()) {
@@ -8365,7 +8958,6 @@ InputStream is = item.getInputStream();
 			4、第二个*号：表示类名，*号表示所有的类。
 			5、*(..):最后这个星号表示方法名，*号表示所有的方法，后面括弧里面表示方法的参数，两个句点表示任何参数。
 
- 
 			针对切面，可以变参数执行两次切点核心内容
 			@Aspect
 			@Component
@@ -8400,17 +8992,6 @@ InputStream is = item.getInputStream();
 				}
 			}
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		切点处可以将被代理的方法的参数，传进来使用，这个用的不多
 		obj.getClass().getInterfaces() 意味着代理对象挂在多个接口之下。
 		
@@ -8436,15 +9017,12 @@ InputStream is = item.getInputStream();
 		当我们使用spring-boot-starter-jdbc的时候，构造的事务管理器则是DataSourceTransactionManager。
 		这个事务管理器都实现了spring中提供的PlatformTransactionManager接口，这个接口是spring的事务核心接口。
 		
-		
 		@EnableTransactionManagement是 spring-tx 的注解，不是 spring-boot 的
 		spring-boot 会自动配置事务，相关的配置在 org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
 		在自动配置类里已经写好了 @EnableTransactionManagement。
 		*****这个是在boot的 spring-boot-autoconfigure模块中自动配置的*****
 
-		
 		transactionTemplate.execute() 加上jdbcTemplate 操作数据库 这种属于编程式的
-		
 		
 		编程式，实际上pay中transactionTemplate(也实现了TransactionDefinition，继承了DefaultTransactionDefinition)就是对下面的进行了封装，
 		
@@ -8467,7 +9045,6 @@ InputStream is = item.getInputStream();
 			
 		XML 配置声明式事务管理，不推荐，费事
 			TransactionInterceptor是Spring框架内置实现的一个MethodInterceptor,用于声明式事务管理
-			
 			
 			
 		本质是通过动态代理实现
@@ -8623,3 +9200,1021 @@ InputStream is = item.getInputStream();
 		2） Client 在收到服务器返回的证书后，判断签发这个证书的公共签发机构，并使用这个机构的公共秘钥确认签名是否有效，客户端还会确保证书中列出的域名就是它正在连接的域名。数据加密和传输
 		3） 如果确认证书有效，那么生成对称秘钥并使用服务器的公共秘钥进行加密。然后发送给服务器，服务器使用它的私钥对它进行解密，这样两台计算机可以开始进行对称加密进行通信。
 	
+	
+150.docker相关
+	相关文档网址
+		docker官网：http://www.docker.com
+		docker中文网站：https://www.docker-cn.com/
+		Docker Hub 仓库官网: https://hub.docker.com/
+		http://www.dockerinfo.net/document  文档介绍
+		
+	 	
+	基础概念
+		镜像是容器生命周期中的构建或者打包阶段，容器是启动或执行阶段
+		
+		docker推荐单个容器只运行一个应用程序或者进程，形成一个分布式应用程序模型，也是一个内部互联的容器。
+		
+		Docker仓库管理镜像与Git非常相似。
+		我们要配置的应用运行环境就是镜像，本地没有镜像时候，需要从远程仓库pull，启动这个镜像时，就会有一份镜像被复制并运行在容器中。
+		如果我们改动了容器里面的内容，也可以将其 commit 保存成新的镜像。
+
+		docker在linux中的主目录是，/var/lib/docker/，主要配置都在这里面
+			/var/lib/docker/image/overlay2/repositories.json  这里是镜像的Repositories，存放着pull镜像的一些元信息
+	
+		
+
+		
+	Docker 有三大核心概念：仓库、镜像、容器
+		仓库(repository)
+			默认是Docker Hub，公共的镜像仓库
+			
+			
+				  
+			docker仓库有共用的docker hub或者私有的仓库
+			docker hub中有两种类型的仓库，
+				用户仓库	由dokcer用户创建，由用户名/仓库名组成,比如，jam/tomcat
+				顶层仓库	由docker内部人管理，就是官方的，只包含仓库名 /tomcat
+			
+			私有仓库一般两种
+				1.dockerhub上的私人仓库
+				2.防火墙后面的运行的自己的register、
+			
+				私有仓库创建步骤
+					1.docker  pull  registry 
+					2.创建一个主机目录，用来挂载目录
+						cd /usr/local/
+						mkdir docker_registry 
+						
+				运行仓库容器
+				3.docker run -d -p 5000:5000 --name=localRegister --restart=always --privileged=true  -v /home/zhanjun/test/dockertest/docker_registry:/var/lib/registry  docker.io/registry
+				 1.commit到本地		docker commit -a "xiaoyuer" -m "open镜像"  075d5f9bd402  sit_open_tomcat:v1
+				 2.打tag			docker tag  sit_open_tomcat:v1 192.168.6.138:5000/sit_open_tomcat:v1
+				 3.推送远程			docker push  192.168.6.138:5000/sit_open_tomcat:v1 // 推送到远程docker仓库
+					push过程中出现https问题
+					1. vim  /etc/docker/daemon.json    增加一个daemon.json文件
+					{ "insecure-registries":["192.168.1.100:5000"] }  wq
+				
+					2.重启docker服务
+					systemctl daemon-reload
+					systemctl restart docker
+				仓库路径查看 目录查看路径 http://192.168.175.132:5000/v2/_catalog            ip:port/v2/_catalog
+					
+			
+			
+			
+		
+		
+		镜像(image)
+			只读不可修改
+			镜像的两个特征
+				镜像是分层（Layer）的：即一个镜像可以多个中间层组成，多个镜像可以共享同一中间层，我们也可以通过在镜像添加多一层来生成一个新的镜像(类似dockerfile中的起始from)。
+				镜像是只读的（read-only）：镜像在构建完成之后，便不可以再修改，而上面我们所说的添加一层构建新的镜像，这中间实际是通过创建一个临时的容器，在容器上增加或删除文件，从而形成新的镜像，因为容器是可以动态改变的。
+	
+			虚悬镜像
+				Docker镜像名由仓库名和标签组成，但有时候我们会看到仓库名和标签皆为<none>的镜像，我们称为这种镜像为虚悬镜像
+				虚悬镜像一般是当我们使用docker pull拉取最新镜像时，生成的新的镜像，所以仓库名和标签给了新的镜像，旧的镜像仓库和标签则被取消，成为虚悬镜像。
+
+				
+			docker将镜像保存到宿主集中，docker在文件系统内部创建了一个容器，该容器拥有自己的网络、ip地址，以及一个用来和宿主机进行通信的桥接网络接口。
+	
+			镜像分层框架+顶层读写系统
+				docker构建了一个镜像栈，在最顶层添加了一个读写层，该读写层+下面的镜像层+一些配置数据=一个容器
+				每个镜像层都是只读的
+				顶层的读写文件系统，docker的读写程序就是在这个读写层中进行的
+				容器的这种镜像分层框架，方便快速构建和运行
+			
+			docker镜像一般最好指定标签tag，标明是哪个版本的镜像，image:tag，默认拉取最新的latest版本
+				
+				
+			一般构建是基于一个基础镜像构建新镜像，从0开始的构建，一般不用
+			构建镜像的两种方式	
+					1.使用docker commit构建镜像
+						docker commit -a "作者" -m "说明"  容器id  镜像名称:版本号
+						docker commit提交的只是创建容器的镜像与容器当前状态之间有差异的部分，这样很轻量
+						
+						步骤1.进入容器修改内容 
+						步骤2.exit退出后直接commit对应的容器，这里提交的是容器，将修改提交为一个新镜像
+						
+						关于commit命令，其实就是使用docker run -i -t XXX /bin/bash 进入容器的交互界面，进行各种操作后，
+						再将这个容器通过提交命令提交上去来达到目的。
+						
+						$docker ps -l命令获得安装完命令之后容器的id如698***
+						$docker commit 698 pika/py_ubuntu ? ?#把这个容器保存为镜像py_ubuntu
+				
+						****制作镜像步骤*****
+							 0.进入到容器中，更改后exit
+								docker exec -it mytomcat /bin/bash    // 登录容器内部
+							 1.commit到本地
+								docker commit -a "xiaoyuer" -m "open镜像"  075d5f9bd402  sit_open_tomcat:v1
+							 2.打tag
+								docker tag  sit_open_tomcat:v1 192.168.6.138:5000/sit_open_tomcat:v1
+							 3.推送远程
+								docker push  192.168.6.138:5000/sit_open_tomcat:v1 // 推送到远程docker仓库
+				
+						删除镜像中的无用的目录
+							挂载情况，挂载目录无法直接删除。
+								作镜像的时候做好吧webapps下的删除赶紧，不然webapp中会有残留的，主机中也不好在webapp中删除全部，有其他的项目包在。挂载目录要精确点
+								取消挂载再看，当前是两次commit覆盖版本
+						
+							如过目录没有挂载，直接删除即可。
+				
+					2.使用Dockerfile构建镜像(实际推荐)
+						相比commit制作的优点
+							核心概念是可重复和可移植
+							根据指令生成定制的image(制作步骤清晰，易于维护)。commit制作image是黑盒子
+							当需要定制额外的需求时，只需在Dockerfile上添加或者修改指令，重新生成image即可，省去了敲命令的麻烦。
+							Dockerfile包含创建镜像所需要的全部指令。基于在Dockerfile中的指令，我们可以使用Docker build命令来创建镜像。通过减少镜像和容器的创建过程来简化部署。
+
+					docker build  -t ImageName:TagName dir    通过dockerfile构建镜像
+						-f :指定要使用的Dockerfile路径；    #目前没用到
+						--tag, -t: 镜像的名字及标签，通常 name:tag 或者 name 格式；可以在一次构建中为一个镜像设置多个标签。
+					
+						实际上 Dockerfile 的文件名并不要求必须为Dockerfile ，而且并不要求必须位于上下文目录（Context）中，
+						同在dockertest目录下，指定某个文件作为 Dockerfile
+						docker build -t gogo:v1 -f testFile 		/home/zhanjun/test/dockertest/   这样也能生成
+						docker build -t gogo2:v1 -f ../test2file 	/home/zhanjun/test/
+
+					
+					
+					
+					
+					
+					
+					docker build -t centostest:v1 /home/zhanjun/test/dockertest
+						dockertest目录下有Dockerfilewen文件，
+							FROM centos
+							MAINTAINER zhanjun
+							RUN mkdir -p /usr/local/docker/
+							RUN echo "ceshiwenben" > /usr/local/docker/test.text	
+							
+					dockerfile编写
+					
+						Dockerfile的指令是不区分大小写的(但命名约定为全部大写)，使用#作为注释，每一行只支持一条指令，每条指令可以携带多个参数。
+						Dockerfile的指令根据作用可以分为两种，构建指令和设置指令。(命令的顺序就是被执行的顺序)
+						构建指令用于构建image，其指定的操作不会在运行image的容器上执行；
+						设置指令用于设置image的属性，其指定的操作将在运行image的容器中执行。
+									
+						基于DSL语法构建dockerfile
+							1.docker从基础镜像运行一个容器
+							2.执行一条指令，对容器做出修改
+							3.执行类似docker commit的操作，提交一个新的镜像层
+							4.docker再基于刚提交的镜像运行一个新容器
+							5.指定dockerfile中下条指令，知道所有指令执行完毕
+							
+						常用的dockerfile指令
+							所有Dockerfile都必须以FROM命令开始，
+							FROM <image>:<tag>				//用来指定基础镜像,必须指定在其他指令的前面
+							MAINTAINER <author name>		//指定维护者的姓名和联系方式
+
+							RUN 	<command> 或 RUN ["executable", "param1", "param2"]。	
+									前者将在shell终端中运行命令，即 /bin/sh -c ；常用
+									后者则使用 exec 执行。(exec()系列函数使用新的进程映像替换当前进程映像)
+									指定使用其它终端可以通过第二种方式实现，例如 RUN ["/bin/bash", "-c", "echo hello"]。			
+								
+									RUN指令会在新创建的镜像上添加新的层面，接下来提交的结果用在Dockerfile的下一条指令中。
+									每条RUN指令将在当前镜像基础上执行指定命令，每条run指令都会创建一个新的镜像层，如果该指令执行成功，并将此镜像层提交，之后继续执行下一条指令。当命令较长时可以使用\来换行。
+									也就是说RUN命令会在上面FROM指定的镜像里执行任何命令，然后提交(commit)结果，提交的镜像会在后面继续用到。
+									run指令等价于
+									docker run image command
+									docker commit container_id
+								
+							ADD 	<src> <dest>		复制文件指令，附带解压功能   将构建目录下的文件复制到容器目录下，  
+										dest 结尾 /就是目录，否则是文件
+										可以将本地配置文件直接添加到容器中
+							COPY 	纯复制功能
+							CMD 	提供了容器默认的执行命令。默认是关键 
+										Dockerfile只允许使用一次CMD指令。多个只有最后一个指令生效。
+								
+								
+									RUN是构建镜像时运行的命令，cmd是容器启动时运行的命令，有点类似docker run 指定的命令。
+									也就是容器启动以后，默认的执行的命令。
+									
+									支持三种格式
+									CMD ["executable","param1","param2"] 使用 exec 执行，推荐方式；
+									CMD command param1 param2 在 /bin/sh 中执行，提供给需要交互的应用；
+									CMD ["param1","param2"] 提供给 ENTRYPOINT 的默认参数；
+									
+									docker run 指令会覆盖cmd的命令
+										如果我们在run时指定了命令或者有entrypoint，那么cmd就会被覆盖。仍然是上面的image。
+										如果docker run没有指定任何的执行命令或者dockerfile里面也没有entrypoint，那么，就会使用cmd指定的默认的执行命令执行。
+										
+										因为cmd的角色定位就是默认，如果你不额外指定，那么就执行cmd的命令，反之指定了，那么就不会执行cmd，也就是cmd会被覆盖。
+							ENTRYPOINT	配置给容器一个可执行的命令，Docker只允许一个ENTRYPOINT
+									ENTRYPOINT ["executable", "param1", "param2"] 
+									ENTRYPOINT command param1 param2 					#这种方式，没法接受参数
+								
+									entrypoint才是真正的容器启动以后要执行命令。
+									用于设定容器启动时第一个运行的命令及其参数，是容器的“入口”	
+									
+							EXPOSE <port> [<port>...]   指定容器在运行时监听的端口。
+									如果镜像的使用者关心容器公有映射了哪个公有端口，他们可以在运行镜像时通过-p参数设置，否则，Docker会自动为容器分配端口。
+									切勿在Dockerfile映射公有端口。
+									端口映射是docker比较重要的一个功能，原因在于我们每次运行容器的时候容器的IP地址不能指定而是在桥接网卡的地址范围内随机生成的。
+									宿主机器的IP地址是固定的，我们可以将容器的端口的映射到宿主机器上的一个端口，免去每次访问容器中的某个服务时都要查看容器的IP的地址。
+									对于一个运行的容器，可以使用docker port 查看该端口号在宿主机器上的映射端口。	
+												
+									在Dockerfile中你有能力映射私有和公有端口，但是你永远不要通过Dockerfile映射公有端口。
+									通过映射公有端口到主机上，你将只能运行一个容器化应用程序实例。
+												
+							VOLUME	授权访问从容器内到主机上的目录。用于containers之间共享数据，容器数据持久化
+									指定挂载点，使容器中的一个目录具有持久化存储数据的功能，该目录可以被容器本身使用，也可以共享给其他容器使用。
+									容器使用的是AUFS，这种文件系统不能持久化数据，当容器关闭后，所有的更改都会丢失。
+									
+							WORKDIR	指定 RUN、 CMD与 ENTRYPOINT命令的工作目录。			 	WORKDIR /path/to/workdir
+							ENV		设置环境变量。它们使用键值对，增加运行程序的灵活性。	ENV <key> <value>
+							USER	指定什么用户运行镜像  docker run -u可以覆盖
+									
+									
+						*****在使用DockerFile制作镜像时，需要修改配置文件文本时候，通过 sed命令可实现对镜像中文件的修改。*****
+							ADD 也可以使用ADD  将一个编辑好的文件复制过去覆盖，这样更快点
+							COPY 也可以类似功能			
+						
+						ENTRYPOINT 和 CMD 的区别	https://blog.csdn.net/u010900754/article/details/78526443
+							一般还是会用entrypoint的中括号形式作为docker 容器启动以后的默认执行命令，里面放的是不变的部分，
+							可变部分比如命令参数可以使用cmd的形式提供默认版本，也就是run里面没有任何参数时使用的默认参数。
+							如果我们想用默认参数，就直接run，否则想用其他参数，就run里面加参数。
+
+						构建错误的场景：
+							由于构建过程中会产生许多中间镜像，所以，我们可以基于最后一个成功的镜像运行一个容器，然后在该容器中调试下一步的构建指令，找出到底哪里出错了。
+							一旦解决了问题，就可以退出容器，然后修改Dockerfile，尝试重新构建。
+							docker run -it 7fcc8dc893fc /bin/bash    找到最新一条成功的镜像调试，修改dockerfile后重新构建
+								Step 3/4 : RUN mkdir -p /usr/local/docker/
+								 ---> Using cache
+								 ---> 7fcc8dc893fc
+								Step 4/4 : RUN ec123ho "ceshiwenben" > /usr/local/docker/test.text
+								 ---> Running in 505a2be18ebc
+								/bin/sh: ec123ho: command not found
+								The command '/bin/sh -c ec123ho "ceshiwenben" > /usr/local/docker/test.text' returned a non-zero code: 127
+							
+										
+						
+				
+		容器(container)
+			可以动态修改
+			类似一个轻量级的沙箱,容器是从镜像创建应用运行实例, 可以将其启动、开始、停止、删除、而这些容器都是相互隔离
+
+			容器的三种运行模式
+				1.运行后退出							$ docker run centos echo "hellowrold"
+				2.常驻内存，就是守护进程的模式			$ docker run -d -p 80:80 nginx
+				3.交互式								$ docker run -it centos /bin/bash
+			
+		
+		安装docker
+			++++++++++CentOS 6 安装docker，官网已经废弃了6版本的更新++++++++++
+				安装docker
+				安装docker可以有两种方式：一种是使用curl获得docker的安装脚本进行安装，还有一种是使用yum包管理器来安装docker。
+					1.安装epel源，	yum install epel-release
+						#Error: Cannot retrieve repository metadata (repomd.xml) for repository: epel. Please verify its path and try againxml
+						#修改epel.repo文件，修改mirrorlist=https://*****这行，将https修改成http便可正常使用
+					2.yum -y install docker-io
+					错误 No package docker-io available
+					
+					*****直接用下载源安装 	yum install https://get.docker.com/rpm/1.7.1/centos-6/RPMS/x86_64/docker-engine-1.7.1-1.el6.x86_64.rpm  成功
+					service docker start		docker 启动				redhat6或者7 命令不太一样	自启动另行配置
+					docker run hello-world		入门的demo展示
+					docker info					查看信息
+					
+					linux内核升级，步骤网上有，更新错误就yum update/yum update nss   尼玛真费劲，官方已经不维护了，废弃的centos6版本，各种安装包找不到
+						官网已经停止centos的升级，换新地址rpm -Uvh http://ftp.iij.ad.jp/pub/linux/centos-vault/centos/6.9/centosplus/x86_64/Packages/kernel-2.6.32-754.el6.centos.plus.x86_64.rpm
+						RHEL/CentOS 第三方软件源  http://rpm.pbone.net/index.php3/stat/4/idpl/15285241/dir/redhat_el_6/com/epel-release-6-5.noarch.rpm.html
+								elrepo-release-6-8.el6.elrepo.noarch.rpm    注意是elrepo 不是epel
+						 cat  /etc/redhat-release	查看linux版本  	uname -a
+			++++++++++CentOS 6 安装docker++++++++++	
+			
+			
+			
+			++++++++++CentOS 7 安装docker++++++++++	
+			
+				安装docker
+				准备环境
+					Docker 要求 CentOS 系统的内核版本高于 3.10 
+					确保所有的yum更新  yum update     包括像nss等，全部更新完事。
+					遇到yum中的host不能识别问题，直接将网络配置移除后重新添加使用NAT模式。
+					看网络通不通使用curl www.baidu.com 看下即可
+				安装开始	
+					1.yum install docker
+					2.docker version  	 看到已经安装成功
+					3.systemctl  start docker.service    	启动docker服务
+					4.systemctl  enable docker.service	 	设置开机启动
+					5.docker pull centos					远程拉取镜像测试
+					6.docker images 						查看到镜像已经拉取成功
+					7.docker run -i -t centos /bin/bash		启动容器，看到了bash提示符。在docker命令中，使用了 “-i 捕获标准输入输出”和 “-t 分配一个终端或控制台”选项。这里centos是镜像image的名称
+						进入到容器内部了，相当于一个centos环境，
+						这里就算安装成功了，每个镜像有对应的id，使用docker ps -a 查看linux版本
+			++++++++++CentOS 7 安装docker++++++++++	
+		
+		docker run指令详细
+			
+			docker run [OPTIONS] IMAGE [COMMAND] [ARG...]	用镜像启动一个容器
+			#docker run -itd -h "docker_pc_tomcat" --add-host docker_pc_tomcat:192.168.6.139 --net=none -m 1500M  -v /usr/local/webapps/XiaoyuerProject:/usr/local/tomcat/webapps/ -v /usr/local/logs/pc:/usr/local/tomcat/logs  -v /etc/localtime:/etc/localtime  --name docker_pc_tomcat  192.168.6.138:5000/xye-tomcat:v1;sudo /usr/local/bin/pipework br0 docker_pc_tomcat 192.168.6.139/24@192.168.6.1
+			
+				--name: 		为容器指定名称，否则是数字字母串，可读性差 名称唯一
+				-p: 			指定端口映射，格式为：主机(宿主)端口:容器端口 左边映射到右边。公开端口是为了从外面访问容器web程序
+				-i 				选项指示 docker 要在容器上打开一个标准的输入接口
+				-t 				指示 docker 要创建一个伪 tty 终端，连接容器的标准输入接口，之后用户就可以通过终端进行输入
+								***
+									一般-it表示一个交互式的任务,进入命令交互界面
+									Docker中系统镜像的缺省命令是 bash，不加的话，bash命令执行了自动会退出。
+									这是因为如果没有衔接输入流，本身就会马上结束。
+									加-it 后docker命令会为容器分配一个伪终端，并接管其stdin/stdout支持交互操作，这时候bash命令不会自动退出
+									/bin/bash   创建bash会话，就可以运行其他的命令
+								***
+				
+				--restart="no"	指定容器停止后的重启策略:
+									no：容器退出时不重启
+									on-failure：容器故障退出（返回值非零）时重启
+									always：容器退出时总是重启
+				--add-host		在启动容器时，向容器的/etc/hosts文件添加一个host:ip的映射
+				-h				指定容器的主机名，也是/etc/hosts中添加一个映射主机地址的hostName
+				-d 				作为后台守护式容器运行
+				-v				挂载目录	本地路径:容器路径,将本地目录和容器目录中的文件修改实时同步
+								
+								将容器中目录内容实时同步到主机目录中，相当于容器内容在主机中持久化,这样主机中也可以查看容器中目录，比如logs日志
+								通过挂载的方式，将项目代码同步到容器中的webapps中
+								
+								为docker提供持久数据和共享数据，对卷修改会直接生效，绕过镜像，当提交或者创建镜像时，卷不被包含在内。
+								卷可以容器共享，容器停止，卷内容依旧存在
+								好处是，这样可以不把应用和代码构建到镜像中，这样代码和运行环境分离开来，不用每次改动重构镜像
+								可以追加ro和wo来指定读写状态
+								直接修改主机中挂载目录的内容，容器内容显示也生效
+								
+								docker run -it -v /宿主机目录:/容器目录 镜像名 /bin/bash
+									都用绝对目录，容器目录必须绝对路径，宿主目录不存在会自动创建，宿主目录建议使用绝对路径(否则是相对/var/lib/docker/volumes/路径)
+									容器销毁了，新建的挂载目录不会消失
+									挂载宿主机已存在目录后，在容器内对其进行操作，报“Permission denied” run 增加--privileged=true参数
+									好处：更新内容，然后重新运行 run 命令即可。这样就将环境和代码分离，镜像就是运行环境，运行环境只要不改变，就不用重新生成镜像。否则如果将内容打包到镜像中的话，任何对代码的修改都必须重新生成镜像。
+				
+				--net			指定容器运行的网络
+								docker一共有4中网络模式：
+									1：bridge模式，--net=bridge(默认)。
+										这是dokcer网络的默认设置。安装完docker，系统会自动添加一个供docker使用的网桥docker0，我们创建一个新的容器时，容器通过DHCP获取一个与docker0同网段的IP地址。并默认连接到docker0网桥，以此实现容器与宿主机的网络互通。如下：
+									2：host模式，--net=host。
+										这个模式下创建出来的容器，将不拥有自己独立的Network Namespace，即没有独立的网络环境。它使用宿主机的ip和端口。
+									3：container模式，--net=container:NAME_or_ID。
+										这个模式就是指定一个已有的容器，共享该容器的IP和端口。除了网络方面两个容器共享，其他的如文件系统，进程等还是隔离开的。
+									4：none模式，--net=none。
+										这个模式下，dokcer不为容器进行任何网络配置。需要我们自己为容器添加网卡，配置IP。
+										因此，若想使用pipework配置docker容器的ip地址，必须要在none模式下才可以。
+								
+								--net=none      配合pipework自定义配置网络的ip
+								/usr/local/bin/pipework br0 docker_ids_tomcat 192.168.6.148/24@192.168.6.1	#pipework为添加新的网卡，并将它们连接到br0上，配置了192.168.6.148 ip
+			
+								192.168.6.148/24 表示网络 192.168.6.148 网络位为24 位。
+								/24 这是一种简化的子网掩码表示法。它表示子网掩码为 255.255.255.0。	也就是说 /24 表示 IP 地址中的前 24 位是网络位。
+			
+								pipework介绍 http://lsword.github.io/2014/05/22.html
+								命令：pipework br_name container_name ip/netmask@vlan(gateway) 
+								pipework安装：
+									# wget https://github.com/jpetazzo/pipework/archive/master.zip
+									# unzip pipework-master.zip
+									# cp pipework-master/pipework? /usr/local/bin/
+									# chmod +x /usr/local/bin/pipework
+
+									创建none模式的容器，为其分配IP。
+									#ip a show docker0
+
+									#docker run -idt --name test --net=none resin
+									#pipework docker0 test 172.17.42.100/16@172.17.42.1
+									#docker attach test
+									以上操作给新建的test容器分配了一个172.17.42.100的IP地址。
+			
+			
+			
+			
+		docker网络配置
+		
+			相关介绍， https://blog.51cto.com/u_13362895/2130375
+					
+			docker内部联网
+				安装docker时候，会创建一个新的网络接口docker0,每个容器都会在这个接口上分配一个ip地址，
+				
+				docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+				link/ether 02:42:c3:a6:fe:cc brd ff:ff:ff:ff:ff:ff
+				inet 172.17.0.1/16 scope global docker0
+				   valid_lft forever preferred_lft forever
+				inet6 fe80::42:c3ff:fea6:fecc/64 scope link 
+				   valid_lft forever preferred_lft forever
+
+				接口本身地址172.17.0.1是docker网络的网关地址，也是所有容器的网关地址
+				
+				docker0是一个虚拟的以太网桥，用于连接容器和本地宿主网络
+				docker每创建一个容器就会创建一组互联的网络接口，这组接口一端作为容器里的eth0接口，另一端统一命名为类似verhec6a这种名字，作为宿主机的一个端口。
+				这个veth接口一端插在docker0的网桥上，另一端插到容器里。通过把每个veth*接口绑定到docker0网桥，docker创建一个由主机和所有docker容器共享的虚拟子网
+					
+				docker0 的IP地址的范围是  172.16. - 172.30.    docker默认会使用172.17.x.x作为子网地址，
+				docker0-多个veth*接到一端接docker0，另一端接到容器(容器中显示的是eth0)，这里的ip分配是随机的，不能固定。	
+
+				本地容器之间私有网络互联
+					Docker 默认的桥接网卡是 docker0。它只会在本机桥接所有的容器网卡，
+					举例来说容器的虚拟网卡在主机上看一般叫做 veth* 而Docker0只是把所有这些网卡桥接在一起
+					
+				docker 网络注意iptables 和NAT的配置
+				容器默认无法访问，从宿主网络与容器通信时，必须明确指定打开的端口。
+				
+					
+			
+		docker初次部署tomat镜像，
+			docker run -itd   --name tomcat_test -p 8080:8080   -v /home/zhanjun/test/dockertest/tomcat_test/log:/usr/local/tomcat/logs tomcat 
+				这里主机访问8080就转到了容器的地址中
+				如果将容器80端口映射到主机的49161端口，那么在主机上浏览 localhost:49161 就会看到容器的对应内容
+				
+			问题1.启动container的时候出现iptables: No chain/target/match by that name
+				重启docker，service docker restart
+					systemctl restart  docker
+					原理：
+					使用的centos7服务器，在部署docker的过程中，因端口问题有启停firewalld服务，在centos7里使用firewalld代替了iptables。在启动firewalld之后，iptables还会被使用，属于引用的关系。
+					所以在docker run的时候，iptables list里没有docker chain，重启docker engine服务后会被加入到iptables list里面。
+			问题2.初次启动访问是404问题，
+				1.进入容器
+				2. rm -rf webapps  			强制删除空文件夹
+				3. mv webapps.dist webapps  把webapps.dist文件 当做新的webapps文件
+			问题3.没有vi等相关命令
+				apt-get包管理应用软件
+				1.apt-get update 			同步 /etc/apt/sources.list 和 /etc/apt/sources.list.d 中列出的源的索引，这样才能获取到最新的软件包
+				2.apt-get install vim
+			问题4.没有ll命令
+				1.vim  ~/.bashrc 
+				2.增加 alias ll='ls -l'    wq退出
+				3.source ~/.bashrc  刷新
+			问题5.没有权限查看挂在目录
+					docker运行一个容器后，将主机中当前目录下的文件夹挂载到容器的文件夹后
+					进入到docker容器内对应的挂载目录中，运行命令ls后提示：ls: cannot open directory .: Permission denied
+					在docker run一个容器时，加上  --privileged=true	
+		
+		
+		*****docker相关指令*****
+			docker images 									查看宿主机上的镜像，Docker镜像保存在/var/lib/docker目录下
+			docker pull image_name							拉取docker镜像
+			docker push  192.168.6.138:5000/xye-tomcat:v1 	推送到仓库
+				docker push [OPTIONS] NAME[:TAG]
+				
+				默认是推到dockerhub  需要指定user/repo
+				这里push的实际上是一个tag
+				
+			docker ps 										列出正在运行的容器，(-a,显示所有的容器，包括未运行的)，(-n x,显示最后x个容器，包括运行和停止的)，-l:显示最近创建的容器，-q:只显示容器编号。
+			docker start container_name/id					重新启动容器
+				docker start docker_pc_tomcat&&sudo /usr/local/bin/pipework br0 docker_pc_tomcat 192.168.6.139/24@192.168.6.1  // 对网络有要求需要重新指定，再次启动容器，无须其它参数
+				
+			docker stop container_id1，container_id2		停止容器，name or id  最好一致
+			docker exec -it container_name/id /bin/bash    	登录容器内部，容器的id或name
+			docker rmi  image_name/image_id 				删除docker镜像
+			docker search nginx								查找Docker Hub上的nginx镜像
+			docker image prune								清除所有的虚悬镜像，删除所有未被tag标记和未被容器使用的镜像，(-a删除所有未被容器使用的镜像)
+				docker rm ： 删除一个或多个 容器			
+					docker rm [OPTIONS] CONTAINER [CONTAINER...]
+						-f	通过 SIGKILL 信号删除一个正在运行的容器
+						-l	移除容器间的网络，而非容器本身
+						-v	删除与容器映射的目录
+				docker rmi ： 删除一个或多个 镜像
+				docker prune ： 用来删除不再使用的 docker 对象
+			
+			docker tag [OPTIONS] IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]		打tag
+					docker tag  xye-tomcat:v1 192.168.6.138:5000/xye-tomcat:v1 // 打tag  必须符合 192.168.6.138:5000/xxxx
+					
+					docker tag : 标记本地镜像，将其归入某一仓库。
+					docker tag [OPTIONS] IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]
+						#没有地址默认dockerhub，如果是私有库一定要指定地址，username一般可写可不写这里是dockerhub的accountname
+					docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+					 
+					必须先打tag才能push，
+					docker push 私有库地址/镜像名:镜像tag
+					必须先打tag, tag的server地址是私有仓库地址. 然后再push
+
+					tag不指定仓库地址默认的是dockerhub地址(传 到dockerhub还需要指定accountname)，如果要传到私有库 一定要指定仓库地址
+					公有库 tag  [USERNAME/]NAME[:TAG]  		REGISTRYHOST可以省略
+					私有库 tag  [REGISTRYHOST/]NAME[:TAG]	username可以省略    
+						192.168.175.132:5000/zhanjun/centostest   这种就是在仓库下多了一层目录
+						
+					不指定tag，默认是latest版本
+					打了新的 TAG 虽然会多了一条记录，但是从 IMAGE_ID 是相同的，可以得知他们是同一个镜像
+					类比：在git中，同一个代码项目，可以有多个不同的 tag
+			
+			docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+				要拉取镜像，需要指定Docker Registry的URL和端口号，默认是Docker Hub，另外还需要指定仓库名和标签，仓库名和标签唯一确定一个镜像，而标签是可能省略，如果省略，则默认使用latest作为标签名，而仓库名则由作者名和软件名组成。
+			
+			docker commit -a "xiaoyuer" -m "open镜像"  075d5f9bd402  sit_open_tomcat:v1			//提交镜像
+			docker tag  sit_open_tomcat:v1 192.168.6.138:5000/sit_open_tomcat:v1				//镜像打tag
+			docker push  192.168.6.138:5000/sit_open_tomcat:v1 									//推送到远程docker仓库
+			
+			docker inspect docker_pc_tomcat 				// 查看容器元数据信息	其中Mounts是挂载模块，Cmd是初始启动模块
+			docker stats 容器id  							// 查看容器内存使用情况  docker stats -a 查看所有容器情况
+			docker logs
+				docker logs [OPTIONS] CONTAINER
+				
+				docker logs -f -t --tail 100 xye-soa
+				
+				-f : 跟踪日志输出
+				--since :显示某个开始时间的所有日志
+				-t : 显示时间戳
+				--tail :仅列出最新N条容器日志
+			docker top docker_pc_tomcat						查看容器内进程
+			docker history image_id							查看镜像创建的历史，镜像分层框架
+			systemctl status docker							查看docker状态，启动异常时排查原因 
+		
+		
+		**********
+			运行java项目
+			获取tomcat服务器上的war，运行一个java程序。需要构建一个有两个步骤的docker管道
+			1.一个镜像从url拉取指定的war文件并将其保存到卷里
+			2.一个含有tomcat服务器的镜像运行这些下载的war文件
+		**********
+		
+	
+		docker运行nginx为什么要使用 daemon off
+			Docker 容器启动时，默认会把容器内部第一个进程，也就是pid=1的程序，作为docker容器是否正在运行的依据，如果 docker 容器pid=1的进程挂了，那么docker容器便会直接退出。
+			Docker未执行自定义的CMD之前，nginx的pid是1，执行到CMD之后，nginx就在后台运行，bash或sh脚本的pid变成了1。
+			所以一旦执行完自定义CMD，nginx容器也就退出了。
+		
+		docker服务的编排，暂时不看  Docker Compose,k8s等
+		docker api   目前没用到
+	
+151.quartz相关
+		文档介绍	https://www.w3cschool.cn/quartz_doc/
+		
+		
+		quartz更新使用服务端多点，页面的配置差点，
+		xxl-job可视化功能做的更好些
+		
+		spring task ，主要缺点，一般不用，使用quartz
+			@Scheduled 	
+			对异常的处理：SpringTask不同，一旦某个任务在执行过程中抛出异常，则整个定时器生命周期就结束，以后永远不会再执行定时器任务。
+		
+		Quartz的基本组成部分：
+			调度器：Scheduler,用来管理Job和Trigger
+			任务：JobDetail
+			触发器：Trigger，
+				SimpleTrigger,在具体的时间点执行一次或按指定时间间隔执行多次，
+				CronTrigger,按Cron表达式的方式去执行更常用。	“0 0 12 ？* WED“ - 表示”每个星期三下午12:00“。
+			
+		
+		Quartz 中两种可用的 Job 存储类型是：
+			1.内存存储(RAMJobStore),简单优先的解决方案
+				存储方式：org.quartz.jobStore.class = org.quartz.simpl.RAMJobStore
+				RAMJobStore 是quartz默认的配置方式，配置最简单的。不提供就使用默认的配置文件quartz.properties
+				内存两种方式加载 Job 信息：1.硬编码到代码中 2.统一xml中加载
+				缺点：新增一个任务，暂停一个任务。需要停应用！改XML配置！重新启动！不灵活
+				
+			2.持久化存储(jdbcjobstore)
+				存储方式：org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
+				需要搭配jdbc进行持久化，数据库要建好对应的表
+				需要加载quartz.properties，内存方案不需要加载
+				优点：可以持久化job信息，可查询数据库中的job数据信息展示，可动态添加修改job任务，无需重启
+					  可以做单点也可以做集群，当任务多了之后，可以统一进行管理。
+					  任务可以进行管理，随时停止、暂停、修改任务。
+				
+		相关名字解释
+			quartz三要素：Scheduler、Trigger、JobDetai&Job。
+				Scheduler：Quartz中的任务调度器，通过Trigger和JobDetail可以用来调度、暂停和删除任务。
+				Trigger：Quartz中的触发器，可以通过CRON表达式来指定任务执行的时间，时间到了会自动触发任务执行。
+				JobDetail：Quartz中需要执行的任务详情，包括了任务的唯一标识和具体要执行的任务，可以通过JobDataMap往任务中传递数据。
+				Job：Quartz中具体的任务，包含了执行任务的具体方法。
+			
+			Quartz API的关键接口是：
+				Scheduler - 与调度程序交互的主要API。
+				Job - 你想要调度器执行的任务组件需要实现的接口
+				JobDetail - 用于定义作业的实例。
+				Trigger（即触发器） - 定义执行给定作业的计划的组件。
+				JobBuilder - 用于定义/构建 JobDetail 实例，用于定义作业的实例。
+				TriggerBuilder - 用于定义/构建触发器实例。
+			
+			Scheduler 的生命期，
+				从 SchedulerFactory 创建它时开始，到 Scheduler 调用shutdown() 方法时结束；
+				Scheduler 被创建后，可以增加、删除和列举 Job 和 Trigger，以及执行其它与调度相关的操作（如暂停 Trigger）。
+				但是，Scheduler 只有在调用 start() 方法后，才会真正地触发 trigger（即执行 job）。
+		
+		job中的jobdetail 
+			当我们使用“job”时，一般指代的是job定义，或者JobDetail；当我们提到实现Job接口的类时，通常使用“job类“(job的具体业务逻辑)
+			JobDetail用来绑定Job，为Job实例提供许多属性：name,group,jobClass,jobDataMap
+			每次Scheduler调度执行一个Job的时候，首先会拿到对应的Job，然后创建该Job实例，再去执行Job中的execute()的内容，任务执行结束后，关联的Job对象实例会被释放，且会被JVM GC清除。
+			
+			为什么设计成JobDetail + Job，不直接使用Job
+				JobDetail定义的是任务数据，而真正的执行逻辑是在Job中。
+				这是因为任务是有可能并发执行，如果Scheduler直接使用Job，就会存在对同一个Job实例并发访问的问题。
+				而JobDetail + Job 方式，Sheduler每次执行，都会根据JobDetail创建一个新的Job实例，这样就可以规避并发访问的问题。
+
+			#将参数数据放入JobDataMap，执行job，从JobDataMap中获取参数,实现参数传递
+				JobDetail job = newJob(DumbJob.class)
+							  .withIdentity("name_myJob", "group_group1")
+							  .usingJobData("jobSays", "Hello World!")				#存数据
+							  .usingJobData("myFloatValue", 3.141f)
+							  .build();
+				
+				public class DumbJob implements Job {
+					@Override
+					public void execute(JobExecutionContext context) throws JobExecutionException{
+					  JobKey key = context.getJobDetail().getKey();
+					  JobDataMap dataMap = context.getJobDetail().getJobDataMap();	#取数据map
+					  String jobSays = dataMap.getString("jobSays");
+					  float myFloatValue = dataMap.getFloat("myFloatValue");
+					  System.err.println("Instance " + key + " of DumbJob says: " + jobSays + ", and val is: " + myFloatValue);
+					}
+				  }
+				  
+			JobExecutionContext
+				JobExecutionContext中包含了Quartz运行时的环境以及Job本身的详细数据信息。
+				JobDetail、Trigger都可以使用JobDataMap来设置一些参数或信息，
+				当Schedule调度执行一个Job，执行execute()方法的时候，Job可以通过JobExecutionContext对象获取信息
+				  
+			
+		job中的triggers
+			主要配置job实现的具体规则,用于触发 Job 的执行	
+			JobKey是表明Job身份的一个对象，里面封装了Job的name和group，TriggerKey同理。
+			触发原理
+				job的一个 trigger 被触发后（稍后会讲到），execute() 方法会被 scheduler 的一个工作线程调用(中保存了该的job运行信息)；
+				执行 job 的 scheduler 的引用，触发 job 的 trigger 的引用，JobDetail 对象引用，以及一些其它信息。
+				
+			job 被创建后，可以保存在 Scheduler 中，与 Trigger 是独立的，同一个 Job可以有多个 Trigger，但一个Trigger只能对应一个Job
+	
+			Trigger 也有一个相关联的 JobDataMap，用于给 Job 传递一些触发相关的参数
+			JobExecutionContext是JobDetail中的JobDataMap和Trigger中的JobDataMap的并集，相同的数据后者优先。			  
+			获取并集JobDataMap dataMap = context.getMergedJobDataMap(); 
+			
+			
+			
+		job中的Scheduler
+			Scheduler（调度器）：代表一个Quartz的独立运行容器。
+				Trigger和JobDetail可以注册到Scheduler中。Scheduler可以将Trigger绑定到某一JobDetail上，这样当Trigger被触发时，对应的Job就会执行。
+
+				用JobBuilder和TriggerBuilder 创建一个jobdetail和trigger
+				@Configuration
+				public class QuartzConfig {
+					#用JobBuilder创建jobDetail
+					@Bean
+					public JobDetail printTimeJobDetail(){
+						return JobBuilder.newJob(DateTimeJob.class)		//PrintTimeJob我们的业务类
+								.withIdentity(“jobName”, “jobGroupName”)			//JobDetail的id
+								.usingJobData("msg", "Hello Quartz")	//可以不配置，JobDataMap传参，可以不串
+								.storeDurably()							//可以不配置，即使没有Trigger关联时，也不需要删除该JobDetail
+								.build();
+					}
+					
+					#可以用TriggerBuilder创建trigger
+					@Bean
+					public Trigger printTimeJobTrigger() {
+						CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("0/1 * * * * ?");
+						return  (CronTrigger) TriggerBuilder.newTrigger()
+								.forJob(printTimeJobDetail())							//关联上述的JobDetail
+								.withIdentity(“triggerName”, “triggerGroupName”)		// 触发器名,触发器组名
+								.withSchedule(cronScheduleBuilder)
+								.build();
+					}
+				}
+		
+			scheduler代码加载jobDetail和trigger
+				private void startJob1(Scheduler scheduler) throws SchedulerException {
+					//通过JobBuilder构建JobDetail实例
+					JobDetail jobDetail = JobBuilder.newJob(SchedulerQuartzJob1.class).withIdentity("job1", "group1").build();
+					
+					//TriggerBuilder 用于构建触发器实例
+					CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("0/5 * * * * ?");
+					CronTrigger cronTrigger = TriggerBuilder.newTrigger().withIdentity("job1", "group1").withSchedule(cronScheduleBuilder).build();
+					
+					//配置调度器
+					scheduler.scheduleJob(jobDetail, cronTrigger);
+				}
+		
+		
+		
+		
+			*******Spring+Quartz实现Jobdetail有两种方式，xml类型：*******							
+				**********
+				本质上，最终是要将Trigger(配置了jobdetail)注册到SchedulerFactoryBean中，
+				*****
+				选择方式，如果是要动态更新，可视化管理，那就选持久化方案，使用继承QuartzJobBean类或者实现job接口方式，公用一个job类，通过数据库动态job请求路径
+						  如果是简单内存后台使用，使用MethodInvokingJobDetailFactoryBean，指定bean和方法名即可，省的多个类都要实现job接口(而且只固定一个实现方法execute,没法将功能聚合起来)，配置繁琐，
+				*****
+				
+				jobdetail实现两种方式
+					1.继承QuartzJobBean类或者实现job接口，
+						适合持久化方案，因为只要公用一个job实现类，然后从数据库rest请求路径即可，否则多个job就有多个job实现类。每个job都要一个job实现类，比较乱。
+						想要公用一个job实现类，那么必须有个参数配置来选择执行的job，而这里参数需要存起来，自然而然选择数据库方式
+
+					2.MethodInvokingJobDetailFactoryBean指定具体的类和方法
+						适合内存方案，内部多个job不需要管理，直接一次将job注入到调度器中即可。
+						
+					在Quartz配置类中，主要配置两个东西：1. JobDetail 2. Trigger
+					JobDetail 有两种不同的配置方式：MethodInvokingJobDetailFactoryBean 和 JobDetailFactoryBean
+					
+					
+					1.在Spring配置文件中配置JobDetail
+						*****一种是不继承任何类或者实现接口，创建普通的Java类，然后自己指定任务的执行方法*****
+							在xml中配置quartz的配置	JobDetail、Trigger、SchedulerFactoryBean
+							<bean id="firstService" class="com.xye.quartz.firstService"></bean>
+							<bean id="firstTask" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+								<property name="targetObject" ref="firstService" />  						#指定任务类
+								<property name="targetMethod" value="execute" />  							#指定任务执行的方法
+							</bean>
+					
+						*****另一种是继承org.springframework.scheduling.quartz.QuartzJobBean类来实现Job任务，并实现里面的抽象方法executeInternal*****
+							quartz2后废弃了JobDetailBean，使用JobDetailFactoryBean
+							#jobClass定义的任务类，继承QuartzJobBean，实现executeInternal方法；jobDataMap用来给job传递数据;
+							<bean id="firstTaskDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+									<property name="jobClass" value="com.xiaoyuer.pay.quartz.service.MyQuartzJobBean" />				#继承了QuartzJobBean
+									<property name="jobDataMap">
+										<map><entry key="firstService" value-ref="firstService" /></map>								#可不传
+									</property>
+									<property name="durability" value="true" />															#当没有触发器与之关联时，仍然将job继续保存在Scheduler中
+							</bean>
+	
+					//3.配置触发器（Trigger）	SimpleTrigger和CronTrigger
+						<bean id="firstCronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+							<property name="jobDetail" ref="firstTaskDetail" />
+							<property name="cronExpression" value="0/5 * * ? * *" />
+						</bean>
+								
+						备注：simpleTrigger，不常用
+						<bean id="exampleJobTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+								<property name="jobDetail" ref="firstTaskDetail" />
+								<property name="startDelay" value="10000" />							#延迟触发时间，延迟10秒进行触发
+								<property name="repeatInterval" value="5000" />							#复触发的时间间隔，5秒 
+						</bean>
+						
+						
+						triggerBuilder.startNow(); 有可能是立刻执行
+						当使用 Cron 表达式时，StartNow 方法不会起任何效果，Cron 有其自己的执行时间。目前看来 StartNow 应该只适用于 SimpleTrigger 触发器。
+
+								
+					//4.配置SchedulerFactoryBean
+						<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+							<property name="triggers">
+								<list><ref bean="firstCronTrigger" /></list>
+							</property>
+						</bean>			
+				**********
+				
+				
+				QuartzJobBean原理
+					QuartzJobBean是实现类job接口，内部调用的时候，实际还是调用的是executeInternal()
+						public abstract class QuartzJobBean implements Job {
+						@Override
+						public final void execute(JobExecutionContext context) throws JobExecutionException {
+							try {
+								BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+								MutablePropertyValues pvs = new MutablePropertyValues();
+								pvs.addPropertyValues(context.getScheduler().getContext());
+								pvs.addPropertyValues(context.getMergedJobDataMap());
+								bw.setPropertyValues(pvs, true);
+							}
+							catch (SchedulerException ex) {
+								throw new JobExecutionException(ex);
+							}
+							executeInternal(context);
+						}
+						protected abstract void executeInternal(JobExecutionContext context) throws JobExecutionException;
+					}
+		
+							
+		
+		项目使用代码demo	
+				内存方案，批量注入，java代码配置
+					//原理：注入了一个SchedulerFactoryBean的bean，然后内部配置了trigger和jobdetail相关
+					@Configuration
+					public class XyeTriggerSchedulerFactoryBean extends SchedulerFactoryBean{
+						private ApplicationContext applicationContext;
+
+						@Override
+						public void setApplicationContext(ApplicationContext applicationContext) {
+							this.applicationContext = applicationContext;
+						}
+
+						@Override
+						protected void registerJobsAndTriggers() throws SchedulerException {
+							XyeSchdulerMethod xyeSchdulerMethod = null;
+							//容器中拿到封装类manualJobService，然后反射获取方法上配置的注解@XyeSchdulerMethod，获取job的配置参数，注入job
+							Class<?> objClass = applicationContext.getType("manualJobService");
+							Method[] methods = objClass.getDeclaredMethods();
+							List<CronTrigger> triggersList = new ArrayList<CronTrigger>();
+							for(Method method : methods) {
+								xyeSchdulerMethod = AnnotationUtils.findAnnotation(method, XyeSchdulerMethod.class);
+								if (xyeSchdulerMethod != null) {
+									String cronExpression = xyeSchdulerMethod.cronExpression();
+									CronTrigger trigger = registerCronJobTrigger(method.getName(),xyeSchdulerMethod);
+									triggersList.add(trigger);
+								}
+							}
+							Trigger[] triggers = (Trigger[]) triggersList.toArray(new Trigger[triggersList.size()]);
+							
+							setTriggers(triggers);						#这里相当于前面的设置trigger，这里之前的代码都是配置trigger的过程。这里是关键点
+							super.registerJobsAndTriggers();			#这里正常执行父方法
+						}
+						
+						
+						//将jobdetail装载到trigger中
+						//这里实际上就是返回一个crontrigger，用builder应该也行
+						private CronTrigger registerCronJobTrigger(String methodName,XyeSchdulerMethod xyeSchdulerMethod) throws Exception {
+							String cronExpression = xyeSchdulerMethod.cronExpression();
+							int jobType = xyeSchdulerMethod.jobType();
+							String[] arguments = xyeSchdulerMethod.arguments();
+							
+							MethodInvokingJobDetailFactoryBean jobDetailFactory = new MethodInvokingJobDetailFactoryBean();
+							jobDetailFactory.setTargetMethod(methodName);
+							jobDetailFactory.setConcurrent(false);
+							jobDetailFactory.setArguments(arguments);
+							jobDetailFactory.setTargetObject(applicationContext.getBean("manualJobService"));
+							jobDetailFactory.setName(methodName + "_detail_" + xyeSchdulerMethod.jobType());
+							jobDetailFactory.afterPropertiesSet();
+							
+							CronTriggerFactoryBean cronTriggerFactory = new CronTriggerFactoryBean();
+							cronTriggerFactory.setJobDetail(jobDetailFactory.getObject());
+							cronTriggerFactory.setCronExpression(cronExpression);
+							cronTriggerFactory.setName(methodName + "_trigger_" + xyeSchdulerMethod.jobType());
+							cronTriggerFactory.afterPropertiesSet();
+							return cronTriggerFactory.getObject();
+						}
+						
+						
+			xye-pay-quartz的系统配置，持久化的配置方案
+					@PersistJobDataAfterExecution：保存在JobDataMap传递的参数,执行后保留作业数据
+					@DisallowConcurrentExecution: 保证多个任务间不会同时执行.所以在多任务执行时最好加上 
+			
+			
+					这里配置了一个jobDetail，所有的任务都需要一个trigger绑定这个jobDetail后才生效，也就是说，系统初始化没有job任务，需要手工添加	
+			
+					1.配置job的系统配置
+						   <bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+								<property name="dataSource" ref ="dataSource" />       
+								<property name="applicationContextSchedulerContextKey" value="applicationContextKey"/>
+								<property name="configLocation" value="classpath:quartz.properties"/>			
+							</bean>
+    
+					2.触发类是的类，触发数据库中配置的job，需要指定入口类
+						<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean" >
+							<property name="jobClass">
+								<value>com.xiaoyuer.pay.quartz.service.MyQuartzJobBean</value>      				#继承了QuartzJobBean(该类实现了job接口)
+							</property>
+						   <property name="durability" value="true" />	
+						</bean>
+						
+					3.通过数据库的查询，可以将数据库中的job配置信息展示在页面上
+					4.通过scheduler的实现类，操作job的增加，删，改操作。
+						核心还是scheduler设置jobDetail和trigger
+					
+						CronTriggerImpl trigger = new CronTriggerImpl();		#CronTriggerImpl也实现了trigger接口，用triggerBuilder也可以吧
+						trigger.setCronExpression(cronExpression);
+						TriggerKey triggerKey = new TriggerKey(name, group);
+						trigger.setKey(triggerKey);								#设置triggerkey属性，自身属性
+						trigger.setJobName(jobDetail.getKey().getName());		#设置jobName和jobdetail关联上，
+						trigger.setDescription(description);					#设置描述
+						scheduler.addJob(jobDetail, true);						#先设置detail，后设置trigger,分开设置是因为，一个job可以分批绑定多个trigger，只要jobName, jobGroup和jobdetail的一致即可
+						if (scheduler.checkExists(triggerKey)){
+							scheduler.rescheduleJob(triggerKey, trigger);		#存在修改，不存在就新增。还有一种方式是先删除在新增
+						}else{ 
+							scheduler.scheduleJob(trigger);						#scheduler一共需要设置两个参数jobDetail和trigger	
+						}
+				
+			关于name和group
+				JobDetail和Trigger都有name和group。
+				name是它们在这个sheduler里面的唯一标识。如果我们要更新一个JobDetail定义，只需要设置一个name相同的JobDetail实例即可。
+				group是一个组织单元，sheduler会提供一些对整组操作的API，比如 scheduler.resumeJobs()。	
+				
+				实际项目中jobdetail就只有一个com.xiaoyuer.pay.quartz.service.MyQuartzJobBean，jobname="jobDetail",job_group是default
+					实际的trigger中，triggername是执行rest路径，triggergroup是net-pay这样的组名
+					调用的时候，就是triggergroup拼接triggername后请求指定地址。
+				
+			//目前一共三种方式创建trigger了
+				1.triggerBuilder				这个是常用的
+				2.CronTriggerImpl				pay-quartz中用
+				3.CronTriggerFactoryBean		job中用
+			
+	springboot整合quartz			
+	
+		https://blog.csdn.net/u012907049/article/details/73801122  	持久化方案+job界面
+
+		持久化方案，直接属性文件配置完，然后可以直接注入scheduler，然后增删改查
+		内存方案，直接配置完就自动触发即可		
+
+		1、springboot集成quartz，应用启动过程中会自动调用schedule的start方法来启动调度器，也就相当于启动了quartz，原因是SchedulerFactoryBean实现了SmartLifecycle接口；
+	　　2、springboot会自动将我们应用的数据源配置给quartz
+					
+				
+				
+	整合demo
+		1. 添加maven依赖
+			<dependency>
+			   <groupId>org.springframework.boot</groupId>
+			   <artifactId>spring-boot-starter-quartz</artifactId>
+			</dependency>
+		
+		2.同理启动类上添加 @EnableScheduling注解，开启定时任务
+		
+		3. 注册为SpringBoot组件，缺点是无法传递参数
+			@Component
+			public class MyFirstJob {
+				public void  hello(){
+					System.out.println("MyFirstJob:hello:"+new Date());
+				}
+			}
+			//@description: 继承 QuartzJobBean并实现executeInternal的方法,可以传递参数
+			public class MySecondJob extends QuartzJobBean {
+				private String name;
+				public void setName(String name) {
+					this.name = name;
+				}
+				@Override
+				protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+					System.out.println("hello:"+name+":"+new Date());
+				}
+			}
+
+		//@description:  JobDetail 的配置有两种方式：MethodInvokingJobDetailFactoryBean 和 JobDetailFactoryBean
+		@Configuration
+		public class QuartzConfig {
+			//使用 MethodInvokingJobDetailFactoryBean,可以配置目标 Bean 的名字和目标方法的名字，这种方式不支持传参 
+			@Bean
+			MethodInvokingJobDetailFactoryBean methodInvokingJobDetailFactoryBean(){
+				MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
+				bean.setTargetBeanName("myFirstJob");
+				bean.setTargetMethod("hello");
+				return bean;
+			}
+			
+			
+			/**
+			*  使用JobDetailFactoryBean 可以配置 JobDetail  
+			*  这种方式支持传参，将参数封装在 JobDataMap 中进行传递, job中只需要提供属性名和相应的set方法即可
+			*/
+			@Bean
+			JobDetailFactoryBean jobDetailFactoryBean(){
+				JobDetailFactoryBean bean = new JobDetailFactoryBean();
+				JobDataMap map = new JobDataMap();
+				map.put("name","ljx");
+				bean.setJobDataMap(map);
+				bean.setJobClass(MySecondJob.class);			MySecondJob类继承自 QuartzJobBean
+				return bean;
+			}
+			
+			//设置JobDetail, setStartTime设置开始时间，
+			@Bean
+			SimpleTriggerFactoryBean simpleTriggerFactoryBean(){
+				SimpleTriggerFactoryBean bean = new SimpleTriggerFactoryBean();
+				bean.setJobDetail(methodInvokingJobDetailFactoryBean().getObject());
+				bean.setStartTime(new Date());
+				bean.setRepeatInterval(2000);			#任务的时间间隔
+				bean.setRepeatCount(3);					#任务的循环次数
+				return bean;
+			}
+		   
+			//主要配置JobDetail和Cron表达式
+			@Bean
+			CronTriggerFactoryBean cronTriggerFactoryBean(){
+				CronTriggerFactoryBean bean = new CronTriggerFactoryBean();
+				bean.setJobDetail(jobDetailFactoryBean().getObject());
+				bean.setCronExpression("* * * * * ?");
+				return bean;
+			}
+			
+			/**
+			*  创建schedulerFactory，配置相应的Trigger
+				*****这里的setTriggers可以接收多个参数，这里可以批量注册，job数量少就，对应都注册商，多久批量注册*****
+				public void setTriggers(Trigger... triggers) {this.triggers = Arrays.asList(triggers);}
+				这是内存方案，持久化方案再配置下quartz.properties和datasource即可
+			*/
+			@Bean	
+			SchedulerFactoryBean schedulerFactoryBean(){
+				SchedulerFactoryBean bean = new SchedulerFactoryBean();
+				bean.setTriggers(simpleTriggerFactoryBean().getObject(),cronTriggerFactoryBean().getObject());
+				return bean;
+			}
+		}
+						
+			操作quartz的api接口相关，持久化方案适用
+				scheduler的几个常用方法，主要实现job的增删改查，暂停恢复
+					https://zhoutianyu.blog.csdn.net/article/details/107785587
+						
+						创建任务			 scheduler.scheduleJob(jobDetail, trigger);
+						删除任务
+							//暂停并不调度触发器
+							scheduler.pauseTrigger(triggerKey);
+							scheduler.unscheduleJob(triggerKey);
+							//删除任务
+							scheduler.deleteJob(jobKey);
+						修改一个任务
+							1.暂停任务，2.删除任务，3.创建新任务
+							scheduler.pauseTrigger(triggerKey);				//停止触发器
+							scheduler.unscheduleJob(triggerKey);			//移除触发器
+							scheduler.deleteJob(jobKey);					//删除任务
+							scheduler.scheduleJob(jobDetail, trigger);		//创建任务
+						暂停任务	
+							 pauseJob(jobKey)
+						恢复任务
+							resumeJob(jobKey)
+							resumeTrigger(triggerKey)
+						触发执行一个JobDetail
+							triggerJob(jobKey) 。
+							
+						修改任务的触发时间
+							scheduler.rescheduleJob(triggerKey, trigger);
+				每个任务JobDetail可以绑定多个Trigger，但一个Trigger只能绑定一个任务，这种绑定关系由四种接口来执行
+					Scheduler#scheduleJob(JobDetail, Trigger)
+						该接口的作用是在将任务加入Quartz的同时绑定一个Trigger，Quartz会在加入该任务后自动设置Trigger的JobName与JobGroup为该JobDetail的name与group；
+
+					Scheduler#scheduleJob(Trigger)
+						该接口的作用是将该Trigger绑定到其JobName与JobGroup指向的任务JobDetail。这时的name与group需要在Trigger绑定前由Quartz的使用者来设置与调用
+
+					Scheduler#rescheduleJob(String, String, Trigger)
+						替换一个指定的Trigger, 即解除指定Trigger与任务的绑定，并将新的Trigger与任务绑定，Quartz会自动调整新Trigger的JobName与JobGroup，而旧的Trigger将被移除
+
+					Scheduler#triggerJob(String, String)
+						创建一个立即触发的Trigger，并将其与name与group指定的任务绑定
+					JobDetail有个属性叫durable，表明该任务没有任何trigger绑定时仍保存在Quartz的JobStore中，默认为false。若JobDetail的durable属性为false，则任务将会从Quartz移除。
+						
