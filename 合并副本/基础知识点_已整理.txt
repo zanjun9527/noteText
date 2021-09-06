@@ -1,0 +1,93 @@
+
+
+1.hashmap和treemap（有序）
+2.final static常量String不能被重新赋值，只能被替换，替换不改变原来的值，而是返回这个新值，不能放在主函数内 共享常量   方法里声明变量是私有的
+3.newinstance()和new()的区别
+	newInstance: 弱类型。低效率。只能调用无参构造。 
+	new: 强类型。相对高效。能调用任何public构造。
+4.接口中的"变量"默认都是 "public static final"类型, 即为常量, 不要使用"常量接口模式", 此模式会导致类中的常量混乱
+5.堆和方法区是线程共享的，Java栈和本地方法栈是线程私有的
+6.Throwable是java.lang包中一个专门用来处理异常的类。它有两个子类，即Error（运行环境方面的异常） 和Exception（显示-编译/隐式-运行异常），它们分别用来处理两组异常。	
+
+
+
+==============================面试基础知识点=================================
+1.static是共有的，可被修改的，final是不可修改的，应用类上不能被继承，虽类的加载而存在
+2.子类无法直接访问父类中的private变量，需借助get方法
+3.抽象类不能被实例化，但可以创建子类对象或匿名内部类  和接口类似
+4.重载：类的多个构造函数  多态：接口实现
+5.接口和抽象类：
+	成员变量：接口是静常，抽象类不限
+	构造方法:接口无，抽象类有
+	成员方法：接口是抽象的，全实现，抽象类不是，可抽可不抽
+	接口多继承，抽象类单继承
+6.内部类的两种方式创建方式，分静态内部类和非静态
+7.匿名内部类本质是一个继承抽象类的子类或实现该接口的实现类 匿名对象
+8.String a=new String("nihao")，左开栈右开堆，常量相加是，先加，再在常量池中找，没有则创建；变量相加是先开空间再拼接
+9.线程的生命周期：新建（start），就绪，运行，阻塞（synchronized，sleep，wait，可以notify唤醒）死亡
+10.多线程的两种方法：继承tread类或者实现runnable接口（解决了单继承的局限性）
+	安全性问题，加synchronized或者lock.lock(最后要释放锁)
+	一、继承Thread类
+		class MyThread extends Thread {
+			private String name ;
+			public MyThread(String name) {
+				this.name = name;
+			}
+			public void run() {//覆写Thread类中的run方法
+				System.out.println("MyThread-->"+ name);
+			}
+		}
+		public class TestThread {
+			public static void main(String args[]) {
+
+				MyThread t1 = new MyThread("线程1");
+
+				MyThread t2 = new MyThread("线程2");
+
+				t1.start();//调用线程启动方法
+
+				t2.start();//调用线程启动方法
+			}
+		}
+		二、实现Runnable接口
+		class MyThread implements Runnable {
+			private String name ;
+			public MyThread(String name) {
+				this.name = name;
+			}
+			public void run() {//覆写Thread类中的run方法，这是线程的主体
+				System.out.println("MyThread-->"+ name);
+			}
+		}
+		public class TestThread {
+			MyThread t = new MyThread("线程");
+			new Thread(t).start();
+			new Thread(t).start();
+		}
+
+notify()后会沿wait()方法之后的路径继续执行，注意是wait方法之后
+
+11.set是无序，不可重复的 唯一
+	list有序，可重复
+	map是key-value
+12.hashtable:不允许null键，不允许null值
+	hashmap：只允许一条记录的键为null，值不限
+==============================项目中重点=================================
+1.json流的输出
+2.jersy框架
+3.maven多环境打包
+4.solr bf 整体打分  qf单个字段打分，输出  schema.xml配置各种field 	查询结果映射问题 ，结果集反射可获取值  也可以注解@Field("title")映射
+
+5.mvc框架  和ssm整合
+6.servlet,interceptor,filter
+
+7.代理，反射
+
+8.redis		jedis .setex(key,seconds, value);
+9.分布式  hessian 和dubbo
+
+10.高并发，select for update    sql语句索引 AtomicInteger  concurrent包
+11.事务
+
+
+=========================================================================
