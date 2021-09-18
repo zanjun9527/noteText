@@ -82,3 +82,37 @@
 		application/javascript			推荐使用，但是没有很好的支持，所以一般写上面的
 		
 		resp.setContentType("application/json;charset=utf-8");指定返回类型为jason格式
+
+
+JSP中提供了四种属性范围，四种属性范围分别指以下四种：
+	page：一个属性只能在一个页面中取得，跳转到其他页面无法取得
+	request：一个页面中设置的属性，只要经过了服务器跳转，则跳转之后的页面可以继续取得。
+	session：一个用户设置的内容，只要是与此用户相关的页面都可以访问（一个会话表示一个人，这个人设置的东西只要这个人不走，就依然有效）
+	application：在整个服务器上设置的属性，所有人都可以访问
+	使用的pagecontext对象，是前端页面的属性对象
+
+
+	function aa(){alert("1")}; window.setTimeout(aa,0);   js 定时执行
+
+
+freemarker静态化生成html
+	// 当前系统绝对路径
+	String ftlPath = session.getServletContext().getRealPath("/WEB-INF/ftl");
+	config.setDirectoryForTemplateLoading(new File(templatePath));这个使用的是绝对的路径
+	 
+	to  只要指定文件名即可
+	generateHtml  中奖常用的系统变量放进入，生成静态化文件html，使用的是原先的ftl文件
+	Template template = config.getTemplate(templateName, "UTF-8");
+	// 合并数据模型与模板
+	FileOutputStream fos = new FileOutputStream(fileName);
+	Writer out = new OutputStreamWriter(fos, "UTF-8");
+	template.process(root, out);  //第一个是map参数，第二个是需要输出的文件路径，可以不存在会默认写一个出来
+
+	静态网页化之提高速度  不管是asp、php、jsp、.net等动态程序，都需要读取调用数据库内容，才能显示数据，
+	相对于流量比较大，就增加了数据库的读取次数，占用很大的服务器资源，影响网站速度。
+	而采用网站做成静态的，直接除去了读取数据库的操作，减少了环节，提高了网站反映速度。
+	
+	然后项目中是在BaseInfoInitServlet中初始化完成的静态页面生成
+	想法就是通过使用freemaker使用预先的ftl模板，然后生成静态的html文件，后面页面直接引用
+	
+	spring.freemarker.template-loader-path  只是freemarker将静态文件加载的配置，配置对应目录，其他前后缀正常加。目前不必关注，配置正常添加即可

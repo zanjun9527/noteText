@@ -1101,3 +1101,119 @@ css设计指南   还可以写的，后面可以再看看
 		th:utext	会解析文本中的html，显示相应样式
 
 	setInterval() 方法可按照指定的周期（以毫秒计）来调用函数或计算表达式。
+
+
+
+	js相关	
+		var smsCodeValiate;  变量要初始化 不然就是undefined
+		var smsCodeValiate = false;
+		var tip='tips';  
+
+		动态添加一个到form中
+			var cardForm=$('#cardForm'); //得到form对象
+			var options=$("#cardArea option:selected");//拿到选中的select
+			var bankNameInput=$("<input type='hidden' name='bankName'/>");
+			bankNameInput.attr("value", options.text());
+			cardForm.append(bankNameInput);
+			
+			var data = $.param({'bankName':options.text()})+'&'+$('#cardForm').serialize();  表单之后的追加  这个是&拼接 
+
+		<link rel="stylesheet" href="/css/openPayIndex.css">
+		实际测试是域名根目录下，不包括项目名，netpay测试就调到域名的根路径下。实际测试写绝对路径，全路径即可
+		url: '${ctx}/open-api/pay/withdrawSubmit/',  直接放里面
+		 
+		 
+		ajax是json串交互，无法返回页面
+		 
+		form表单序列化之后追加字段
+			var data = $.param({'state': state}) + '&' + $('#desProForm').serialize();     这里是&拼接的参数串
+
+		jquery中表单序列化方法：
+			1.serialize()  (将表单内容序列化成一个字符串。)
+			　　格式：var data = $("form").serialize();
+			　　这样在ajax提交表单数据时，就不用一一列举出每一个参数。只需将data参数设置为 $("form").serialize() 即可。
+
+			2.serializeArray()  (将页面表单序列化成一个JSON结构的对象。注意不是JSON字符串)
+			　　格式：var jsonData = $("form").serializeArray();
+			　　比如，[{"name":"lihui", "age":"20"},{...}] 获取数据为 jsonData[0].name；
+
+
+		正则校验
+			/^(?!([a-zA-Z]+|\d+)$)[a-zA-Z\d]{6,20}$/.test('123123a')
+			var rex = new RegExp(/^(?!([a-zA-Z]+|\d+)$)[a-zA-Z\d]{6,20}$/);
+			rex.test()
+
+
+			
+		实现倒数计时，这是异步执行的，不会影响到下一个语句的执行,clearInterval是停止执行，和setInterval搭配使用
+			   function timeCode(num) {
+				var textHtml = 180;
+				var timeCode = setInterval(function () {
+					textHtml--;
+					if (textHtml == 0) {
+						clearInterval(timeCode);
+						document.getElementById("codeBtn").innerHTML = '重新获取验证码';
+						getCodeFlag = true;
+					} else {
+						document.getElementById("codeBtn").innerHTML = textHtml+`s后重新发送`;
+					}
+				}, 1000)
+			}
+			
+		dl dd dt    常规用法   解释型列表
+			<dl>
+				<dd><img src=”图片路径” alt=”" /></dd>
+				<dt>图片标题</dt>
+			</dl>
+			<dl>
+				<dt>电影标题</dt>
+				<dd>主要演员：刘德华，周润发</dd>
+			</dl>
+			
+		span 元素为行内元素，没有width属性，需要转换为块级元素才可以设置width；
+
+
+	thymeleaf
+		th:text中的thymeleaf并不会被认为是变量，而是一个字符串
+		<h2 th:object="${user}">
+			<p>Name: <span th:text="*{name}">Jack</span>.</p>
+		</h2>
+			
+		超链接url表达式。
+		thymeleaf使用（,,）的形式解析多个参数,结合${}放置变量十分方便：
+		<a th:href="@{/teacherShowMember(class_id=${class.classId}，class_name=${class.className})}"></a>
+		传统URL传递多参数使用？&拼接：
+		<a th:href="/teacherShowMember?class_id=123&class_name=XXX"></a>	
+			
+		但是在开发过程中，jsp的缺点是什么呢？
+		<% %>等等jsp标签，java代码块与html静态文件元素来回穿插，导致页面可读性差。
+		如果在使用each迭代时，更是要使用到c标签库
+		<c:forEach var="user" items="${user}"> <c:forEach>
+		而thymeleaf则使用th:each="user:${user}",不需要像jsp一样引入很多标签库
+		而thymele拥有强大的内置工具，只要使用th:text="#dates.format(date,"yyyy-MM-dd")"即可获取时间
+		再比如：jsp页面，无法进行选择操作，而thymeleaf可以使用th:switch="${sex}" th:case="0"
+		
+		主要功能：
+			1.使用功能函数，如日期转换函数
+			2.使用编程语句，如条件和循环语句
+			3.使用页面框架模板，如布局显示
+		
+	编码和转义不一样
+		编码是前后端的交互，转义是前台的显示
+		就是将展示的东西，替换一些常用的特殊字符
+		margin是边框外，是盒子外的尺寸，描述div的长宽不计入
+		
+	css	
+		line-heigt 和 height实现垂直居中
+		line-heigt=font-size，上下文字是紧贴着
+		外边距重合，但是两个外边距之间有间隔内容，就不会合并
+		div的高度由height决定，和内容无关
+
+	ftl  模板操作方便，各种遍历，和判断操作直接使用
+	html 单纯的html只能展示，遍历操作，一般通过js操作	
+	
+	css制作三角箭头，可以配置after伪类使用
+	用下面连个属性，加上color中的transparent可以做一个箭头，原理是四个方向不同尺寸和颜色会对角线分割，隐藏部分就会是一个箭头.border边框不会重合
+	border-width
+	border-color
+
