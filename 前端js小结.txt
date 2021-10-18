@@ -577,3 +577,15 @@ console.log  一般推荐控制台输出
 			n$		以n结尾的匹配
 				reg = /^abc$/    以abc开头并且以改abc结尾
 				reg = /(\w)\1(\w)\2/   匹配aabb
+
+	对象引用操作
+		前台js中
+		var psa={"name":"wangzhan",}
+		var obj1=psa;
+		psa={"name":"baidu"}
+		JSON.stringify(obj1);   -- 出来的是wangzhan，因为操作的不是同一个对象
+
+		var psa={"name":"wangzhan",}
+		var obj1=psa;
+		psa.name="baidu";
+		JSON.stringify(obj1);	-- 出来的是baidu，因为操作的是同一个对象
