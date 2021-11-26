@@ -1124,6 +1124,11 @@ css设计指南   还可以写的，后面可以再看看
 		 
 		 
 		ajax是json串交互，无法返回页面
+
+		ajax中
+			contentType: 告诉服务器，我要发什么类型的数据
+			dataType：告诉服务器，我要想什么类型的数据
+
 		 
 		form表单序列化之后追加字段
 			var data = $.param({'state': state}) + '&' + $('#desProForm').serialize();     这里是&拼接的参数串

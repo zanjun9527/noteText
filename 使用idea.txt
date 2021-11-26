@@ -36,7 +36,8 @@ idea 安装 破解版：
 	多方案导包		alt+enter			实现接口的方法
 	debug/调试表达式	ctrl+u				调试查看表达式的值
 	恢复默认的窗口		debug附近的 restore layout	恢复console， window中的restore是全窗口的复位
-			
+	实现类跳转		单击后 Ctrl + T
+				
 	Eclipse和Intellij IDEA中常用快捷键差异总结。
 
 		1. main函数
@@ -158,8 +159,8 @@ git，maven相关
 
 		其中log中的  in 5 branches  说的是此处的代码被这几个分支共有，这些分支共享这个代码的源点。
 
-
-
+	
+	获取远程git分支，idea中看不到远程分支，fetch一下就可以了	
 		
 	
 	

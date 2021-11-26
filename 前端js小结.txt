@@ -589,3 +589,6 @@ console.log  一般推荐控制台输出
 		var obj1=psa;
 		psa.name="baidu";
 		JSON.stringify(obj1);	-- 出来的是baidu，因为操作的是同一个对象
+
+
+	js中的多个ajax异步请求的执行时并行，不会等待操作。执行的快与慢，要看响应的数据量的大小及后台逻辑的复杂程度。
