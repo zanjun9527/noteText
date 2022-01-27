@@ -126,6 +126,10 @@ git，maven相关
 			  idea中将一个maven工程关联上git，setting-version controller
 
 
+		
+		idea中  dev的更新需要切换到dev才能更新下来，其他分支暂时不能更新下来
+		看不到远程分支的时候，fetch一下即可
+
 			
 	远程分支看不到，pull那边刷新下就可以了
 	git pull 中默认是merge远程当前分支，就相当于更新。但是这里如果点别的分支，就是merge远程进来了，要注意。
@@ -302,6 +306,10 @@ eclipse
 	deployment assembly 容器中指定的默认的classpath	
 	java build path java的编译路径指定classpath
 
+	Eclipse，git提交代码，版本比较时，忽略空格
+	windows →　Preferences　→ Compare/Patch
+	window → preferences → validation → Suspend all validators   停止校验，关闭认证提速
+	 
 		
 cmd中的常用命令
 	netstat -ano|findstr "8080"  查找系统当前端口号占用情况		a表示显示所用的连接    n表示显示出ip地址和端口号  不加n，显示是计算机的netbios名称和端口号
@@ -341,6 +349,9 @@ git 中的还原，如果没反应，就直接reset - hard
 
 elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 
+eclipse中git的文件未改动，却出现在了工作区待提交中
+preferences-git-configurationi-system setting-autocrlf 设置为false。
+
 
 ===================vscode==================
 查看-终端，执行git命令操作
@@ -376,3 +387,8 @@ elipse的git文件异常  可以先忽略后切换还原来恢复  assume unchanged，切换后再还原
 		Markdown TOC	用来生成目录用
 		
 
+===================notepad++==================
+notepad++怎么给首尾添加引号
+正则模式下，
+ 输入^  -->替换成 '   	替换开头
+ 输入$  -->替换成 ' 	替换结尾
