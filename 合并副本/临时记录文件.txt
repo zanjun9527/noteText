@@ -1,7 +1,454 @@
 -mvc
 -jishushouce
-
-覆盖索引 和 回表查询，mysql的索引树
-判断对象存活
 -- 
-1
+
+
+
+-- 
+
+nio	主要就是一个线程对应多个socket连接
+Selector(选择区)用于监听多个通道的事件。因此，单个线程可以监听多个数据通道。
+
+
+client socket->socketchannel->selector-handle process thread
+
+为什么nio是非阻塞的
+
+
+而当调用 wait()方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池，
+只有针对此对象调用 notify()方法后本线程才进入对象锁定池准备获取对象锁进入运行状态。
+notify() 方法，唤醒在此对象监视器上等待的单个线程，如果所有线程都在此对象上等待，则会选择唤醒其中一个线程，选择是任意的
+
+
+线程通过调用其中一个 wait() 方法，在对象的监视器上等待，直到当前的线程放弃此对象上的锁定，
+才能继续执行被唤醒的线程，被唤醒的线程将以常规方式与在该对象上主动同步的其他所有线程进行竞争
+
+
+线程上下文切换
+巧妙地利用了时间片轮转的方式, CPU 给每个任务都服务一定的时间，然后把当前任务的状态保存
+下来，在加载下一任务的状态后，继续服务下一任务，任务的状态保存及再加载, 这段过程就叫做
+上下文切换。
+
+
+线程池：线程复用；控制最大并发数；管理线程
+
+我们可以继承重写Thread 类，在其 start 方法中添加不断循环调用传递过来的 Runnable 对象。 这就是线程池的实
+现原理。循环方法中不断获取 Runnable 是用 Queue 实现的，在获取下一个 Runnable 之前可以
+是阻塞的。
+
+
+一般的线程池主要分为以下 4 个组成部分：
+
+1.线程池管理器：用于创建并管理线程池2.
+工作线程：线程池中的线程
+3.任务接口：每个任务必须实现的接口，用于工作线程调度其运行
+4.任务队列：用于存放待处理的任务，提供一种缓冲机制
+
+
+
+线程池的运行，几个重点corePoolSize，队列，maximumPoolSize，它最终会收缩到 corePoolSize 的大小
+
+Semaphore 可以控制同时访问的线程个数，通过acquire() 获取一个许可，如果没有就等待，而 release() 释放一个许可
+
+
+volatile 适合这种场景：一个变量被多个线程共享，线程直接给这个变量赋值。
+
+而声明变量是 volatile 的，JVM 保证了每次读变量都从内存中读，跳过 CPU cache这一步。
+
+总的来说，必须同时满足下面两个条件才能保证在并发环境的线程安全：
+（1）对变量的写操作不依赖于当前值（比如 i++），或者说是单纯的变量赋值（boolean
+flag = true）。
+（2）该变量没有包含在具有其他变量的不变式中，也就是说，不同的 volatile 变量之间，不
+能互相依赖。只有在状态真正独立于程序内其他内容时才能使用 volatile。
+
+Java 里面进行多线程通信的主要方式就是共享内存的方式
+Java 内存模型（JMM）解决了可见性和有序性的问题，而锁解决了原子性的问题，
+
+ThreadLocal这种变量在线程的生命周期内起作用，减少同一个线程内多个函数或
+者组件之间一些公共变量的传递的复杂度
+
+将一个共用的 ThreadLocal 静态实例作为 key，将不同对象的引用保存到不同线程的
+ThreadLocalMap 中，然后在线程执行的各处通过这个静态 ThreadLocal 实例的 get()方法取
+得自己线程保存的那个对象，避免了将这个对象作为参数传递的麻烦。
+
+
+ConcurrentHashMap 是由 Segment 数组结构和 HashEntry 数组结构组成
+
+一个 ConcurrentHashMap 里包含一个 Segment数组(Segment 的结构和 HashMap类似，是一种数组和链表结构),
+一个 Segment 里包含一个 HashEntry 数组(每个 HashEntry 是一个链表结构的元素)， 每个 Segment 守护一个 HashEntry 数组里的元素,
+当对 HashEntry 数组的
+数据进行修改时，必须首先获得它对应的 Segment 锁
+
+独占资源-ReentrantLock
+共享资源-Semaphore/CountDownLatch
+
+
+在Java中的反射机制是指在运行状态中，对于任意一个类都能够知道这个类所有的属性和方法；
+并且对于任意一个对象，都能够调用它的任意一个方法；这种动态获取信息以及动态调用对象方法的功能成为 Java 语言的反射机制。
+
+
+
+反射的主要属性
+1.Class 类：反射的核心类，可以获取类的属性，方法等信息。
+2.Field 类：Java.lang.reflec 包中的类，表示类的成员变量，可以用来获取和设置类之中的属性值。
+3.Method 类： Java.lang.reflec 包中的类，表示类的方法，它可以用来获取类中的方法信息或者执行方法。
+4.Constructor 类： Java.lang.reflec 包中的类，表示类的构造方法。
+
+
+newInstance()方法来创建该 Class 对象对应类的实例，但是这种方法要求该 Class 对象对应的类有默认的空构造器。
+
+/获取 Person 类的 Class 对象
+Class clazz=Class.forName("reflection.Person");
+//使用.newInstane 方法创建对象
+Person p=(Person) clazz.newInstance();
+//获取构造方法并创建对象
+Constructor c=clazz.getDeclaredConstructor(String.class,String.class,int.class);
+//创建对象并设置属性
+13/04/2018
+Page 106 of 283
+Person p1=(Person) c.newInstance("李四","男",20);
+
+
+也可选定构造器创建对象
+
+
+静态内部类可以访问外部类所有的静态变量和方法，即使是 private 的也一样。
+2.
+静态内部类和一般类一致，可以定义静态变量、方法，构造方法等。
+3.
+其它类使用静态内部类需要使用“外部类.静态内部类”方式，如下所示：Out.Inner inner =
+new Out.Inner();inner.print();
+4.
+Java集合类HashMap内部就有一个静态内部类Entry。Entry是HashMap存放元素的抽象，
+HashMap 内部维护 Entry 数组用了存放元素，但是 Entry 对使用者是透明的。像这种和外部
+类关系密切的，且不依赖外部类实例的，都可以使用静态内部类。
+
+
+内部类分为静态内部类，成员内部类，局部内部类，匿名内部类四种
+定义在类内部的非静态类，就是成员内部类
+定义在方法中的类，就是局部类。如果一个类只在某个方法中使用，则可以考虑使用局部类
+匿名内部类我们必须要继承一个父类或者实现一个接口，当然也仅能只继承一个父类或者实现一
+个接口。同时它也是没有 class 关键字，这是因为匿名内部类是直接使用 new 来生成一个对象的引用。
+
+
+
+
+<? extends T>表示该通配符所代表的类型是 T 类型的子类。
+<? super T>表示该通配符所代表的类型是 T 类型的父类。
+
+类 型 通 配 符 一 般 是 使 用 ? 代 替 具 体 的 类 型 参 数 。 例 如 List<?> 在 逻 辑 上 是
+List<String>,List<Integer> 等所有 List<具体类型实参>的父类
+
+ObjectOutputStream 和 ObjectInputStream 对对象进行序列化及反序列化
+通过 ObjectOutputStream 和 ObjectInputStream 对对象进行序列化及反序列化。
+
+
+序列化 ID
+虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个
+类的序列化 ID 是否一致（就是 private static final long serialVersionUID）
+
+Transient 关键字阻止该变量被序列化到文件中
+
+BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身；ApplicationContext 面向使用
+Spring 框架的开发者，几乎所有的应用场合我们都直接使用 ApplicationContext 而非底层
+的 BeanFactory。
+
+
+
+BeanDefinitionRegistry 注册表
+1.
+Spring 配置文件中每一个节点元素在 Spring 容器里都通过一个 BeanDefinition 对象表示，
+它描述了 Bean 的配置信息。而 BeanDefinitionRegistry 接口提供了向容器手工注册
+BeanDefinition 对象的方法。
+1.1..1.1.2
+BeanFactory 顶层接口
+2.
+位于类结构树的顶端 ，它最主要的方法就是 getBean(String beanName)，该方法从容器中
+返回特定名称的 Bean，BeanFactory 的功能通过其他的接口得到不断扩展：
+
+
+
+HierarchicalBeanFactory 父子级联
+4.
+父子级联 IoC 容器的接口，子容器可以通过接口方法访问父容器； 通过
+HierarchicalBeanFactory 接口， Spring 的 IoC 容器可以建立父子层级关联的容器体系，子
+容器可以访问父容器中的 Bean，但父容器不能访问子容器的 Bean。Spring 使用父子容器实
+现了很多功能，比如在 Spring MVC 中，展现层 Bean 位于一个子容器中，而业务层和持久
+层的 Bean 位于父容器中。这样，展现层 Bean 就可以引用业务层和持久层的 Bean，而业务
+层和持久层的 Bean 则看不到展现层的 Bean。
+
+SingletonBeanRegistry 运行期间注册单例 Bean
+7.
+定义了允许在运行期间向容器注册单实例 Bean 的方法；对于单实例（ singleton）的 Bean
+来说，BeanFactory 会缓存 Bean 实例，所以第二次使用 getBean() 获取 Bean 时将直接从
+IoC 容器的缓存中获取 Bean 实例。Spring 在 DefaultSingletonBeanRegistry 类中提供了一
+个用于缓存单实例 Bean 的缓存器，它是一个用 HashMap 实现的缓存器，单实例的 Bean 以
+beanName 为键保存在这个 HashMap 中
+
+
+其中 Bean 缓存池为 HashMap 实现
+
+整个 Web 应用上下文对象将作为属性放置到 ServletContext中，以便 Web 应用环境可以访问 Spring 应用上下文。WebApplicationContext可以通过getServletContext()获得ServletContext 的引用，
+
+
+Spring 依赖注入四种方式
+构造器注入
+setter 方法注入
+静态工厂注入
+实例工厂
+
+资源协调者的概念
+public void transferAccount() {
+	UserTransaction userTx = null;
+	Connection connA = null; Statement stmtA = null;
+	Connection connB = null; Statement stmtB = null;
+	try{
+		// 获得 Transaction 管理对象
+		userTx = (UserTransaction)getContext().lookup("java:comp/UserTransaction");
+		connA = getDataSourceA().getConnection();// 从数据库 A 中取得数据库连接
+		connB = getDataSourceB().getConnection();// 从数据库 B 中取得数据库连接
+		userTx.begin(); // 启动事务
+
+		stmtA = connA.createStatement();// 将 A 账户中的金额减少 500
+		stmtA.execute("update t_account set amount = amount - 500 where account_id = 'A'");
+
+		// 将 B 账户中的金额增加 500
+		stmtB = connB.createStatement();
+		stmtB.execute("update t_account set amount = amount + 500 where account_id = 'B'");
+
+		userTx.commit();// 提交事务
+
+		// 事务提交：转账的两步操作同时成功（数据库 A 和数据库 B 中的数据被同时更新）
+	} catch(SQLException sqle){
+		// 发生异常，回滚在本事务中的操纵
+		userTx.rollback();// 事务回滚：数据库 A 和数据库 B 中的数据更新被同时撤销
+	} catch(Exception ne){ }
+}
+
+可以将资源管理器看做任意类型的持久化数据存储；事务管理器承担着所有事务参与单元的协调与控制
+事务协调者(事务管理器)给每个参与者(资源管理器)发送 Prepare 消息，这里就是协调者和每个connect事物操作的概念
+
+
+1 准备阶段
+事务协调者(事务管理器)给每个参与者(资源管理器)发送 Prepare 消息，每个参与者要么直接返回
+失败(如权限验证失败)，要么在本地执行事务，写本地的 redo 和 undo 日志，但不提交，到达一种“万事俱备，只欠东风”的状态。
+
+2 提交阶段：
+如果协调者收到了参与者的失败消息或者超时，直接给每个参与者发送回滚(Rollback)消息；否则，
+发送提交(Commit)消息；参与者根据协调者的指令执行提交或者回滚操作，释放所有事务处理过
+程中使用的锁资源。(注意:必须在最后阶段释放锁资源)将提交分成两阶段进行的目的很明确，就是尽可能晚地提交事务，让事务在提交前尽可能地完成
+所有能完成的工作。
+
+
+
+第一次发出一个查询 sql，sql 查询结果写入 sqlsession 的一级缓存中，缓存使用的数据结构是一个 map。
+key：MapperID+offset+limit+Sql+所有的入参
+value：用户信息
+同一个 sqlsession 再次发出相同的 sql，就从缓存中取出数据。如果两次中间出现 commit 操作
+（修改、添加、删除），本 sqlsession 中的一级缓存区域全部清空，下次再去缓存中查询不到所
+以要从数据库查询，从数据库查询到再写入缓存。
+
+6.1.12.2. 二级缓存原理（mapper 基本）
+二级缓存的范围是 mapper 级别（mapper 同一个命名空间），mapper 以命名空间为单位创建缓
+存数据结构，结构是 map。mybatis 的二级缓存是通过 CacheExecutor 实现的。
+CacheExecutor其实是 Executor 的代理对象。所有的查询操作，在 CacheExecutor 中都会先匹配缓存中是否存在，不存在则查询数据库。
+key：MapperID+offset+limit+Sql+所有的入参
+具体使用需要配置：
+1.Mybatis 全局配置中启用二级缓存配置
+2.在对应的 Mapper.xml 中配置 cache 节点
+3.在对应的 select 查询节点中添加 useCache=true
+
+dubbo的负载均衡机制原理上来说是客户端负载均衡，也就是dubbo消费者客户端根据服务提供者列表进行算法分配，来选择调用的服务端。
+
+
+API Gateway 负责请求转发、合成和协议转换。所有来自客户端的请求都要先经过 API Gateway，
+然后路由这些请求到对应的微服务。API Gateway 将经常通过调用多个微服务来处理一个请求以
+及聚合多个服务的结果。它可以在 web 协议与内部使用的非 Web 友好型协议间进行转换，如
+HTTP 协议、WebSocket 协议。
+7.1.2.1.
+请求转发
+服务转发主要是对客户端的请求安装微服务的负载转发到不同的服务上
+7.1.2.2.
+响应合并
+把业务上需要调用多个服务接口才能完成的工作合并成一次调用对外统一提供服务。
+7.1.2.3.
+协议转换
+重点是支持 SOAP，JMS，Rest 间的协议转换。
+7.1.2.4.
+数据转换
+重点是支持 XML 和 Json 之间的报文格式转换能力（可选）
+13/04/2018
+Page 144 of 283
+7.1.2.5.
+安全认证
+1.
+基于 Token 的客户端访问控制和安全策略
+2.
+传输数据和报文加密，到服务端解密，需要在客户端有独立的 SDK 代理包
+3.
+基于 Https 的传输加密，客户端和服务端数字证书支持
+4.
+基于 OAuth2.0 的服务安全认证(授权码，客户端，密码模式等）
+
+
+熔断器的原理很简单，如同电力过载保护器。它可以实现快速失败，如果它在一段时间内侦测到
+许多类似的错误，会强迫其以后的多个调用快速失败，不再访问远程服务器，从而防止应用程序
+不断地尝试执行可能会失败的操作，
+
+断路器很好理解, 当 Hystrix Command 请求后端服务失败数量超过一定比例(默认 50%), 断路器会
+切换到开路状态(Open). 这时所有请求会直接失败而不会发送到后端服务. 断路器保持在开路状态
+一段时间后(默认 5 秒), 自动切换到半开路状态(HALF-OPEN). 这时会判断下一次请求的返回情况,
+如果请求成功, 断路器切回闭路状态(CLOSED), 否则重新切换到开路状态(OPEN). Hystrix 的断路器
+就像我们家庭电路中的保险丝, 一旦后端服务不可用, 断路器会直接切断请求链, 避免发送大量无效
+请求影响系统吞吐量, 并且断路器有自我检测并恢复的能力。
+
+nio
+IO 多路复用技术通过把多个 IO 的阻塞复用到同一个 select 的阻塞上，从而使得系统在
+单线程的情况下可以同时处理多个客户端请求。与传统的多线程/多进程模型比，I/O 多路复用的
+最大优势是系统开销小，系统不需要创建新的额外进程或者线程，也不需要维护这些进程和线程
+的运行，降低了系统的维护工作量，节省了系统资源。
+
+
+Netty 的 IO 线程 NioEventLoop 由于聚合了多路复用器 Selector，可以同时并发处理成百上千个
+客户端 Channel，由于读写操作都是非阻塞的，这就可以充分提升 IO 线程的运行效率，避免由于
+频繁 IO 阻塞导致的线程挂起。
+
+由于 Netty 采用了异步通信模式，一个 IO 线程可以并发处理 N 个客户端连接和读写操作，这从根
+本上解决了传统同步阻塞 IO 一连接一线程模型，架构的性能、弹性伸缩能力和可靠性都得到了极
+大的提升。
+
+nio中的核心，Reactor
+
+当线程调用 channel.writeAndFlush()发送消息后，紧接着执行 callback 的 get()方法试
+图获取远程返回的结果。在 get()内部，则使用 synchronized 获取回调对象 callback 的
+锁，再先检测是否已经获取到结果，如果没有，然后调用 callback 的 wait()方法，释放
+callback 上的锁，让当前线程处于等待状态
+
+public Object get() {
+	synchronized (this) { // 旋锁
+		while (true) { // 是否有结果了
+			If(!isDone){
+				wait(); //没结果释放锁，让当前线程处于等待状态
+			}else{//获取数据并处理}
+		}
+	}
+}
+
+private void setDone(Response res) {
+	this.res = res;
+	isDone = true;
+	synchronized (this) { //获取锁，因为前面 wait()已经释放了 callback 的锁了
+		notifyAll(); // 唤醒处于等待的线程
+	}
+}
+
+TCP/IP 由四个层次组成：网络接口层、网络层、传输层、应用层
+
+
+Zookeeper 集群是一个基于主从复制的高可用集群，每个服务器承担如下三种角色中的一种
+11.1.1.1. Leader
+1.
+一个 Zookeeper 集群同一时间只会有一个实际工作的 Leader，它会发起并维护与各 Follwer
+及 Observer 间的心跳。
+2.
+所有的写操作必须要通过 Leader 完成再由 Leader 将写操作广播给其它服务器。只要有超过
+半数节点（不包括 observeer 节点）写入成功，该写请求就会被提交（类 2PC 协议）。
+11.1.1.2. Follower
+1.
+一个 Zookeeper 集群可能同时存在多个 Follower，它会响应 Leader 的心跳，
+2.
+Follower 可直接处理并返回客户端的读请求，同时会将写请求转发给 Leader 处理，
+3.
+并且负责在 Leader 处理写请求时对请求进行投票。
+11.1.1.3. Observer
+角色与 Follower 类似，但是无投票权。Zookeeper 需保证高可用和强一致性，为了支持更多的客
+户端，需要增加更多 Server；Server 增多，投票阶段延迟增大，影响性能；引入 Observer，
+Observer 不参与投票； Observers 接受客户端的连接，并将写请求转发给 leader 节点； 加入更
+多 Observer 节点，提高伸缩性，同时不影响吞吐率。
+
+
+普通的负载均衡软件，如 LVS，其实现的功能只是对请求数据包的转发、传递，从负载均衡下的节
+点服务器来看，接收到的请求还是来自访问负载均衡器的客户端的真实用户；而反向代理就不一
+13/04/2018
+Page 212 of 283
+样了，反向代理服务器在接收访问用户请求后，会代理用户 重新发起请求代理下的节点服务器，
+最后把数据返回给客户端用户。在节点服务器看来，访问的节点服务器的客户端用户就是反向代
+理服务器，而非真实的网站访问用户。
+
+
+upstream_module是负载均衡模块
+upstream 模块允许 Nginx 定义一组或多组节点服务器组，使用时可通过 proxy_pass 代理方式把网站的请求发送到事先定义好的对应 Upstream 组 的名字上
+
+proxy_pass 指令属于 ngx_http_proxy_module 模块，此模块可以将请求转发到另一台服务器，
+在实际的反向代理工作中，会通过 location 功能匹配指定的 URI，然后把接收到服务匹配 URI 的
+请求通过 proyx_pass 抛给定义好的 upstream 节点池。
+
+
+索引列不能参与计算，保持列“干净”：带函数的查询不参与索引。
+12 .尽量的扩展索引，不要新建索引
+
+
+通常所说的柔性事务分为：两阶段型、补偿型、异步确保型、最大努力通知型几种。
+两阶段型
+1、 就是分布式事务两阶段提交，对应技术上的 XA、JTA/JTS。这是分布式环境下事务处理的
+典型模式。
+补偿型
+2、 TCC 型事务（Try/Confirm/Cancel）可以归为补偿型。
+
+异步确保型
+3、 通过将一系列同步的事务操作变为基于消息执行的异步操作, 避免了分布式事务中的同步
+阻塞操作的影响
+
+
+最大努力通知型（多次尝试）
+4、 这是分布式事务中要求最低的一种, 也可以通过消息中间件实现, 与前面异步确保型操作不
+同的一点是, 在消息由 MQ Server 投递到消费者之后, 允许在达到最大重试次数之后正常
+结束事务。
+
+
+229
+
+
+冒泡排序算法
+	思想就是，每次将范围内最大放最右，然后依次缩小范围
+	
+（1）比较前后相邻的二个数据，如果前面数据大于后面的数据，就将这二个数据交换。
+（2）这样对数组的第 0 个数据到 N-1 个数据进行一次遍历后，最大的一个数据就“沉”到数组第N-1 个位置。
+（3）N=N-1，如果 N 不为 0 就重复前面二步，否则排序完成。
+public static void bubbleSort1(int [] a, int n){
+	int i, j;
+
+	for(i=0; i<n; i++){//表示n次排序过程，每排一次就确定一个最大值放最右边，这样每次都会缩小范围，5个中最大，4个中最大
+		for(j=1; j<n-i; j++){
+			if(a[j-1] > a[j]){//前面的数字大于后面的数字就交换
+				//交换 a[j-1]和 a[j]
+				int temp;
+				temp = a[j-1];
+				a[j-1] = a[j];
+				a[j]=temp;
+			}
+		}
+	}
+}
+
+
+3 2 5 1 4
+2 3 5 1 4
+2 3 1 5 4
+2 3 1 4 5
+
+
+
+
+队列，进行插入操作的端称为队尾，进行删除操作的端称为队头。
+
+
+缓存雪崩
+一般有三种处理办法：
+1.一般并发量不是特别多的时候，使用最多的解决方案是加锁排队。
+2.给每一个缓存数据增加相应的缓存标记，记录缓存的是否失效，如果缓存标记失效，则更新数据缓存。
+3.为 key 设置不同的缓存失效时间。
+
+缓存预热
+缓存预热就是系统上线后，将相关的缓存数据直接加载到缓存系统。这样就可以避免在用户请求的时候，
+先查询数据库，然后再将数据缓存的问题！用户直接查询事先被预热的缓存数据！
