@@ -1,1 +1,16 @@
-HashMap的原理
+7页
+
+
+
+JDK，Java标准开发包，包括Java编译器、Java运行时环境，以及常用的Java类库等 
+JRE，Java运行环境，用于运行Java的字节码文件。
+JVM，Java虚拟机，是JRE的一部分，跨平台，负责运行字节码文件。
+
+如果我们要开发Java程序，那就需要JDK，因为要编译Java源文件。 
+如果我们只想运行已经编译好的Java字节码文件，也就是*.class文件，那么就只需要JRE。 
+JDK中包含了JRE，JRE中包含了JVM。
+
+
+String是不可变的，如果尝试去修改，会新生成一个字符串对象，如String类，虽然是引用类型
+StringBuffer和StringBuilder是可变的
+StringBuffer是线程安全的，StringBuilder是线程不安全的，所以在单线程环境下StringBuilder效 率会更高
