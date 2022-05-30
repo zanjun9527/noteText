@@ -88,6 +88,13 @@ idea 安装 破解版：
 	idea中注入mapper接口问题，在editor--inspection-spring core--code--autowiring for bean class 提示修改
 
 	idea中setting-inspection-spring-springcore-取消注入的报错提示	
+	
+idea中java编译
+	idea中的项目编译问题
+	1、项目名称处右击，点击"Open Moudle Settings".
+	2、点击左边列表“Project”，右边Project SDK选择1.8，Project language level选择“8 - Lambda, type annotations etc."
+	3、点击左边列表“Moudles，右边Source下的Language level选择“8 - Lambda, type annotations etc."，保存设置点击“OK”
+	4、idea中setting中, 点击Preference, 点击“Build, Execution, Deployment"下的“Java Compiler”，设置模块对应的编译版本
 
 git，maven相关
 	打开maven的依赖树，然后Ctrl+O，打开图中的搜索功能，可以定位到具体的依赖位置
